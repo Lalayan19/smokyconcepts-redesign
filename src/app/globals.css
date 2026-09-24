@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-dark: #122a26;
+  --color-brand-gold: #dcc090;
+  --color-brand-muted: #b8b39c;
+  --font-sans: var(--font-inter);
+}
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes size-modal-panel-in {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes size-modal-panel-out {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes size-modal-backdrop-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes size-modal-backdrop-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-size-modal-panel-in {
+  animation: size-modal-panel-in 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-size-modal-panel-out {
+  animation: size-modal-panel-out 0.32s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.animate-size-modal-backdrop-in {
+  animation: size-modal-backdrop-in 0.38s ease-out both;
+}
+
+.animate-size-modal-backdrop-out {
+  animation: size-modal-backdrop-out 0.28s ease-in both;
+}
+
+@keyframes modal-scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modal-scale-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+.animate-modal-scale-in {
+  animation: modal-scale-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-modal-scale-out {
+  animation: modal-scale-out 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes gallery-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-gallery-fade-in {
+  animation: gallery-fade-in 0.22s ease-out both;
+}

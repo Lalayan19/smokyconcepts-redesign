@@ -7,6 +7,7 @@ export default function ShopProductCard({ product }: { product: Product }) {
   return (
     <Link
       href={`/products/${product.slug}`}
+      draggable={false}
       className="flex flex-col overflow-hidden rounded-2xl border border-[#e3e1db] bg-white transition-colors hover:border-[#dcc090]"
     >
       <div className="relative h-52 w-full shrink-0 bg-white sm:h-60">

@@ -1,9 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import productBadge from "@/assets/icons/hero-3d-product-badge.png";
 import { useSwipeSheet } from "@/hooks/useSwipeSheet";
 
 const FONTS = [
@@ -67,7 +65,23 @@ export default function CustomizeModal({
   const [bold, setBold] = useState(initial?.bold ?? false);
   const [italic, setItalic] = useState(initial?.italic ?? false);
   const [fontOpen, setFontOpen] = useState(false);
+  // Blank room added under the form while the font list is open, so there is
+  // always enough to scroll for the list to be brought up into view.
+  const [listSpace, setListSpace] = useState(0);
   const fontRef = useRef<HTMLDivElement>(null);
+  const spacerRef = useRef<HTMLDivElement>(null);
+  const spaceTimer = useRef<number | undefined>(undefined);
+  const scrollBackTo = useRef(0);
+  const fontOpenRef = useRef(false);
+  // Whichever way the sheet closes (drag, backdrop, Save), the font list goes
+  // back to closed so it isn't left open the next time the modal appears.
+  const handleClose = useCallback(() => {
+    window.clearTimeout(spaceTimer.current);
+    fontOpenRef.current = false;
+    setFontOpen(false);
+    setListSpace(0);
+    onClose();
+  }, [onClose]);
   const {
     mounted,
     sheetRef,
@@ -77,7 +91,45 @@ export default function CustomizeModal({
     handleProps,
     contentDragProps,
     requestClose,
-  } = useSwipeSheet({ open, onClose });
+  } = useSwipeSheet({ open, onClose: handleClose });
+
+  // Opening the list scrolls the modal down so the list sits right under the
+  // Style row; closing it (or picking a font) scrolls back to where it was.
+  const openFontList = useCallback(() => {
+    const scroller = contentRef.current;
+    const row = fontRef.current;
+    const spacer = spacerRef.current;
+    if (!scroller || !row || !spacer) return;
+    window.clearTimeout(spaceTimer.current);
+    fontOpenRef.current = true;
+    setFontOpen(true);
+
+    scrollBackTo.current = scroller.scrollTop;
+    const scrollerTop = scroller.getBoundingClientRect().top;
+    const target = Math.max(
+      0,
+      scroller.scrollTop + row.getBoundingClientRect().top - scrollerTop - 8,
+    );
+    // Where the form ends (the spacer sits right after it) plus bottom padding.
+    const contentHeight =
+      scroller.scrollTop +
+      spacer.getBoundingClientRect().top -
+      scrollerTop +
+      parseFloat(getComputedStyle(scroller).paddingBottom);
+    setListSpace(Math.max(0, target + scroller.clientHeight - contentHeight));
+    // A moment later, once the extra room has been laid out, bring the list up.
+    window.setTimeout(() => scroller.scrollTo({ top: target, behavior: "smooth" }), 30);
+  }, [contentRef]);
+
+  const closeFontList = useCallback(() => {
+    if (!fontOpenRef.current) return;
+    fontOpenRef.current = false;
+    setFontOpen(false);
+    contentRef.current?.scrollTo({ top: scrollBackTo.current, behavior: "smooth" });
+    // Keep the extra room until the scroll back has played out.
+    window.clearTimeout(spaceTimer.current);
+    spaceTimer.current = window.setTimeout(() => setListSpace(0), 450);
+  }, [contentRef]);
 
   useEffect(() => {
     if (open) {
@@ -92,12 +144,15 @@ export default function CustomizeModal({
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (fontRef.current && !fontRef.current.contains(event.target as Node)) {
-        setFontOpen(false);
+        closeFontList();
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.clearTimeout(spaceTimer.current);
+    };
+  }, [closeFontList]);
 
   if (!mounted) return null;
 
@@ -115,27 +170,17 @@ export default function CustomizeModal({
         role="dialog"
         aria-modal="true"
         style={sheetStyle}
-        className="relative z-10 flex max-h-[85vh] w-full max-w-[24rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
+        className="relative z-10 flex h-[80vh] w-full max-w-[40rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:h-[65vh] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
       >
         <div {...handleProps} className="flex shrink-0 touch-none justify-center py-3">
           <div className="h-1 w-10 rounded-full bg-black/20" />
         </div>
         <div {...contentDragProps} className="flex min-h-0 flex-1 flex-col">
-        <div ref={contentRef} className="flex-1 touch-none overflow-y-auto px-6 pb-5">
-          <h2 className="text-center text-xl font-extrabold tracking-[-0.01em] text-[#414141]">
-            Customization
-          </h2>
-
-          <div className="mt-4 flex justify-center rounded-[1.25rem] bg-[#f5f4f1] py-4">
-            <Image
-              src={productBadge}
-              alt=""
-              className="h-20 w-auto object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,0.18)]"
-              priority
-            />
-          </div>
-
-          <p className="mt-4 text-[11px] font-bold tracking-[0.14em] text-[#898989] uppercase">
+        <div
+          ref={contentRef}
+          className="min-h-0 flex-1 touch-none overflow-y-auto px-6 pt-1 pb-5 sm:px-12 sm:pt-4"
+        >
+          <p className="text-[11px] font-bold tracking-[0.14em] text-[#898989] uppercase">
             Live Preview
           </p>
           <div className="mt-2 flex min-h-[5rem] items-center justify-center rounded-[1.25rem] border border-[#dcc090]/40 bg-gradient-to-b from-[#173934] to-[#0e211e] px-6 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_24px_rgba(18,42,38,0.25)]">
@@ -177,7 +222,7 @@ export default function CustomizeModal({
             <div className="mt-2 flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setFontOpen((o) => !o)}
+                onClick={() => (fontOpen ? closeFontList() : openFontList())}
                 className="flex h-12 flex-1 items-center justify-between rounded-2xl border border-[#dcdcd8] bg-white px-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-colors hover:border-[#dcc090]"
               >
                 <span
@@ -235,7 +280,7 @@ export default function CustomizeModal({
                   tabIndex={fontOpen ? 0 : -1}
                   onClick={() => {
                     setFont(f);
-                    setFontOpen(false);
+                    closeFontList();
                   }}
                   className={`flex w-full items-center justify-between px-4 py-3 text-left text-[15px] transition-colors hover:bg-[#f5f4f1] ${
                     font.label === f.label ? "bg-[#dcc090]/10 text-[#a9752e]" : "text-[#414141]"
@@ -247,9 +292,10 @@ export default function CustomizeModal({
               ))}
             </div>
           </div>
+          <div ref={spacerRef} aria-hidden="true" style={{ height: listSpace }} />
         </div>
 
-        <div className="shrink-0 border-t border-black/5 px-6 py-3">
+        <div className="shrink-0 border-t border-black/5 px-6 py-3 sm:px-12">
           <button
             type="button"
             onClick={() => {

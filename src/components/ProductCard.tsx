@@ -5,8 +5,8 @@ import { formatPrice, type Product } from "@/data/products";
 
 export default function ProductCard({ product }: { product: Product }) {
   return (
-    <article className="group relative z-0 flex h-full min-h-0 max-sm:w-[calc((100vw-2.25rem)/1.72)] w-full shrink-0 flex-col overflow-visible rounded-[1.125rem] bg-white px-0 pt-[4.5rem] pb-4 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] hover:z-[8] focus-within:z-[8] sm:w-[11rem] sm:pt-[5rem] sm:pb-5 lg:w-[11rem] lg:pt-[4.5rem] xl:w-[11.5rem]">
-      <div className="relative z-10 mb-0 flex h-[14.75rem] shrink-0 items-end justify-center overflow-visible -mt-[6rem] sm:mb-1 sm:h-[17.75rem] sm:-mt-[7rem] lg:h-[14.5rem] lg:-mt-[6.5rem]">
+    <article className="group relative z-0 flex h-full min-h-0 max-sm:w-[calc((100vw-2.25rem)/1.72)] w-full shrink-0 flex-col overflow-visible rounded-[1.125rem] bg-white px-0 pt-[7rem] pb-8 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] hover:z-[8] focus-within:z-[8] sm:w-[11rem] sm:pt-[8rem] sm:pb-9 lg:w-[11rem] lg:pt-[7.5rem] xl:w-[11.5rem]">
+      <div className="relative z-10 mb-0 flex h-[14.75rem] shrink-0 items-end justify-center overflow-visible -mt-[4.5rem] sm:mb-1 sm:h-[17.75rem] sm:-mt-[5.5rem] lg:h-[14.5rem] lg:-mt-[5rem]">
         <div className="relative h-[13.75rem] w-full transition-transform duration-300 ease-out group-hover:-translate-y-1.5 group-hover:scale-[1.045] sm:h-[16.5rem] lg:h-[13.75rem]">
           <Link
             href={`/products/${product.slug}`}
@@ -24,7 +24,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
       </div>
 
-      <div className="relative z-20 flex min-h-0 flex-1 flex-col justify-between -mt-[3.7rem] px-2.5 sm:-mt-[4.25rem] sm:px-3 lg:-mt-[3.5rem]">
+      <div className="relative z-20 flex min-h-0 flex-1 flex-col justify-between -mt-[1.5rem] px-2.5 sm:-mt-[2rem] sm:px-3 lg:-mt-[1.3rem]">
         <div className="min-w-0">
           <div
             className="mb-0.5 flex min-h-3 items-center justify-center gap-1"

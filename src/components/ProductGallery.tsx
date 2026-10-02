@@ -28,9 +28,11 @@ const SWIPE_THRESHOLD = 40;
 export default function ProductGallery({
   images,
   alt,
+  title,
 }: {
   images: StaticImageData[];
   alt: string;
+  title: string;
 }) {
   const [active, setActive] = useState(0);
   const touchStartX = useRef<number | null>(null);
@@ -87,6 +89,10 @@ export default function ProductGallery({
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
+        <h1 className="absolute top-3 left-3 z-10 max-w-[60%] text-[1.375rem] leading-tight font-extrabold text-[#414141]">
+          {title}
+        </h1>
+
         {images.length > 1 && (
           <span className="absolute top-3 right-3 z-10 rounded-full bg-[#122a26]/70 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
             {active + 1} / {images.length}

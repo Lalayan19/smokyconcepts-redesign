@@ -60,7 +60,7 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
     ],
   },
   {
-    name: "Special",
+    name: "Special Edition",
     products: [
       { name: "Cascade", slug: "cascade", size: "Ultra Slims", collection: "Special Edition", price: 39800, image: cascade, inStock: false },
     ],

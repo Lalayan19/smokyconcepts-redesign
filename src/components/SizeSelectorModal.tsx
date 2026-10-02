@@ -5,19 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import cigaretteIcon from "@/assets/images/cigarete-icon.svg";
 import { CIGARETTE_SIZES } from "@/data/cigaretteSizes";
-
-function CloseIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <path
-        d="M5 5L19 19M19 5L5 19"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
+import { useSwipeSheet } from "@/hooks/useSwipeSheet";
 
 function ChevronIcon({
   direction,
@@ -197,38 +185,26 @@ export default function SizeSelectorModal({
 }: SizeSelectorModalProps) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<SelectedItem | null>(null);
-  const [mounted, setMounted] = useState(open);
-  const [closing, setClosing] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      setMounted(true);
-      setClosing(false);
-    } else if (mounted) {
-      setClosing(true);
-      const timeout = setTimeout(() => {
-        setMounted(false);
-        setClosing(false);
-      }, 320);
-      return () => clearTimeout(timeout);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  const {
+    mounted,
+    sheetRef,
+    contentRef,
+    sheetStyle,
+    backdropClassName,
+    handleProps,
+    contentDragProps,
+    requestClose,
+  } = useSwipeSheet({ open, onClose });
 
   useEffect(() => {
     if (!mounted) return;
-
-    document.body.style.overflow = "hidden";
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") requestClose();
     };
     window.addEventListener("keydown", handleKey);
-
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKey);
-    };
-  }, [mounted, onClose]);
+    return () => window.removeEventListener("keydown", handleKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted]);
 
   if (!mounted) return null;
 
@@ -241,43 +217,41 @@ export default function SizeSelectorModal({
   })).filter((category) => category.items.length > 0);
 
   return (
-    <div className="fixed inset-0 z-[110] text-left">
+    <div className="fixed inset-0 z-[110] flex items-end justify-center text-left sm:items-center sm:p-4 sm:pt-20">
       <button
         type="button"
         aria-label="Close"
-        onClick={onClose}
-        className={`absolute inset-0 z-0 bg-black/60 ${
-          closing ? "animate-size-modal-backdrop-out" : "animate-size-modal-backdrop-in"
-        }`}
+        onClick={requestClose}
+        className={`absolute inset-0 z-0 bg-black/60 ${backdropClassName}`}
       />
 
       <div
+        ref={sheetRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="size-selector-title"
-        className={`absolute inset-y-0 right-0 z-10 flex h-full w-full max-w-full flex-col overflow-hidden bg-[#efefef] shadow-[-8px_0_32px_rgba(0,0,0,0.12)] md:w-[min(1078px,56.15vw)] ${
-          closing ? "animate-size-modal-panel-out" : "animate-size-modal-panel-in"
-        }`}
+        style={sheetStyle}
+        className="relative z-10 flex h-[80vh] w-full max-w-[40rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-[#efefef] shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:h-[65vh] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
       >
-        <div className="relative min-h-0 flex-1 overflow-y-auto px-6 pt-10 pb-8 sm:px-12 sm:pt-12">
-          <div className="flex items-start justify-between gap-4">
-            <h2
-              id="size-selector-title"
-              className="text-[28px] font-extrabold leading-none text-[#414141] sm:text-[36px]"
-            >
-              Select size
-            </h2>
-            <button
-              type="button"
-              aria-label="Close"
-              onClick={onClose}
-              className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center text-[#414141] transition-opacity hover:opacity-70"
-            >
-              <CloseIcon className="h-5 w-5" />
-            </button>
-          </div>
+        <div
+          {...handleProps}
+          className="flex shrink-0 touch-none justify-center py-3"
+        >
+          <div className="h-1 w-10 rounded-full bg-black/20" />
+        </div>
+        <div {...contentDragProps} className="flex min-h-0 flex-1 flex-col">
+        <div
+          ref={contentRef}
+          className="relative min-h-0 flex-1 touch-none overflow-y-auto px-6 pb-8 sm:px-12 sm:pt-6"
+        >
+          <h2
+            id="size-selector-title"
+            className="text-[28px] font-extrabold leading-none text-[#414141] sm:text-[36px]"
+          >
+            Select size
+          </h2>
 
-          <div className="mt-6 w-full max-w-[978px]">
+          <div className="sticky top-0 z-10 mt-6 w-full max-w-[978px] bg-[#efefef] pt-1 pb-3">
             <label htmlFor="size-search" className="sr-only">
               Search by cigarette name
             </label>
@@ -311,10 +285,10 @@ export default function SizeSelectorModal({
         </div>
 
         {selected && (
-          <div className="flex shrink-0 items-center justify-between gap-4 border-t border-black/5 bg-[#efefef] px-6 py-4 sm:px-12">
+          <div className="flex shrink-0 items-center justify-between gap-4 border-t border-black/5 bg-[#efefef] px-6 pb-10 pt-4 sm:px-12">
             <p className="min-w-0 truncate text-sm font-medium text-[#414141]">
               <span className="text-[#9d9d9d]">{selected.category}:</span>{" "}
-              {selected.name}
+              <br /><span>{selected.name}</span>
             </p>
             <button
               type="button"
@@ -325,6 +299,7 @@ export default function SizeSelectorModal({
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

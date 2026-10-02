@@ -13,9 +13,9 @@ export default function SameSizeProducts({
   if (products.length === 0) return null;
 
   return (
-    <section className="mt-5">
-      <div className="flex items-end justify-between px-1">
-        <h2 className="text-[1.125rem] font-extrabold tracking-[-0.01em] text-[#414141]">
+    <section className="mt-10">
+      <div className="flex items-end justify-between">
+        <h2 className="text-[0.9375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
           More in {collection} Collection
         </h2>
         <span className="shrink-0 text-xs font-semibold text-[#898989]">
@@ -23,12 +23,12 @@ export default function SameSizeProducts({
         </span>
       </div>
 
-      <div className="scrollbar-hide mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
+      <div className="scrollbar-hide mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pl-2 pb-1">
         {products.map((p) => (
           <Link
             key={p.slug}
             href={`/products/${p.slug}`}
-            className="flex w-[13.5rem] shrink-0 snap-start items-center gap-3 rounded-2xl bg-white p-3 shadow-[0_2px_10px_rgba(0,0,0,0.06)] transition-transform active:scale-[0.97]"
+            className="flex w-[13.5rem] shrink-0 snap-start items-center gap-3 rounded-2xl bg-[#fffffe] p-3 shadow-[0_1px_4px_rgba(0,0,0,0.05)] transition-transform active:scale-[0.97]"
           >
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold text-[#414141]">{p.name}</p>
@@ -38,7 +38,6 @@ export default function SameSizeProducts({
               </p>
             </div>
             <div className="relative h-16 w-14 shrink-0">
-              <div className="absolute inset-x-0 -bottom-2 h-12 rounded-lg bg-[#f5f4f1]" />
               <Image
                 src={p.image}
                 alt={p.name}

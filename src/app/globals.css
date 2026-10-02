@@ -4,7 +4,8 @@
   --color-brand-dark: #122a26;
   --color-brand-gold: #dcc090;
   --color-brand-muted: #b8b39c;
-  --font-sans: var(--font-inter);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-montserrat: "Montserrat", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -106,6 +107,45 @@
 
 .animate-modal-scale-out {
   animation: modal-scale-out 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes bottom-sheet-in {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes bottom-sheet-out {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-bottom-sheet-in {
+  animation: bottom-sheet-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-bottom-sheet-out {
+  animation: bottom-sheet-out 0.26s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes page-slide-in-left {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-page-slide-in-left {
+  animation: page-slide-in-left 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes gallery-fade-in {

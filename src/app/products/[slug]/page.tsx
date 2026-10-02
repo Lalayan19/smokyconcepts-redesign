@@ -23,6 +23,8 @@ const DETAILS = [
   { label: "Leather", value: "High Quality Leather" },
   { label: "Color", value: "Dark Brown" },
   { label: "Body", value: "PET Carbon Fiber" },
+  { label: "Dimensions", value: "88 × 56 × 18 mm" },
+  { label: "Weight", value: "45 g" },
   { label: "Finish", value: "Natural matte" },
   { label: "Construction", value: "Engineered core, wrapped and hand-finished in leather" },
 ];
@@ -84,7 +86,11 @@ export default function ProductPage() {
   }
 
   const allProducts = PRODUCT_CATEGORIES.flatMap((c) => c.products);
-  const related = allProducts.filter((p) => p.slug !== product.slug).slice(0, 6);
+  const otherProducts = allProducts.filter((p) => p.slug !== product.slug);
+  const related = [
+    ...otherProducts.filter((p) => p.collection === "Premium"),
+    ...otherProducts.filter((p) => p.collection !== "Premium"),
+  ].slice(0, 6);
   const sameClass = allProducts.filter(
     (p) => p.slug !== product.slug && p.collection === product.collection,
   );
@@ -92,49 +98,53 @@ export default function ProductPage() {
   return (
     <main className="bg-[#f5f4f1]">
       <div className="mx-auto max-w-[40rem] px-4 pt-5 pb-16">
-        {/* Upper section — gallery and core purchase decision (name, size, customize, price) read as one continuous surface */}
+        {/* Gallery */}
         <div className="overflow-hidden rounded-[1.5rem] bg-white shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
           <ProductGallery
             images={[product.image, product.image, product.image, product.image]}
             alt={product.name}
+            title={product.name}
           />
+        </div>
 
-          <div className="flex flex-col gap-5 border-t border-black/5 px-5 pt-5 pb-6">
-            <div>
-              <span className="inline-flex items-center rounded-full bg-[#122a26]/[0.06] px-3 py-1 text-[11px] font-bold tracking-wider text-[#122a26] uppercase">
-                {product.size} · {product.collection}
+        <SameSizeProducts collection={product.collection} products={sameClass} />
+
+        {/* Core purchase decision (name, size, customize, price) */}
+        <div className="mt-5 flex flex-col gap-5 rounded-[1.5rem] bg-white p-5 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
+          <span className="inline-flex w-fit items-center rounded-full bg-[#122a26]/[0.06] px-3 py-1 text-[11px] font-bold tracking-wider text-[#122a26] uppercase">
+            {product.size} · {product.collection}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => setSizeModalOpen(true)}
+            className="flex h-14 w-full items-center justify-between rounded-2xl bg-[#dcc090] px-5 text-left shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-transform active:scale-[0.98]"
+          >
+            <span className="flex flex-col gap-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-[#122a26]/70 uppercase">
+                Size
               </span>
-              <h1 className="mt-2 text-[1.75rem] leading-[1.15] font-extrabold tracking-[-0.01em] text-[#414141]">
-                {product.name}
-              </h1>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setSizeModalOpen(true)}
-              className="flex h-14 w-full items-center justify-between rounded-2xl bg-[#dcc090] px-5 text-left shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-transform active:scale-[0.98]"
-            >
-              <span className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold tracking-wider text-[#122a26]/70 uppercase">
-                  Size
-                </span>
-                <span className="text-[15px] leading-none font-extrabold text-[#122a26]">
-                  {size ?? "Select size"}
-                </span>
+              <span className="text-[15px] leading-none font-extrabold text-[#122a26]">
+                {size ?? "Select size"}
               </span>
-              <ChevronRightIcon className="h-5 w-5 shrink-0 text-[#122a26]" />
-            </button>
-
+            </span>
+            <ChevronRightIcon className="h-5 w-5 shrink-0 text-[#122a26]" />
+          </button>
+          {product.collection === "Atelier" ? <> </> : 
             <div>
               <button
                 type="button"
                 onClick={() => setCustomizeOpen(true)}
-                className="flex h-11 w-full items-center justify-between rounded-full border-2 border-[#dcc090] px-5 text-[#dcc090] shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all active:scale-[0.98]"
+                className={`flex h-11 w-full items-center justify-between rounded-full border-2 px-5 shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all active:scale-[0.98] ${
+                  product.collection === "Atelier"
+                    ? "border-black text-black"
+                    : "border-[#dcc090] text-[#dcc090]"
+                }`}
               >
                 <span className="flex items-center gap-2.5">
-                  <PencilIcon className="h-4 w-4" />
+                  <PencilIcon className="h-4 w-4" /> 
                   <span className="text-xs font-extrabold tracking-[0.14em] uppercase">
-                    Customize
+                    {product.collection === "Atelier" ? "Personalize" : "Customize"}
                   </span>
                 </span>
                 <ChevronRightIcon className="h-4 w-4" />
@@ -148,21 +158,18 @@ export default function ProductPage() {
                 </div>
               )}
             </div>
+          }
+          <div className="h-px bg-black/5" />
 
-            <div className="h-px bg-black/5" />
-
-            <div>
-              <p className="text-[11px] font-bold tracking-wider text-[#898989] uppercase">
-                Price
-              </p>
-              <p className="mt-1 text-[1.875rem] leading-none font-extrabold text-[#414141]">
-                {formatPrice(product.price)}
-              </p>
-            </div>
+          <div>
+            <p className="text-[11px] font-bold tracking-wider text-[#898989] uppercase">
+              Price
+            </p>
+            <p className="mt-1 text-[1.875rem] leading-none font-extrabold text-[#414141]">
+              {formatPrice(product.price)}
+            </p>
           </div>
         </div>
-
-        <SameSizeProducts collection={product.collection} products={sameClass} />
 
         <DeliveryInfo />
 
@@ -188,19 +195,6 @@ export default function ProductPage() {
           </button>
         </div>
 
-        <section className="mt-12">
-          <h2 className="text-[1.375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
-            You May Also Like
-          </h2>
-          <div className="scrollbar-hide mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto pt-[4.5rem] pb-2">
-            {related.map((p) => (
-              <div key={p.slug} className="shrink-0 snap-start">
-                <ProductCard product={p} />
-              </div>
-            ))}
-          </div>
-        </section>
-
         <section className="mt-10">
           <h2 className="text-[1.375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
             Details
@@ -222,11 +216,24 @@ export default function ProductPage() {
           </dl>
         </section>
 
+        <ProductDescription />
+
         <div className="mt-8">
           <HowToUse />
         </div>
 
-        <ProductDescription />
+        <section className="mt-10">
+          <h2 className="text-[1.375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
+            You May Also Like
+          </h2>
+          <div className="scrollbar-hide mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto pt-2 pb-2">
+            {related.map((p) => (
+              <div key={p.slug} className="shrink-0 snap-start">
+                <ProductCard product={p} />
+              </div>
+            ))}
+          </div>
+        </section>
 
         <ShopByCategory />
       </div>

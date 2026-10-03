@@ -3,7 +3,14 @@ import Link from "next/link";
 
 import { formatPrice, type Product } from "@/data/products";
 
-export default function ShopProductCard({ product }: { product: Product }) {
+type ShopProductCardProps = {
+  product: Product;
+  // Fetch the picture right away instead of when the card is almost on screen
+  // (for a row where cards slide in from the side, so they are never empty).
+  eager?: boolean;
+};
+
+export default function ShopProductCard({ product, eager = false }: ShopProductCardProps) {
   return (
     <Link
       href={`/products/${product.slug}`}
@@ -15,6 +22,7 @@ export default function ShopProductCard({ product }: { product: Product }) {
           src={product.image}
           alt={product.name}
           fill
+          loading={eager ? "eager" : undefined}
           className="object-contain object-bottom p-4"
         />
       </div>

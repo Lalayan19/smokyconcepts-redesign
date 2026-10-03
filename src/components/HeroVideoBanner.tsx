@@ -42,7 +42,7 @@ export default function HeroVideoBanner({
   }, [video]);
 
   return (
-    <section className="relative left-1/2 mb-3 w-screen -mx-[50vw] overflow-hidden rounded-b-[1.5rem] bg-black">
+    <section className="bg-white relative left-1/2 w-screen -mx-[50vw] overflow-hidden bg-black">
       <Link href={buttonHref}>
         <video
           ref={videoRef}
@@ -52,7 +52,7 @@ export default function HeroVideoBanner({
           muted
           loop
           playsInline
-          className="block h-auto w-full"
+          className="block h-auto w-full rounded-b-[1.5rem]"
         />
      </Link>
         <div
@@ -65,27 +65,32 @@ export default function HeroVideoBanner({
 
         <div className="absolute inset-x-0 top-0 z-20 px-6 pt-3 text-center">
           <h2
-            className="font-extrabold tracking-[-0.01em] text-white"
-            style={{ lineHeight: "30px", fontSize: "24px" }}
+            className="font-montserrat tracking-[-0.01em] text-white"
+            style={{ lineHeight: "30px", fontSize: "24px", fontWeight: 530 }}
           >
             {title}
           </h2>
           {subtitle && (
-            <p className="mt-3 text-white/80" style={{ fontSize: "12px" }}>
+            <p className="text-white/80" style={{ marginTop: "-4px", fontSize: "12px" }}>
               {subtitle}
             </p>
           )}
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-4 px-6 pb-10 sm:pb-14">
-          <div className="min-w-0 max-w-[65%] mb-[60px]">
+        {/* The bottom heading + text and the button all sit 124px above the
+            bottom edge. */}
+        <div
+          className="absolute inset-x-0 bottom-0 z-20 flex items-end justify-start gap-4 px-6"
+          style={{ paddingBottom: "124px", display: 'flex', justifyContent: "center" }}
+        >
+          <div className="min-w-0" style={{ maxWidth: "65%" }}>
             {bottomHeading && (
               <h3 className="text-xl font-extrabold tracking-[-0.01em] text-white sm:text-2xl">
                 {bottomHeading}
               </h3>
             )}
             {bottomText && (
-              <p className="mt-1.5 text-[11px] leading-snug text-white/70 sm:text-xs">
+              <p className="mt-1.5 text-[8px] leading-snug text-white sm:text-xs">
                 {bottomText}
               </p>
             )}
@@ -93,8 +98,15 @@ export default function HeroVideoBanner({
 
           <Link
             href={buttonHref}
-            style={{ letterSpacing: "0.1em", marginBottom: "70px" }}
-            className="inline-flex h-10 w-[176px] shrink-0 items-center justify-center rounded-[8px] bg-[#dcc090] text-[20px] font-normal text-[#122a26] transition-colors hover:bg-[#d3b57c]"
+            style={{
+              width: "80px",
+              height: "42px",
+              border: "1px solid #ffffff",
+              fontWeight: 500,
+              textTransform: "uppercase",
+              fontSize: "17px"
+            }}
+            className="inline-flex shrink-0 items-center justify-center rounded-[8px] bg-[#dcc090] font-montserrat text-[20px] text-[#122a26] transition-colors hover:bg-[#d3b57c]"
           >
             {buttonLabel}
           </Link>

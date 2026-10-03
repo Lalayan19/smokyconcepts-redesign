@@ -160,3 +160,82 @@
 .animate-gallery-fade-in {
   animation: gallery-fade-in 0.22s ease-out both;
 }
+
+/* Cover Collections: the name of the coin in the middle. The old name drops
+   out downwards, the new one comes in from the top. */
+@keyframes collection-name-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes collection-name-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.collection-name-in {
+  animation: collection-name-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.collection-name-out {
+  animation: collection-name-out 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collection-name-in,
+  .collection-name-out {
+    animation-duration: 0.01ms;
+  }
+}
+
+/* Ultra Slims: the name of the card in the middle. It moves sideways the way
+   the row is moving: --name-shift is how far (and to which side) the new name
+   starts; the old name leaves to the opposite side. */
+@keyframes product-name-in {
+  0% {
+    opacity: 0;
+    transform: translateX(var(--name-shift));
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes product-name-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(calc(var(--name-shift) * -1));
+  }
+}
+
+.product-name-in {
+  animation: product-name-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.product-name-out {
+  animation: product-name-out 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-name-in,
+  .product-name-out {
+    animation-duration: 0.01ms;
+  }
+}

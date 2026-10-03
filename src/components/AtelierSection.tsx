@@ -9,33 +9,37 @@ type AtelierSectionProps = {
 
 export default function AtelierSection({ image, buttonHref }: AtelierSectionProps) {
   return (
-    <section className="relative left-1/2 mb-3 flex h-[700px] w-screen -mx-[50vw] flex-col bg-[#efefef] px-6 pt-[48px] pb-10 text-center">
-      <Link href={buttonHref}> 
-      <h2
-        className="font-montserrat italic text-[#414141]"
-        style={{ fontWeight: 800, fontSize: "73px", lineHeight: 1.1 }}
-      >
-        Atelier
-      </h2>
-      <p
-        className="mx-auto mt-3 max-w-md font-montserrat text-[#414141]"
-        style={{ fontSize: "16px" }}
-      >
-        Pack names are standard. Dimensions aren&rsquo;t. We make precise
-        versions that match yours
-      </p>
+    <section className="bg-white relative left-1/2 flex h-[94vh] w-screen -mx-[50vw] flex-col bg-[#efefef] px-6 pt-[70px] pb-10 text-center">
+      <Link href={buttonHref}>
+        <h2
+          className="font-montserrat italic text-[#130F0F]"
+          style={{ fontWeight: 800, fontSize: "66px", lineHeight: 1.1 }}
+        >
+          Atelier
+        </h2>
+        <p
+          className="mx-auto max-w-md font-montserrat text-[#120F0F]"
+          style={{ fontSize: "14px", fontWeight: "600" }}
+        >
+          Pack names are standard. Dimensions aren&rsquo;t. We make precise
+          versions that match yours
+        </p>
 
-      <button
-        // href={buttonHref}
-        style={{ letterSpacing: "0.1em" }}
-        className="mt-[48px] inline-flex h-10 w-[176px] items-center justify-center self-center rounded-[8px] bg-[#dcc090] text-[20px] font-normal text-[#122a26] transition-colors hover:bg-[#d3b57c]"
-      >
-        Buy Now
-      </button>
+        <button
+          // href={buttonHref}
+          style={{
+            letterSpacing: "0.1em",
+            border: "1px solid #122A26",
+            fontWeight: 500,
+          }}
+          className="mt-[48px] inline-flex h-[42px] w-[165px] items-center justify-center self-center rounded-[8px] bg-[#dcc090] text-[17px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
+        >
+          BUY NOW
+        </button>
 
-      <div className="relative mx-auto mt-[48px] h-[321px] w-[214px]">
-        <Image src={image} alt="Atelier" fill className="object-contain" />
-      </div>
+        <div className="relative mx-auto mt-[54px] h-[315px] w-[203px]">
+          <Image src={image} alt="Atelier" fill className="object-contain" />
+        </div>
       </Link>
     </section>
   );

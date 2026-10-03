@@ -14,10 +14,9 @@ import SizeSelectorModal from "@/components/SizeSelectorModal";
 
 import newAccessory from "@/assets/images/Unlock.png";
 import atelier from "@/assets/images/homepage_redesign_assets/AtelierV2_1_real_size.png";
-import collectionsImg from "@/assets/images/homepage_redesign_assets/01 1.png";
 import popularSizes from "@/assets/images/homepage_redesign_assets/Sizes (1).png";
 import personalization from "@/assets/images/homepage_redesign_assets/personalization_realsizes.png";
-import aboutUs from "@/assets/images/homepage_redesign_assets/Group_1321315419_cropped.png";
+import aboutUs from "@/assets/images/homepage_redesign_assets/smoky-concepts-bag-transparent.png";
 
 export default function Home() {
   const router = useRouter();
@@ -40,7 +39,7 @@ export default function Home() {
             </>
           }
           bottomHeading="Contrary"
-          bottomText="The standard chunk of Lorem Ipsum used since the 1500s is reproduced below"
+          bottomText="The standard chunk of Lorem Ipsum used since the 1500s is reproduced below, The standard chunk of Lorem Ipsum used since the 1500s is reproduced below,The standard chunk of "
           image={newAccessory}
           video="/videos/smoky-unlock.mp4"
           buttonLabel="Shop"
@@ -48,7 +47,7 @@ export default function Home() {
         />
       <AtelierSection image={atelier} buttonHref="/products/crocos" />
 
-      <CoverCollectionsSection image={collectionsImg} />
+      <CoverCollectionsSection />
 
       <UltraSlimsSection buttonHref="/shop" />
 

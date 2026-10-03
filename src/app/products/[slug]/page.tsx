@@ -107,7 +107,22 @@ export default function ProductPage() {
           />
         </div>
 
-        <SameSizeProducts collection={product.collection} products={sameClass} />
+        <SameSizeProducts
+          key={product.slug}
+          collection={product.collection}
+          products={sameClass}
+        />
+
+        {/* The name of the product, between the collection row and the
+            purchase choices. */}
+        <section className="mt-5 rounded-[1.5rem] bg-white px-5 py-5 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
+          <p className="text-[11px] font-bold tracking-wider text-[#898989] uppercase">
+            Product
+          </p>
+          <h2 className="mt-1 text-[1.5rem] leading-tight font-extrabold text-[#414141]">
+            {product.name}
+          </h2>
+        </section>
 
         {/* Core purchase decision (name, size, customize, price) */}
         <div className="mt-5 flex flex-col gap-5 rounded-[1.5rem] bg-white p-5 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">

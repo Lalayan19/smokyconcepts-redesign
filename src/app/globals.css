@@ -239,3 +239,22 @@
     animation-duration: 0.01ms;
   }
 }
+/* Shop: the collection bar drops in from under the header when it sticks. */
+@keyframes shop-bar-drop {
+  0% {
+    transform: translateY(-14px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.shop-bar-drop {
+  animation: shop-bar-drop 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-bar-drop {
+    animation: none;
+  }
+}

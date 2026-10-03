@@ -266,7 +266,7 @@ export default function SizeSelectorModal({
             />
           </div>
 
-          <div className="mt-10 space-y-[50px] pb-8">
+          <div className=" space-y-[50px] pb-8">
             {filteredCategories.map((category) => (
               <CategoryRow
                 key={category.name}

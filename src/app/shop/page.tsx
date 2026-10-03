@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import ShopProductCard from "@/components/ShopProductCard";
@@ -8,6 +8,97 @@ import SizeSelectorModal from "@/components/SizeSelectorModal";
 import { PRODUCT_CATEGORIES } from "@/data/products";
 
 const COLLECTIONS = PRODUCT_CATEGORIES.map((c) => c.name);
+
+// The collection buttons are always one row across the full width. The row is a
+// container, so on a narrower screen the buttons and their text (sized in
+// container-width units) shrink together and every name still fits.
+//
+// It sticks just under the header while the page scrolls. From then on it sits
+// on a blurred, rounded background that is 90% as wide as the row was, and that
+// drops in from under the header.
+function CollectionBar({
+  selected,
+  onToggle,
+}: {
+  selected: string[];
+  onToggle: (name: string) => void;
+}) {
+  const barRef = useRef<HTMLDivElement>(null);
+  const [stuck, setStuck] = useState(false);
+
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    // Stuck once the bar has reached the offset it sticks at.
+    const update = () => {
+      const stickAt = parseFloat(getComputedStyle(bar).top);
+      setStuck(bar.getBoundingClientRect().top <= stickAt + 0.5);
+    };
+    const first = requestAnimationFrame(update);
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      cancelAnimationFrame(first);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={barRef}
+      // Only the row itself takes clicks, not the empty space around it.
+      className="pointer-events-none sticky z-30 mt-4 flex h-[60px] items-center"
+      style={{ top: "calc(4rem + 0.25rem)" }}
+    >
+      <div
+        className={`pointer-events-auto mx-auto flex items-center gap-2 rounded-[8px] transition-[width,padding,background-color,box-shadow,backdrop-filter,border-color] duration-300 ease-out ${
+          stuck ? "shop-bar-drop" : ""
+        }`}
+        style={{
+          containerType: "inline-size",
+          width: stuck ? "90%" : "100%",
+          padding: stuck ? 6 : 0,
+          backgroundColor: stuck ? "rgba(245, 244, 241, 0.55)" : "rgba(245, 244, 241, 0)",
+          backdropFilter: stuck ? "blur(14px) saturate(1.3)" : "blur(0px)",
+          WebkitBackdropFilter: stuck ? "blur(14px) saturate(1.3)" : "blur(0px)",
+          // A soft shadow and a thin light edge (drawn inside, so the row is
+          // exactly as wide as it was before).
+          boxShadow: stuck
+            ? "0 4px 22.5px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.7)"
+            : "0 0 0 rgba(0, 0, 0, 0), inset 0 0 0 1px rgba(255, 255, 255, 0)",
+        }}
+      >
+        {COLLECTIONS.map((c) => {
+          const active = selected.includes(c);
+          return (
+            <button
+              key={c}
+              type="button"
+              onClick={() => onToggle(c)}
+              aria-pressed={active}
+              style={{
+                height: "clamp(28px, 8.9cqw, 36px)",
+                // Sized so that "Special Edition", the longest name, just
+                // fits its button (with a little room to spare for fonts
+                // that are wider than expected): about 12px on a wide
+                // screen, 9.2px at 375px, 7.3px at 320px.
+                fontSize: "clamp(7px, calc(3.39cqw - 2.44px), 12px)",
+              }}
+              className={`min-w-0 flex-1 truncate rounded-[6px] border-2 px-1 text-[11px] font-semibold transition-colors sm:px-4 ${
+                active
+                  ? "border-[#dcc090] bg-[#dcc090] text-[#122a26] shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]"
+                  : "border-transparent bg-white text-[#414141] hover:border-[#dcc090]/50"
+              }`}
+            >
+              {c}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function ShopContent() {
   const searchParams = useSearchParams();
@@ -87,26 +178,7 @@ function ShopContent() {
 
         <div className="mt-6 h-px bg-black/10" />
 
-        <div className="flex h-[60px] items-center gap-2 mt-4">
-          {COLLECTIONS.map((c) => {
-            const active = collections.includes(c);
-            return (
-              <button
-                key={c}
-                type="button"
-                onClick={() => toggleCollection(c)}
-                aria-pressed={active}
-                className={`h-9 min-w-0 flex-1 truncate rounded-[6px] border-2 px-2 text-[11px] font-semibold transition-colors sm:px-4 sm:text-xs ${
-                  active
-                    ? "border-[#dcc090] bg-[#dcc090] text-[#122a26] shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]"
-                    : "border-transparent bg-white text-[#414141] hover:border-[#dcc090]/50"
-                }`}
-              >
-                {c}
-              </button>
-            );
-          })}
-        </div>
+        <CollectionBar selected={collections} onToggle={toggleCollection} />
 
         <div className="mt-8 flex flex-col gap-12">
           {categories.map((category) => (

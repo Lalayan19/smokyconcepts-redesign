@@ -89,7 +89,6 @@ export default function CustomizeModal({
     sheetStyle,
     backdropClassName,
     handleProps,
-    contentDragProps,
     requestClose,
   } = useSwipeSheet({ open, onClose: handleClose });
 
@@ -170,15 +169,15 @@ export default function CustomizeModal({
         role="dialog"
         aria-modal="true"
         style={sheetStyle}
-        className="relative z-10 flex h-[80vh] w-full max-w-[40rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:h-[65vh] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
+        className="relative z-10 sheet-height flex w-full max-w-[40rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
       >
         <div {...handleProps} className="flex shrink-0 touch-none justify-center py-3">
           <div className="h-1 w-10 rounded-full bg-black/20" />
         </div>
-        <div {...contentDragProps} className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col">
         <div
           ref={contentRef}
-          className="min-h-0 flex-1 touch-none overflow-y-auto px-6 pt-1 pb-5 sm:px-12 sm:pt-4"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-1 pb-5 sm:px-12 sm:pt-4"
         >
           <p className="text-[11px] font-bold tracking-[0.14em] text-[#898989] uppercase">
             Live Preview
@@ -295,7 +294,8 @@ export default function CustomizeModal({
           <div ref={spacerRef} aria-hidden="true" style={{ height: listSpace }} />
         </div>
 
-        <div className="shrink-0 border-t border-black/5 px-6 py-3 sm:px-12">
+        {/* Same room under the button as under the Apply button in the size sheet. */}
+        <div className="shrink-0 border-t border-black/5 px-6 pb-10 pt-4 sm:px-12">
           <button
             type="button"
             onClick={() => {

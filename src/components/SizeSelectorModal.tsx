@@ -192,7 +192,6 @@ export default function SizeSelectorModal({
     sheetStyle,
     backdropClassName,
     handleProps,
-    contentDragProps,
     requestClose,
   } = useSwipeSheet({ open, onClose });
 
@@ -231,7 +230,7 @@ export default function SizeSelectorModal({
         aria-modal="true"
         aria-labelledby="size-selector-title"
         style={sheetStyle}
-        className="relative z-10 flex h-[80vh] w-full max-w-[40rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-[#efefef] shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:h-[65vh] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
+        className="relative z-10 sheet-height flex w-full max-w-[40rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-[#efefef] shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
       >
         <div
           {...handleProps}
@@ -239,10 +238,10 @@ export default function SizeSelectorModal({
         >
           <div className="h-1 w-10 rounded-full bg-black/20" />
         </div>
-        <div {...contentDragProps} className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col">
         <div
           ref={contentRef}
-          className="relative min-h-0 flex-1 touch-none overflow-y-auto px-6 pb-8 sm:px-12 sm:pt-6"
+          className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-8 sm:px-12 sm:pt-6"
         >
           <h2
             id="size-selector-title"

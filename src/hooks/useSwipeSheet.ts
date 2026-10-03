@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const CLOSE_VELOCITY = 0.55; // px/ms
+// How far a finger has to move before it counts as pulling the sheet down (or
+// as scrolling the list).
+const PULL_SLOP = 8;
 const CLOSE_MS = 300;
 const CLOSE_UNMOUNT_DELAY = 340;
 const SETTLE_TRANSITION = "transform 380ms cubic-bezier(0.22, 1, 0.36, 1)";
@@ -47,8 +50,6 @@ export function useSwipeSheet({ open, onClose }: UseSwipeSheetOptions) {
   const dragStartY = useRef(0);
   const dragStartOffset = useRef(0);
   const dragStartTime = useRef(0);
-  const contentDragActive = useRef(false);
-  const contentScrollStart = useRef(0);
 
   useEffect(() => {
     if (open) {
@@ -94,7 +95,6 @@ export function useSwipeSheet({ open, onClose }: UseSwipeSheetOptions) {
 
   const runClose = useCallback(() => {
     setDragging(false);
-    contentDragActive.current = false;
     sheetHeight.current = sheetRef.current?.getBoundingClientRect().height || sheetHeight.current;
     setEntered(false);
     setOffset(sheetHeight.current || 800);
@@ -149,67 +149,70 @@ export function useSwipeSheet({ open, onClose }: UseSwipeSheetOptions) {
     [dragging, offset, settleAfterDrag],
   );
 
-  // ---- drag handoff from the scrollable content (works from anywhere in the
-  // content; hands off to a sheet-drag once scrolled all the way to the top
-  // and pulled further) ----
+  // ---- pulling the sheet down from its content ----
   //
-  // Browsers do not reliably honor preventDefault() on pointer/touch move to
-  // stop a scrollable element's own native scroll/bounce — touch-action is
-  // the only mechanism every engine respects consistently, and it must be
-  // set statically (via the "touch-none" class on the content element) since
-  // mutating it at pointerdown time is still a race the browser can win
-  // before our JS runs. So native scrolling is disabled on this element
-  // entirely, and we drive its scrollTop ourselves for every gesture: normal
-  // drags scroll the list, and once scrollTop would go below 0 we hand off
-  // the remaining movement to the sheet's drag-to-close offset instead.
-  const onContentPointerDown = useCallback((e: React.PointerEvent) => {
-    const content = contentRef.current;
-    dragStartY.current = e.clientY;
-    dragStartTime.current = performance.now();
-    contentDragActive.current = false;
-    contentScrollStart.current = content?.scrollTop ?? 0;
-    // Lock all subsequent events for this touch to this element, regardless
-    // of where on screen the finger drifts during the gesture.
-    setPointerCaptureSafe(e.target, e.pointerId);
-  }, []);
-
-  const onContentPointerMove = useCallback((e: React.PointerEvent) => {
+  // The content scrolls natively (momentum, the keyboard's own scrolling, text
+  // selection, native clicks on what is inside it). A touch that begins with
+  // the content already scrolled to the top and then pulls down takes the sheet
+  // with it; one that scrolls the list, or begins further down, is left alone.
+  // (The content is `overscroll-contain`, so nothing else moves while this
+  // happens and the move can be cancelled.)
+  useEffect(() => {
+    if (!mounted) return;
     const content = contentRef.current;
     if (!content) return;
-    const delta = e.clientY - dragStartY.current;
-    e.preventDefault();
 
-    if (contentDragActive.current) {
-      setOffset(Math.max(0, delta - contentScrollStart.current));
-      return;
-    }
+    let startY = 0;
+    let startT = 0;
+    let tracking = false;
+    let pulling = false;
+    let lastOffset = 0;
 
-    const proposedScrollTop = contentScrollStart.current - delta;
-    if (proposedScrollTop <= 0 && delta > 0) {
-      // Scrolled all the way to the top and still being pulled down.
-      contentDragActive.current = true;
-      content.scrollTop = 0;
-      sheetHeight.current = sheetRef.current?.getBoundingClientRect().height || sheetHeight.current;
-      setDragging(true);
-      setOffset(Math.max(0, delta - contentScrollStart.current));
-      return;
-    }
-
-    const maxScrollTop = Math.max(0, content.scrollHeight - content.clientHeight);
-    content.scrollTop = Math.min(maxScrollTop, Math.max(0, proposedScrollTop));
-  }, []);
-
-  const onContentPointerUp = useCallback(
-    (e: React.PointerEvent) => {
-      if (!contentDragActive.current) return;
-      contentDragActive.current = false;
+    const onTouchStart = (e: TouchEvent) => {
+      tracking = e.touches.length === 1 && content.scrollTop <= 0;
+      pulling = false;
+      lastOffset = 0;
+      startY = e.touches[0]?.clientY ?? 0;
+      startT = performance.now();
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!tracking) return;
+      const delta = e.touches[0].clientY - startY;
+      if (!pulling) {
+        if (delta < -PULL_SLOP || content.scrollTop > 0) {
+          tracking = false; // it is scrolling the list
+          return;
+        }
+        if (delta <= PULL_SLOP) return;
+        pulling = true;
+        sheetHeight.current =
+          sheetRef.current?.getBoundingClientRect().height || sheetHeight.current;
+        setDragging(true);
+      }
+      if (e.cancelable) e.preventDefault();
+      lastOffset = Math.max(0, delta - PULL_SLOP);
+      setOffset(lastOffset);
+    };
+    const onTouchEnd = () => {
+      tracking = false;
+      if (!pulling) return;
+      pulling = false;
       setDragging(false);
-      const elapsed = Math.max(1, performance.now() - dragStartTime.current);
-      settleAfterDrag(offset, offset / elapsed);
-      releasePointerCaptureSafe(e.target, e.pointerId);
-    },
-    [offset, settleAfterDrag],
-  );
+      const elapsed = Math.max(1, performance.now() - startT);
+      settleAfterDrag(lastOffset, lastOffset / elapsed);
+    };
+
+    content.addEventListener("touchstart", onTouchStart, { passive: true });
+    content.addEventListener("touchmove", onTouchMove, { passive: false });
+    content.addEventListener("touchend", onTouchEnd);
+    content.addEventListener("touchcancel", onTouchEnd);
+    return () => {
+      content.removeEventListener("touchstart", onTouchStart);
+      content.removeEventListener("touchmove", onTouchMove);
+      content.removeEventListener("touchend", onTouchEnd);
+      content.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, [mounted, settleAfterDrag]);
 
   const requestClose = useCallback(() => {
     if (dragging) return;
@@ -242,12 +245,6 @@ export function useSwipeSheet({ open, onClose }: UseSwipeSheetOptions) {
       onPointerMove,
       onPointerUp,
       onPointerCancel: onPointerUp,
-    },
-    contentDragProps: {
-      onPointerDown: onContentPointerDown,
-      onPointerMove: onContentPointerMove,
-      onPointerUp: onContentPointerUp,
-      onPointerCancel: onContentPointerUp,
     },
     requestClose,
   };

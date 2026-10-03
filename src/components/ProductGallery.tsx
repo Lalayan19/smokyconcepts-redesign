@@ -3,6 +3,8 @@
 import Image, { type StaticImageData } from "next/image";
 import { useEffect, useRef, useState } from "react";
 
+import ProductLightbox from "@/components/ProductLightbox";
+
 function ChevronIcon({
   direction,
   className,
@@ -35,6 +37,7 @@ export default function ProductGallery({
   title: string;
 }) {
   const [active, setActive] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
 
@@ -108,9 +111,13 @@ export default function ProductGallery({
           <ChevronIcon direction="left" className="h-5 w-5" />
         </button>
 
-        <span
+        {/* Tapping the picture opens it large, in the middle of the screen. */}
+        <button
           key={active}
-          className="animate-gallery-fade-in relative h-[17rem] w-[13rem] sm:h-[22rem] sm:w-[16.5rem]"
+          type="button"
+          onClick={() => setLightboxOpen(true)}
+          aria-label="Enlarge image"
+          className="animate-gallery-fade-in relative h-[17rem] w-[13rem] cursor-zoom-in sm:h-[22rem] sm:w-[16.5rem]"
         >
           <Image
             src={images[active]}
@@ -119,7 +126,7 @@ export default function ProductGallery({
             priority
             className="object-contain object-bottom"
           />
-        </span>
+        </button>
 
         <button
           type="button"
@@ -162,6 +169,17 @@ export default function ProductGallery({
           </button>
         ))}
       </div>
+
+      {lightboxOpen && (
+        <ProductLightbox
+          images={images}
+          alt={alt}
+          title={title}
+          active={active}
+          onSelect={setActive}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </div>
   );
 }

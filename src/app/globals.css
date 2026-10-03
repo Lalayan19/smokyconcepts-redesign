@@ -258,3 +258,18 @@
     animation: none;
   }
 }
+
+/* The size and customize sheets: 86% of the screen's height (72% from `sm`).
+   `dvh` follows the part of the screen that is really visible, so on a phone
+   the bottom of the sheet is not hidden behind the browser's toolbar. */
+.sheet-height {
+  height: 86vh;
+  height: 86dvh;
+}
+
+@media (min-width: 40rem) {
+  .sheet-height {
+    height: 72vh;
+    height: 72dvh;
+  }
+}

@@ -239,24 +239,77 @@
     animation-duration: 0.01ms;
   }
 }
-/* Shop: the collection bar drops in from under the header when it sticks. */
-@keyframes shop-bar-drop {
-  0% {
-    transform: translateY(-14px);
-  }
-  100% {
-    transform: translateY(0);
-  }
+
+/* A "screen" of the Personalization page: as tall as the part of the window under
+   the header (the header is 4rem, and the page starts below it).
+   `svh`, not `dvh`: on a phone the browser's address bar and toolbar slide away
+   while the page is scrolled, and `dvh` follows them, so the height of every
+   screen changed all through the scroll and the page jumped and lagged. `svh` is
+   the height with the toolbars showing and never changes. */
+.screen-height {
+  min-height: calc(100vh - 4rem);
+  min-height: calc(100svh - 4rem);
 }
 
-.shop-bar-drop {
-  animation: shop-bar-drop 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+/* 55% of such a screen (the Personalization form). It only sets the least height:
+   on a screen too short for the form to fit in that, the form decides. */
+.screen-form {
+  min-height: calc((100vh - 4rem) * 0.55);
+  min-height: calc((100svh - 4rem) * 0.55);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .shop-bar-drop {
-    animation: none;
-  }
+/* A field of the Personalization form: 33px tall, the name of the field sitting
+   just above its gold line. When the field is focused or has something in it the
+   name moves up and gets smaller, so what is typed has the line to itself.
+   The form is on black, so the texts are light. */
+.float-field {
+  position: relative;
+  height: 33px;
+}
+
+.float-field input {
+  width: 100%;
+  height: 100%;
+  padding: 14px 0 0;
+  border: 0;
+  border-bottom: 1px solid #dcc090;
+  border-radius: 0;
+  background: transparent;
+  color: #ffffff;
+  caret-color: #ffffff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.float-field input:focus {
+  border-bottom-color: #ffffff;
+}
+
+/* When the browser fills a field in by itself it paints it light, with dark text:
+   cover that with the black and keep the text white. */
+.float-field input:-webkit-autofill,
+.float-field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+  -webkit-box-shadow: 0 0 0 1000px #000000 inset;
+  box-shadow: 0 0 0 1000px #000000 inset;
+}
+
+.float-field label {
+  position: absolute;
+  left: 0;
+  bottom: 1px;
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  transition: transform 0.16s ease, font-size 0.16s ease;
+}
+
+.float-field input:focus + label,
+.float-field input:not(:placeholder-shown) + label {
+  transform: translateY(-17px);
+  font-size: 11px;
 }
 
 /* The size and customize sheets: 86% of the screen's height (72% from `sm`).
@@ -271,5 +324,846 @@
   .sheet-height {
     height: 72vh;
     height: 72dvh;
+  }
+}
+
+/* The footer has rounded top corners. On the home page it also slides up over the
+   bottom of the About photo (46px, as in the design), so the corners show the
+   photo behind them and not the page's own background. */
+body:has(.about-photo) .site-footer {
+  position: relative;
+  z-index: 10;
+  margin-top: -46px;
+}
+
+/* The Personalization page is black to the bottom, so the footer's rounded corners
+   slide up 1.5rem over it (the form screen leaves that much room) and show black
+   behind them, not the page's white. */
+body:has(.personalization-page) .site-footer {
+  position: relative;
+  z-index: 10;
+  margin-top: -1.5rem;
+}
+
+/* The About photo runs from edge to edge on a phone. Wider than 560px it stops
+   growing and is centered, and its sides fade into the page so no edge shows. */
+@media (min-width: 561px) {
+  .about-photo {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  }
+}
+
+/* Popular Sizes: the row of packs starts under the button. The space between
+   them is 60px (as it was before the packs were made bigger), or less on a
+   screen without the room for it: it never leaves less than about 18px under
+   the row (70vh is the section's height; 213px reaches down to the button and
+   246px is the row) and never less than 25px above it. On a small phone (below)
+   the row has its own place. */
+.popular-sizes-strip {
+  margin-top: clamp(25px, calc(70vh - 477px), 60px);
+}
+
+/* SMALL PHONES ONLY (iPhone SE and the like).
+   The homepage sections are as tall as a share of the screen (94vh, 70vh), but
+   what is in them has a fixed size, so on a screen as short as an SE's the
+   bottom of the content runs into the next section. These two rules push the
+   content up, by as much as is missing; the sections keep their height.
+
+   The test is the size of the DEVICE's screen (`device-height`, at most 700px,
+   held upright), not of the page: a taller phone (an iPhone 14 and up, a Galaxy
+   S24 FE) has a screen over 800px tall, even when the browser's toolbars leave
+   the page itself shorter than that, so none of them match and nothing changes
+   for them. */
+@media (max-device-height: 700px) and (orientation: portrait) {
+  /* Atelier (94vh): the picture of the case ends 24px above the bottom of the
+     section; the space above the title shrinks from 70px to as little as 12px. */
+  .atelier-section {
+    padding-top: clamp(12px, calc(94vh - 598px), 70px);
+  }
+
+  /* Popular Sizes (70vh): the "Select Cigarette" button moves up, to half the
+     space it has above it (49px -> 24px)... */
+  .popular-sizes-button {
+    margin-top: 24px;
+  }
+
+  /* ...and the row of packs is pushed down: the packs are drawn at 82% of their
+     size here (the row is then 209px tall instead of 246px), and the row ends
+     12px above the bottom of the section (70vh - 188px for the button - 209px
+     for the row - 12px = 70vh - 409px between the button and the row). It is
+     never closer to the button than 37px, and never further than 58px. */
+  .popular-sizes-strip {
+    --pack-k: 0.82;
+    margin-top: clamp(37px, calc(70vh - 409px), 58px);
+  }
+}
+
+/* ==========================================================================
+   LARGER SCREENS: tablet, laptop, desktop, large desktop.
+
+   Everything for them is below, and every rule is inside a min-width query, so a
+   phone never sees any of it: the phone layout above is not changed. The tiers:
+     - tablet and up: from 744px wide (an iPad mini upright) and at least 500px
+       tall. The height keeps a phone turned sideways (932 x 430 at the most) on
+       its phone layout.
+     - laptop: from 1024px (same height rule);
+     - desktop: from 1536px; large desktop: from 2560px.
+   These rules are not in a Tailwind layer, so they win over the Tailwind classes
+   on the same element; a rule with `!important` also wins over an inline style.
+   ========================================================================== */
+
+/* ---- Header on a tablet (744 - 1023px) ----
+   The full menu and the currency / language / bag / account buttons need about
+   920px, so a tablet keeps the phone's header: the bag, account and menu buttons,
+   and the menu sheet. (From 768px up the phone menu button was hidden and the
+   buttons on the right ran off the screen.) */
+@media (min-width: 744px) and (max-width: 1023.98px) and (min-height: 500px) {
+  .site-header-nav,
+  .site-header-actions {
+    display: none;
+  }
+
+  .site-header-mobile {
+    display: flex;
+  }
+
+  .mobile-menu-sheet {
+    display: flex;
+  }
+}
+
+/* The header's side padding, 744 - 767px (from 768px the page's own `md:` rule has it). */
+@media (min-width: 744px) and (max-width: 767.98px) and (min-height: 500px) {
+  .site-header-inner {
+    padding-inline: 2rem;
+  }
+}
+
+/* ---- Tablet and up (744px wide, 500px tall) ---- */
+@media (min-width: 744px) and (min-height: 500px) {
+  /* Home, the video. On a phone it fills the width (464 x 848). Here it keeps its
+     proportions and is as tall as the screen under the header (at most 75rem):
+     a portrait picture in the middle, on black, with its sides fading out like
+     the About photo's. The texts on it (the title above, the heading, text and
+     button below) are cut to the same width, so they stay on the picture. */
+  .hero-banner {
+    --hero-w: min(100vw, calc(min(100svh - 4rem, 75rem) * 464 / 848));
+    background-color: #000;
+    border-bottom-left-radius: 1.5rem;
+    border-bottom-right-radius: 1.5rem;
+  }
+
+  .hero-banner-video {
+    width: var(--hero-w);
+    margin-inline: auto;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  }
+
+  .hero-banner-fit {
+    right: auto;
+    left: 50%;
+    width: var(--hero-w);
+    translate: -50% 0;
+  }
+
+  /* Home, Atelier: a section as tall as the screen, at most 60rem, with its
+     content in the middle; the title grows with the screen (66px up to 96px) and
+     the case, in the proportions it has on a phone (203 x 315), with the screen's
+     height (315px up to 560px). */
+  .atelier-section {
+    height: auto;
+    min-height: min(94vh, 60rem);
+    justify-content: center;
+    padding-block: 4.5rem;
+  }
+
+  .atelier-section h2 {
+    font-size: clamp(66px, 5.6vw, 96px) !important;
+  }
+
+  .atelier-case {
+    --case-h: clamp(315px, 40vh, 560px);
+    height: var(--case-h);
+    width: calc(var(--case-h) * 203 / 315);
+  }
+
+  /* Home, Collections: a taller section (90% of the screen, at most 58rem; on a
+     phone it is as tall as its content, about 675px), with the content in the
+     middle of it (the content is about 33rem tall, so the space left is shared
+     above and below), a wider line of text under the button, and a title that
+     grows from 44px to 64px. */
+  .collections-card {
+    min-height: min(90vh, 58rem);
+    padding-top: clamp(5rem, calc((min(90vh, 58rem) - 33rem) / 2), 12rem) !important;
+    padding-bottom: 4.5rem !important;
+  }
+
+  .collections-card h2 {
+    font-size: clamp(44px, 4.6vw, 64px) !important;
+  }
+
+  .collections-desc {
+    max-width: 34rem !important;
+  }
+
+  /* Home, Ultra Slims and Personalization keep the share of the screen they have
+     on a phone, up to a most (80vh -> 52rem, 90vh -> 56rem), so on a tall screen
+     they do not turn into empty bands. */
+  .ultra-slims-section {
+    min-height: min(80vh, 52rem);
+  }
+
+  /* Popular Sizes is taller than on a phone (85% of the screen, at most 54rem,
+     instead of 70%), and its content (about 30rem tall) is in the middle of it. */
+  .popular-sizes-section {
+    height: min(85vh, 54rem);
+    padding-top: clamp(3rem, calc((min(85vh, 54rem) - 30rem) / 2), 9rem);
+  }
+
+  .personalization-card {
+    height: min(90vh, 56rem);
+  }
+
+  /* A product's page: the one column is wider (46rem) than on a phone (40rem).
+     The name is not in the pictures (it stays there for screen readers) and not
+     above the purchase card: it is in the card, over the size and collection. The
+     price of customizing is in the customize button, at its right. The delivery
+     card has a short text and "more", which opens the whole text. The two buttons
+     under it are 40% and 60% of the row, and the first one says "Add to cart"
+     instead of showing an icon. */
+  .product-layout {
+    max-width: 46rem;
+  }
+
+  .product-gallery-title {
+    width: 1px;
+    height: 1px;
+    max-width: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .product-name {
+    display: none;
+  }
+
+  .product-card-name {
+    display: block;
+    margin-bottom: -0.5rem;
+  }
+
+  .product-fee-outside {
+    display: none;
+  }
+
+  .product-fee-inside {
+    display: inline;
+    margin-left: auto;
+    margin-right: 0.75rem;
+    font-size: 14px;
+  }
+
+  .delivery-full {
+    display: none;
+  }
+
+  .delivery-short {
+    display: inline;
+  }
+
+  /* The two buttons are inside the delivery card, at its bottom: the card has room
+     for them under its text (6rem under the text, the buttons 3.5rem tall), and
+     they sit on that room, over the bottom of the column that holds both. */
+  .product-right {
+    display: block;
+    position: relative;
+    min-width: 0;
+  }
+
+  .delivery-card {
+    padding-bottom: 6rem;
+  }
+
+  .product-actions {
+    position: absolute;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    left: 1.25rem;
+    margin-top: 0;
+  }
+
+  .product-cart {
+    flex: none;
+    width: calc(40% - 0.375rem);
+  }
+
+  .product-buy {
+    flex: none;
+    width: calc(60% - 0.375rem);
+  }
+
+  .product-cart-icon {
+    display: none;
+  }
+
+  .product-cart-label {
+    display: inline;
+  }
+
+  /* The sheets of a tablet and larger are plain modals: there is no handle to pull
+     (the animation and the not following a finger are in useSwipeSheet). */
+  .sheet-handle {
+    display: none;
+  }
+
+  /* Select size is not a dialog in the middle but a panel at the right, from the
+     top to the bottom of the screen and over the header (up to 67.25rem wide, the
+     whole screen if it is not wider), with a button to close it at the top. */
+  .size-modal-root {
+    z-index: 2147483647;
+    align-items: stretch;
+    justify-content: flex-end;
+    padding: 0;
+  }
+
+  .size-modal-panel {
+    height: auto;
+    width: min(100%, 67.25rem);
+    max-width: none;
+    border-radius: 0;
+    box-shadow: -20px 0 60px rgba(0, 0, 0, 0.25);
+  }
+
+  .size-modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+  }
+
+  .size-modal-close {
+    display: block;
+  }
+
+  /* A row that can be dragged with a mouse shows the hand. */
+  @media (hover: hover) and (pointer: fine) {
+    .drag-scroll[data-scrollable] {
+      cursor: grab;
+    }
+  }
+
+  /* The collection's other cases: each one once, in a plain row (it scrolls if
+     there are more than fit), and not the looping row of a phone, which repeats
+     cards to fill its length. */
+  .samesize-loop {
+    display: none !important;
+  }
+
+  .samesize-flat {
+    display: flex;
+  }
+
+  /* Details: not a table. A card like How to Use: the heading and the line under
+     it at the left in black, then the items, each a small name over its value
+     (underlined in gold), with no lines between the rows. */
+  .product-details {
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+    background: #fff;
+    box-shadow: 0 4px 22.5px rgba(0, 0, 0, 0.08);
+  }
+
+  .product-details-title {
+    text-align: left;
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #000;
+  }
+
+  .product-details-sub {
+    display: block;
+    margin-top: 0.25rem;
+    text-align: left;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #000;
+  }
+
+  .product-details-list {
+    display: grid;
+    margin-top: 2.25rem;
+    overflow: visible;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    row-gap: 2.25rem;
+  }
+
+  .product-details-list > div {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 0.375rem;
+    padding: 0;
+    border-bottom-width: 0;
+  }
+
+  .product-details-list dt {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #898989;
+  }
+
+  .product-details-list dd {
+    width: fit-content;
+    max-width: none;
+    padding-bottom: 0.25rem;
+    border-bottom: 2px solid #dcc090;
+    text-align: left;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  /* Shop: the size button and the bar of collections are as wide as they need to
+     be (26rem and 36rem), at the left under the title, not the width of the
+     whole page. */
+  .shop-filter-row {
+    max-width: 26rem;
+  }
+
+  .shop-collection-bar > div {
+    max-width: 36rem;
+  }
+
+  /* Shop: each collection has its coin at the left of its heading (the coins of
+     the home page's Collections row), and a thin line under its cards, as wide as
+     the line under the size button. */
+  .shop-category-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .shop-coin {
+    display: block;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .shop-category {
+    padding-bottom: 3rem;
+    border-bottom: 1px solid rgb(0 0 0 / 0.1);
+  }
+
+  /* Shop: more space between the cards (24px, from 20px). */
+  .shop-grid {
+    gap: 1.5rem;
+  }
+
+  /* Collections page: the four banners are two by two, as rounded cards, not four
+     bands the width of the screen (their pictures are not wide). */
+  .collections-page {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 0.75rem 0.75rem 0;
+  }
+
+  .collections-banner {
+    left: 0;
+    width: auto;
+    margin: 0;
+    height: min(70vh, 36rem);
+    border-radius: 1.5rem;
+  }
+}
+
+/* ---- Laptop and up (1024px) ---- */
+@media (min-width: 1024px) and (min-height: 500px) {
+  /* Home, Atelier: the case on the left and the text on the right (the text
+     block is in the middle of the case's height). The two columns are as wide as
+     what is in them and the pair is in the middle of the section, with 6.5rem
+     between the case and the text (about half of what there was). */
+  .atelier-link {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: 1fr auto auto auto 1fr;
+    justify-content: center;
+    column-gap: 6.5rem;
+    width: 100%;
+    text-align: left;
+  }
+
+  .atelier-link h2 {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .atelier-link p {
+    grid-column: 2;
+    grid-row: 3;
+    margin-inline: 0;
+    font-size: 16px !important;
+  }
+
+  .atelier-link button {
+    grid-column: 2;
+    grid-row: 4;
+    justify-self: start;
+  }
+
+  .atelier-case {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    margin: 0;
+    justify-self: center;
+    align-self: center;
+  }
+
+  /* Home, Personalization: the same, the picture on the left and the text on the
+     right; the card's own padding keeps the content in 72rem in the middle. */
+  .personalization-card {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: 1fr auto auto auto 1fr;
+    column-gap: 3rem;
+    padding-inline: max(1.5rem, calc((100% - 72rem) / 2));
+    text-align: left;
+  }
+
+  .personalization-card h2 {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: clamp(36px, 3.6vw, 52px) !important;
+  }
+
+  .personalization-card p {
+    grid-column: 2;
+    grid-row: 3;
+    margin-inline: 0;
+    font-size: 15px !important;
+  }
+
+  .personalization-card a {
+    grid-column: 2;
+    grid-row: 4;
+    justify-self: start;
+    align-self: start;
+    margin-top: 2.5rem;
+  }
+
+  .personalization-art {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    margin: 0;
+  }
+
+  /* Home, About: the photo on the left; on the right the title, the text and the
+     button that are on top of the photo on a phone (in the middle of the photo's
+     height). The block is 72rem wide at the most, the photo 560px of it. */
+  .about-split {
+    display: grid;
+    grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+    /* The text block is a little lower than the middle of the photo (the space
+       above it is 1.5 times the space under it). */
+    grid-template-rows: 1.5fr auto auto 1fr;
+    column-gap: 4rem;
+    max-width: min(72rem, 100% - 4rem) !important;
+  }
+
+  .about-split .about-photo {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .about-text {
+    position: static;
+    padding-inline: 0;
+    grid-column: 2;
+    grid-row: 2;
+    text-align: left;
+  }
+
+  .about-text h2 {
+    font-size: clamp(35px, 3.4vw, 56px) !important;
+  }
+
+  .about-text p {
+    max-width: 30rem !important;
+    margin: 1rem 0 0 !important;
+    font-size: 16px !important;
+  }
+
+  .about-button {
+    position: static !important;
+    transform: none !important;
+    grid-column: 2;
+    grid-row: 3;
+    justify-self: start;
+    align-self: start;
+    margin-top: 2rem;
+  }
+
+  /* Shop: the bar of collections is at the left of the size button, on one row,
+     and its buttons are only a little apart (the bar is 24rem wide, not 36rem).
+     The row is under the title and above the line. */
+  .shop-page {
+    display: grid;
+    grid-template-columns: auto minmax(0, 22rem) minmax(0, 1fr);
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+
+  .shop-page > h1 {
+    grid-column: 1 / -1;
+  }
+
+  .shop-collection-bar {
+    grid-column: 1;
+    grid-row: 2;
+    width: 24rem;
+    margin-top: 1.25rem;
+    align-self: center;
+  }
+
+  .shop-collection-bar > div {
+    max-width: none;
+  }
+
+  .shop-filter-row {
+    grid-column: 2;
+    grid-row: 2;
+    max-width: none;
+    margin-top: 1.25rem;
+    align-self: center;
+  }
+
+  .shop-divider {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .shop-list {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  /* ...and 32px apart on a laptop and larger. */
+  .shop-grid {
+    gap: 2rem;
+  }
+
+  /* Home, Ultra Slims and Popular Sizes: a larger title and text. */
+  .ultra-slims-section h2 {
+    font-size: clamp(44px, 4vw, 60px) !important;
+  }
+
+  .ultra-slims-section p {
+    font-size: 16px !important;
+  }
+
+  .popular-sizes-section h2 {
+    font-size: clamp(32px, 3.2vw, 44px) !important;
+  }
+
+  .popular-sizes-section > p {
+    font-size: 15px !important;
+  }
+
+  .collections-desc p {
+    font-size: 16px !important;
+  }
+
+  /* Personalization page: a larger title. */
+  .personalization-title {
+    font-size: clamp(36px, 3.4vw, 56px) !important;
+  }
+
+  /* A product's page: two columns, the pictures on the left and the purchase
+     (name, size, price, delivery with the buttons) on the right, both from the
+     same top to the same bottom (the pictures' card grows to the height of the
+     purchase column). Under them the row of the collection's other cases, across
+     the whole width. Then, one under the other and each across the whole width:
+     the details (4 items on the left, 4 on the right, a line between), the
+     product story, how to use (2 steps on the left, 2 on the right, a line
+     between), and the rows of other products. */
+  .product-layout {
+    max-width: 72rem;
+    padding-inline: 2rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    column-gap: 2.5rem;
+    align-items: stretch;
+  }
+
+  .product-left,
+  .product-right,
+  .product-samesize,
+  .product-rest,
+  .product-story,
+  .product-shopby {
+    display: block;
+    min-width: 0;
+  }
+
+  .product-left {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-gallery-card {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .product-gallery {
+    flex: 1;
+  }
+
+  .product-gallery-main {
+    flex: 1;
+    height: auto;
+    min-height: 29rem;
+  }
+
+  .product-right {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-card {
+    margin-top: 0;
+  }
+
+  .delivery-card {
+    flex: 1;
+  }
+
+  .product-samesize {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .product-samesize > section {
+    margin-top: 1.25rem;
+  }
+
+  .product-rest {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .product-details-list {
+    position: relative;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(4, auto);
+    grid-auto-flow: column;
+    column-gap: 5rem;
+  }
+
+  .product-details-list::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: rgb(0 0 0 / 0.08);
+  }
+
+  .product-story-texts p {
+    max-width: 44rem;
+  }
+
+  .product-story-note {
+    max-width: 44rem;
+  }
+
+  .howto-steps {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, auto);
+    grid-auto-flow: column;
+    column-gap: 5rem;
+    row-gap: 2.25rem;
+  }
+
+  .howto-steps::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: rgb(0 0 0 / 0.08);
+  }
+}
+
+/* ---- Desktop (1536px) ---- */
+@media (min-width: 1536px) and (min-height: 500px) {
+  /* Shop (and the cards of the home page's Ultra Slims row, which are the same
+     cards, at the same width): from here the cards are 309px wide and more, so
+     the picture's box grows with them (5 : 4) instead of staying 240px tall. */
+  .shop-card-art {
+    height: auto;
+    aspect-ratio: 5 / 4;
+  }
+
+  /* Shop: the cards are narrower (17rem, 272px, at the least) and so a row has 5 of
+     them where the screen has the room (about 1690px and up), not 4 big ones. The
+     home page's Ultra Slims row keeps the size it has. */
+  .shop-grid {
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  }
+
+  .personalization-card {
+    padding-inline: max(1.5rem, calc((100% - 80rem) / 2));
+  }
+
+  .product-layout {
+    max-width: 80rem;
+  }
+}
+
+/* ---- Large desktop (from 1920px) ----
+   The shop and the footer stop at 120rem (1920px); the header's content does too,
+   so on a bigger screen all three line up. */
+@media (min-width: 1920px) {
+  .site-header-inner {
+    max-width: 120rem;
+    margin-inline: auto;
+  }
+}
+
+/* About page: it is a copy of the page of the site it comes from, which loads
+   Montserrat in the weights 400, 600, 700, 800 and 900 only. Its "medium" (500)
+   text is drawn in the Regular (400), a hair narrower than a true Medium; this
+   page does the same, so its text is the same width, letter for letter. */
+.about-page .font-medium {
+  font-weight: 400;
+}
+
+@media (min-width: 64rem) {
+  .about-page .lg\:font-medium {
+    font-weight: 400;
   }
 }

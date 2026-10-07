@@ -14,9 +14,8 @@ import SizeSelectorModal from "@/components/SizeSelectorModal";
 
 import newAccessory from "@/assets/images/Unlock.png";
 import atelier from "@/assets/images/homepage_redesign_assets/AtelierV2_1_real_size.png";
-import popularSizes from "@/assets/images/homepage_redesign_assets/Sizes (1).png";
 import personalization from "@/assets/images/homepage_redesign_assets/personalization_realsizes.png";
-import aboutUs from "@/assets/images/homepage_redesign_assets/smoky-concepts-bag-transparent.png";
+import aboutUs from "@/assets/images/about_image_final.png";
 
 export default function Home() {
   const router = useRouter();
@@ -51,11 +50,11 @@ export default function Home() {
 
       <UltraSlimsSection buttonHref="/shop" />
 
-      <PopularSizesSection image={popularSizes} onButtonClick={() => setSizeModalOpen(true)} />
+      <PopularSizesSection onButtonClick={() => setSizeModalOpen(true)} />
 
       <PersonalizationSection image={personalization} buttonHref="/personalization" />
 
-      <AboutSection image={aboutUs} buttonHref="/about" />
+      <AboutSection image={aboutUs} buttonHref="/shop" />
 
       <SizeSelectorModal
         open={sizeModalOpen}

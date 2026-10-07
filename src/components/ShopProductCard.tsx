@@ -17,7 +17,7 @@ export default function ShopProductCard({ product, eager = false }: ShopProductC
       draggable={false}
       className="flex flex-col overflow-hidden rounded-2xl border border-[#e3e1db] bg-white transition-colors hover:border-[#dcc090]"
     >
-      <div className="relative h-52 w-full shrink-0 bg-white sm:h-60">
+      <div className="shop-card-art relative h-52 w-full shrink-0 bg-white sm:h-60">
         <Image
           src={product.image}
           alt={product.name}

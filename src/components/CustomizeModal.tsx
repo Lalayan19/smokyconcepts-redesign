@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import caseIcon from "@/assets/icons/case.svg";
 import { useSwipeSheet } from "@/hooks/useSwipeSheet";
 
 const FONTS = [
@@ -87,13 +89,14 @@ export default function CustomizeModal({
     sheetRef,
     contentRef,
     sheetStyle,
+    modalAnimation,
     backdropClassName,
     handleProps,
     requestClose,
   } = useSwipeSheet({ open, onClose: handleClose });
 
-  // Opening the list scrolls the modal down so the list sits right under the
-  // Style row; closing it (or picking a font) scrolls back to where it was.
+  // Opening the list scrolls the modal a little so the whole list is in view;
+  // closing it (or picking a font) scrolls back to where it was.
   const openFontList = useCallback(() => {
     const scroller = contentRef.current;
     const row = fontRef.current;
@@ -104,16 +107,23 @@ export default function CustomizeModal({
     setFontOpen(true);
 
     scrollBackTo.current = scroller.scrollTop;
-    const scrollerTop = scroller.getBoundingClientRect().top;
-    const target = Math.max(
-      0,
-      scroller.scrollTop + row.getBoundingClientRect().top - scrollerTop - 8,
-    );
+    const scrollerRect = scroller.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+    // Scrolled all the way, the Style row would be at the top of the modal.
+    const toTop = Math.max(0, scroller.scrollTop + rowRect.top - scrollerRect.top - 8);
+    // Only half of that way; but never so little that the end of the list (the
+    // last child of the row, at most 10rem high, 8px under the row) is out of
+    // view, and never back up.
+    const list = row.lastElementChild;
+    const listBottom = rowRect.bottom + 8 + Math.min(160, list?.scrollHeight ?? 160);
+    const half = scroller.scrollTop + (toTop - scroller.scrollTop) / 2;
+    const showAll = scroller.scrollTop + (listBottom - scrollerRect.bottom) + 8;
+    const target = Math.min(toTop, Math.max(half, showAll, scroller.scrollTop));
     // Where the form ends (the spacer sits right after it) plus bottom padding.
     const contentHeight =
       scroller.scrollTop +
       spacer.getBoundingClientRect().top -
-      scrollerTop +
+      scrollerRect.top +
       parseFloat(getComputedStyle(scroller).paddingBottom);
     setListSpace(Math.max(0, target + scroller.clientHeight - contentHeight));
     // A moment later, once the extra room has been laid out, bring the list up.
@@ -169,33 +179,82 @@ export default function CustomizeModal({
         role="dialog"
         aria-modal="true"
         style={sheetStyle}
-        className="relative z-10 sheet-height flex w-full max-w-[40rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
+        className={`relative z-10 sheet-height flex w-full max-w-[40rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)] ${modalAnimation}`}
       >
-        <div {...handleProps} className="flex shrink-0 touch-none justify-center py-3">
+        <div {...handleProps} className="sheet-handle flex shrink-0 touch-none justify-center py-3">
           <div className="h-1 w-10 rounded-full bg-black/20" />
         </div>
         <div className="flex min-h-0 flex-1 flex-col">
         <div
           ref={contentRef}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-1 pb-5 sm:px-12 sm:pt-4"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-4 pb-5 sm:px-12 sm:pt-4"
         >
           <p className="text-[11px] font-bold tracking-[0.14em] text-[#898989] uppercase">
             Live Preview
           </p>
-          <div className="mt-2 flex min-h-[5rem] items-center justify-center rounded-[1.25rem] border border-[#dcc090]/40 bg-gradient-to-b from-[#173934] to-[#0e211e] px-6 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_24px_rgba(18,42,38,0.25)]">
-            <p
-              className="max-w-full truncate text-center text-2xl text-white"
-              style={{
-                fontFamily: font.family,
-                fontWeight: bold ? 700 : 400,
-                fontStyle: italic ? "italic" : "normal",
-              }}
+          {/* The case: a gold drawing on the sheet itself, 457 x 194 in its own
+              units, as wide as the fields below (at most 450px). Everything is
+              sized from --case, its width, so it scales as one piece. Only the
+              top of the case (its frame) takes room in the layout: the rest of
+              the drawing runs down behind the fields (they have a white
+              background), and only the ends of its legs show between them. */}
+          <div
+            className="mt-6"
+            style={
+              {
+                containerType: "inline-size",
+                "--case": "min(100cqw, 450px)",
+              } as React.CSSProperties
+            }
+          >
+            <div
+              className="relative mx-auto"
+              // The outer frame ends 118.8 / 457 of the width down.
+              style={{ width: "var(--case)", height: "calc(var(--case) * 0.26 + 34px)" }}
             >
-              {text.trim() || "Your Text"}
-            </p>
+              <div
+                className="absolute"
+                style={{ left: 0, top: 0, width: "100%", aspectRatio: "457 / 194", pointerEvents: "none" }}
+              >
+                <Image
+                  src={caseIcon}
+                  alt=""
+                  fill
+                  loading="eager"
+                  sizes="450px"
+                  className="object-contain"
+                />
+                {/* The text panel covers the inner frame (the outer edge of its
+                    line: x 11.1 to 445.3, y 11.1 to 107.1 of the drawing, corners 14). */}
+                <div
+                  className="absolute flex items-center justify-center"
+                  style={{
+                    left: "2.436%",
+                    top: "5.738%",
+                    width: "95.003%",
+                    height: "49.493%",
+                    padding: "0 calc(var(--case) * 0.03)",
+                    borderRadius: "calc(var(--case) * 0.0306)",
+                    backgroundColor: "#122a26",
+                  }}
+                >
+                  <p
+                    className="max-w-full truncate text-center text-white"
+                    style={{
+                      fontSize: "calc(var(--case) * 0.094)",
+                      fontFamily: font.family,
+                      fontWeight: bold ? 700 : 400,
+                      fontStyle: italic ? "italic" : "normal",
+                    }}
+                  >
+                    {text.trim() || "Your Text"}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-4">
+          <div className="relative mt-4 bg-white">
             <label className="text-[11px] font-bold tracking-[0.14em] text-[#898989] uppercase">
               Custom Text
             </label>
@@ -206,7 +265,10 @@ export default function CustomizeModal({
                 placeholder="Type something special…"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="h-12 flex-1 border-0 bg-transparent text-[15px] text-[#414141] outline-none placeholder:text-[#b3b3b3]"
+                // 16px, not smaller: an iPhone zooms the whole page in when a
+                // field under 16px gets focus, and does not always zoom back out.
+                style={{ fontSize: 16 }}
+                className="h-12 flex-1 border-0 bg-transparent text-[#414141] outline-none placeholder:text-[#b3b3b3]"
               />
               <span className="shrink-0 text-[11px] font-medium text-[#b3b3b3]">
                 {text.length}/18
@@ -214,7 +276,7 @@ export default function CustomizeModal({
             </div>
           </div>
 
-          <div ref={fontRef} className="relative mt-4">
+          <div ref={fontRef} className="relative mt-4 bg-white">
             <label className="text-[11px] font-bold tracking-[0.14em] text-[#898989] uppercase">
               Style
             </label>

@@ -128,7 +128,9 @@ function CategoryRow({
         {pages.map((page, pageIndex) => (
           <div
             key={pageIndex}
-            className="grid shrink-0 grid-rows-2 gap-x-2 gap-y-5 sm:gap-x-4 sm:gap-y-6"
+            // As many rows as the page needs, up to two. With a fixed two, a
+            // category left with a few results kept an empty second row.
+            className="grid shrink-0 gap-x-2 gap-y-5 sm:gap-x-4 sm:gap-y-6"
             style={{
               gridTemplateColumns: `repeat(${cols}, minmax(82px, 1fr))`,
               width: containerWidth,
@@ -190,10 +192,19 @@ export default function SizeSelectorModal({
     sheetRef,
     contentRef,
     sheetStyle,
+    dialog,
+    closing,
     backdropClassName,
     handleProps,
     requestClose,
   } = useSwipeSheet({ open, onClose });
+  // On a tablet and larger the sizes are in a panel that slides in from the right
+  // (see `.size-modal-panel` in globals.css), not a sheet from the bottom.
+  const panelAnimation = dialog
+    ? closing
+      ? "animate-size-modal-panel-out"
+      : "animate-size-modal-panel-in"
+    : "";
 
   useEffect(() => {
     if (!mounted) return;
@@ -216,7 +227,7 @@ export default function SizeSelectorModal({
   })).filter((category) => category.items.length > 0);
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-end justify-center text-left sm:items-center sm:p-4 sm:pt-20">
+    <div className="size-modal-root fixed inset-0 z-[110] flex items-end justify-center text-left sm:items-center sm:p-4 sm:pt-20">
       <button
         type="button"
         aria-label="Close"
@@ -230,11 +241,11 @@ export default function SizeSelectorModal({
         aria-modal="true"
         aria-labelledby="size-selector-title"
         style={sheetStyle}
-        className="relative z-10 sheet-height flex w-full max-w-[40rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-[#efefef] shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
+        className={`size-modal-panel relative z-10 sheet-height flex w-full max-w-[40rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-[#efefef] shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)] ${panelAnimation}`}
       >
         <div
           {...handleProps}
-          className="flex shrink-0 touch-none justify-center py-3"
+          className="sheet-handle flex shrink-0 touch-none justify-center py-3"
         >
           <div className="h-1 w-10 rounded-full bg-black/20" />
         </div>
@@ -243,12 +254,26 @@ export default function SizeSelectorModal({
           ref={contentRef}
           className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-8 sm:px-12 sm:pt-6"
         >
-          <h2
-            id="size-selector-title"
-            className="text-[28px] font-extrabold leading-none text-[#414141] sm:text-[36px]"
-          >
-            Select size
-          </h2>
+          <div className="size-modal-head">
+            <h2
+              id="size-selector-title"
+              className="text-[28px] font-extrabold leading-none text-[#414141] sm:text-[36px]"
+            >
+              Select size
+            </h2>
+            {/* The panel of a tablet and larger has a button to close it (a
+                phone's sheet is closed by pulling it down). */}
+            <button
+              type="button"
+              onClick={requestClose}
+              aria-label="Close"
+              className="size-modal-close hidden text-[#9d9d9d] transition-colors hover:text-[#414141]"
+            >
+              <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
 
           <div className="sticky top-0 z-10 mt-6 w-full max-w-[978px] bg-[#efefef] pt-1 pb-3">
             <label htmlFor="size-search" className="sr-only">
@@ -261,7 +286,10 @@ export default function SizeSelectorModal({
               autoComplete="off"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-11 w-full rounded-md border-0 bg-white px-4 text-[15px] font-medium text-[#414141] shadow-[0px_4px_22.5px_rgba(0,0,0,0.1)] outline-none placeholder:text-[#9d9d9d] focus-visible:ring-2 focus-visible:ring-[#dcc090]/40 sm:text-[16px]"
+              // 16px, not smaller: an iPhone zooms the whole page in when a field
+              // under 16px gets focus, and does not always zoom back out.
+              style={{ fontSize: 16 }}
+              className="h-11 w-full rounded-md border-0 bg-white px-4 font-medium text-[#414141] shadow-[0px_4px_22.5px_rgba(0,0,0,0.1)] outline-none placeholder:text-[#9d9d9d] focus-visible:ring-2 focus-visible:ring-[#dcc090]/40"
             />
           </div>
 

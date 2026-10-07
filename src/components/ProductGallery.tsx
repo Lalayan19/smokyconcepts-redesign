@@ -85,14 +85,14 @@ export default function ProductGallery({
   }, [active, images.length]);
 
   return (
-    <div className="flex flex-col">
+    <div className="product-gallery flex flex-col">
       <div
-        className="relative flex h-[24rem] touch-pan-y items-center justify-center overflow-hidden rounded-t-[1.5rem] bg-white sm:h-[29rem]"
+        className="product-gallery-main relative flex h-[24rem] touch-pan-y items-center justify-center overflow-hidden rounded-t-[1.5rem] bg-white sm:h-[29rem]"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <h1 className="absolute top-3 left-3 z-10 max-w-[60%] text-[1.375rem] leading-tight font-extrabold text-[#414141]">
+        <h1 className="product-gallery-title absolute top-3 left-3 z-10 max-w-[60%] text-[1.375rem] leading-tight font-extrabold text-[#414141]">
           {title}
         </h1>
 

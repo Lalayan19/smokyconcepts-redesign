@@ -21,7 +21,7 @@ export default function Banner({
     "inline-flex h-9 w-[178.25px] items-center justify-center rounded-full bg-[#dcc090] text-xs font-extrabold tracking-[0.14em] text-[#122a26] transition-colors hover:bg-[#d3b57c] sm:text-sm";
 
   return (
-    <section className="relative left-1/2 mb-3 h-[70vh] w-screen -mx-[50vw] overflow-hidden bg-black">
+    <section className="collections-banner relative left-1/2 mb-3 h-[70vh] w-screen -mx-[50vw] overflow-hidden bg-black">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${image.src})` }}

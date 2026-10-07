@@ -9,6 +9,7 @@ import {
   type CSSProperties,
 } from "react";
 
+import { BUTTON_EDGE } from "@/components/buttonEdge";
 import ShopProductCard from "@/components/ShopProductCard";
 import { findProductBySlug, type Product } from "@/data/products";
 
@@ -18,6 +19,9 @@ const PRODUCTS = [
   "forest",
   "old-money",
   "seaman",
+  "classic-brown",
+  "classic-blue",
+  "classic-black",
 ]
   .map(findProductBySlug)
   .filter((p): p is Product => p !== undefined);
@@ -71,8 +75,8 @@ const mod = (value: number, size: number) => ((value % size) + size) % size;
 
 // How far, in cards, the card at `index` is from the middle when the row is at
 // `pos` (the card `pos` is exactly in the middle), going the short way round
-// the loop: from -2.5 (about to wrap to the far right) up to just under 2.5
-// (about to wrap to the far left). The row is only these five cards: the one
+// the loop: from -COUNT/2 (about to wrap to the far right) up to just under
+// COUNT/2 (about to wrap to the far left). The row is only these cards: the one
 // that leaves on one side is the same one that arrives on the other.
 function offsetFrom(index: number, pos: number) {
   return mod(index - pos + COUNT / 2, COUNT) - COUNT / 2;
@@ -141,7 +145,7 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
 
   // The row is moved by hand rather than by the browser's own scrolling: a
   // scroller has two ends, and a hard swipe would run into one of them. Here
-  // there are only the five cards, placed by `pos`, so there is never an end.
+  // there are only the cards, placed by `pos`, so there is never an end.
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -309,9 +313,22 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
       window.addEventListener("pointercancel", onPointerCancel);
     };
     const onClickCapture = (e: MouseEvent) => {
-      if (!suppressClick) return;
+      if (suppressClick) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      // On a tablet and larger (many cards in view, and a mouse that can point at
+      // any of them) only the card in the middle opens: a click on another one
+      // brings it to the middle instead. A phone is not changed.
+      if (!window.matchMedia("(min-width: 744px) and (min-height: 500px)").matches) return;
+      const card = (e.target as Element).closest("[data-card]");
+      if (!card) return;
+      const offset = offsetFrom(Number(card.getAttribute("data-card")), posRef.current);
+      if (Math.abs(offset) < 0.5) return; // the middle card: its own link opens it
       e.preventDefault();
       e.stopPropagation();
+      animateTo(posRef.current + offset, 420);
     };
 
     // Sideways trackpad scrolling.
@@ -362,16 +379,16 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
   }, [slot]);
 
   return (
-    <section className="relative left-1/2 mb-3 w-screen -mx-[50vw] rounded-b-[1.5rem] min-h-[80vh] supports-[-webkit-touch-callout:none]:max-md:min-h-[100vh] overflow-hidden bg-white px-6 pt-12 pb-10 text-center">
+    <section className="ultra-slims-section relative left-1/2 mb-3 w-screen -mx-[50vw] rounded-b-[1.5rem] min-h-[80vh] supports-[-webkit-touch-callout:none]:max-md:min-h-[100vh] overflow-hidden bg-white px-6 pt-12 pb-10 text-center">
       <Link href={buttonHref}>
       <h2
-        className="font-montserrat italic text-[#130f0f]"
-        style={{marginTop: "36px", fontWeight: 600, fontSize: "44px", lineHeight: 1.1 }}
+        className="font-montserrat italic text-[#000000]"
+        style={{marginTop: "36px", fontWeight: 680, fontSize: "44px", lineHeight: 1.1 }}
       >
         Ultra Slims
       </h2>
       <p
-        className="mx-auto  max-w-md font-montserrat text-[#130f0f]"
+        className="mx-auto  max-w-md font-montserrat text-[#000000]"
         style={{ fontSize: "14px" }}
       >
         <strong className="font-bold">Compatible</strong> Most of Ultra Slims sizes
@@ -380,8 +397,8 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
       <button
         style={{
           letterSpacing: "0.1em",
-          border: "1px solid black",
           fontWeight: 500,
+          ...BUTTON_EDGE,
         }}
         className="mt-[20px] font-montserrat inline-flex h-[42px] w-[140px] items-center justify-center self-center rounded-[8px] bg-[#dcc090] text-[17px] text-[#122a26] transition-colors hover:bg-[#d3b57c]"
       >
@@ -397,13 +414,13 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
         style={{ marginTop: 24, width: "80%",margin: "24px auto", height: 1, backgroundColor: "#DEDEDE" }}
       />
       <div
-        className="relative mx-auto overflow-hidden font-montserrat italic text-[#130f0f]"
+        className="relative mx-auto overflow-hidden font-montserrat italic text-[#000000]"
         style={{
           marginTop: 28,
           height: 28,
           lineHeight: "28px",
           fontSize: 20,
-          fontWeight: 600,
+          fontWeight: 690,
         }}
       >
         {label.previous !== null && (
@@ -480,8 +497,8 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
               ...placementFor(index, START_INDEX, slot),
             }}
           >
-            {/* Only five pictures, fetched as soon as the page loads, so a card
-                is never empty when it slides into view. */}
+            {/* Only these few pictures, fetched as soon as the page loads, so a
+                card is never empty when it slides into view. */}
             <ShopProductCard product={product} eager />
           </div>
         ))}

@@ -1,4 +1,24 @@
+import Image from "next/image";
 import Link from "next/link";
+
+import applePay from "@/assets/icons/apple-pay.svg";
+import googlePay from "@/assets/icons/google-pay.svg";
+import idram from "@/assets/icons/idram.png";
+import mastercard from "@/assets/icons/mastercard.svg";
+import visa from "@/assets/icons/visa.svg";
+
+// The ways to pay, shown under the copyright, all in the same size (3 : 2, like
+// the cards' own drawings). The drawings (SVG) have their own white card behind
+// them; Idram's logo is a picture on a see-through background, so it is given the
+// same white card (with the same corners) and fitted inside it (the picture has
+// room of its own around the logo).
+const PAYMENT_METHODS = [
+  { label: "Apple Pay", src: applePay, onWhiteCard: false },
+  { label: "Google Pay", src: googlePay, onWhiteCard: false },
+  { label: "Visa", src: visa, onWhiteCard: false },
+  { label: "Mastercard", src: mastercard, onWhiteCard: false },
+  { label: "Idram", src: idram, onWhiteCard: true },
+];
 
 const LEGAL_LINKS = [
   { label: "Privacy Policy", href: "/privacy" },
@@ -36,7 +56,7 @@ function YouTubeIcon({ className }: { className?: string }) {
 
 export default function Footer() {
   return (
-    <footer className="bg-[#122a26]">
+    <footer className="site-footer rounded-t-[1.5rem] bg-[#122a26]">
       <div className="mx-auto flex max-w-[120rem] flex-col gap-10 px-4 py-16 text-[#dcc090] sm:px-8 lg:px-[7.5rem]">
         <div className="grid justify-items-center gap-10 text-center lg:grid-cols-[1fr_auto_1fr] lg:items-start lg:justify-items-stretch lg:text-left">
           <div className="order-2 flex flex-col items-center gap-4 text-sm font-medium leading-[1.4] lg:order-1 lg:items-start">
@@ -102,9 +122,27 @@ export default function Footer() {
           </div>
         </div>
 
-        <p className="text-center text-xs font-medium">
-          Copyright© 2026. All Rights Reserved.
-        </p>
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-center text-xs font-medium">
+            Copyright© 2026. All Rights Reserved.
+          </p>
+
+          <ul aria-label="Payment methods" className="flex items-center justify-center gap-2">
+            {PAYMENT_METHODS.map((method) => (
+              <li key={method.label} className="flex h-8 w-12 shrink-0 items-center justify-center">
+                <Image
+                  src={method.src}
+                  alt={method.label}
+                  width={48}
+                  height={32}
+                  className={`h-8 w-12 ${
+                    method.onWhiteCard ? "rounded-[1.6px] bg-white object-contain p-px" : ""
+                  }`}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </footer>
   );

@@ -18,7 +18,7 @@ const COLLECTIONS = [
 
 export default function CollectionsPage() {
   return (
-    <main className="animate-page-slide-in-left relative flex flex-col pt-3">
+    <main className="collections-page animate-page-slide-in-left relative flex flex-col pt-3">
       {COLLECTIONS.map((collection) => (
         <Banner
           key={collection.title}

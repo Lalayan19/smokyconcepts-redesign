@@ -42,17 +42,22 @@ export default function HeroVideoBanner({
   }, [video]);
 
   return (
-    <section className="bg-white relative left-1/2 w-screen -mx-[50vw] overflow-hidden bg-black">
+    <section className="hero-banner bg-white relative left-1/2 w-screen -mx-[50vw] overflow-hidden bg-black">
       <Link href={buttonHref}>
         <video
           ref={videoRef}
-          src={video}
-          poster={image.src}
+          src={video}     
           autoPlay
           muted
           loop
           playsInline
-          className="block h-auto w-full rounded-b-[1.5rem]"
+          className="hero-banner-video block h-auto w-full rounded-b-[1.5rem]"
+          // A video has no size until its file starts to load, so the section
+          // used to shrink to almost nothing for a moment on every refresh and
+          // the page below jumped down when it arrived. The box has the video's
+          // own proportions (464 x 848) from the first paint, and is black until
+          // the first picture is there.
+          style={{ aspectRatio: "464 / 848", backgroundColor: "#000" }}
         />
      </Link>
         <div
@@ -63,15 +68,15 @@ export default function HeroVideoBanner({
           }}
         />
 
-        <div className="absolute inset-x-0 top-0 z-20 px-6 pt-3 text-center">
+        <div className="hero-banner-fit absolute inset-x-0 top-0 z-20 px-6 pt-3 text-center">
           <h2
             className="font-montserrat tracking-[-0.01em] text-white"
-            style={{ lineHeight: "30px", fontSize: "24px", fontWeight: 530 }}
+            style={{ lineHeight: "30px", fontSize: "24px", fontWeight: 500 }}
           >
             {title}
           </h2>
           {subtitle && (
-            <p className="text-white/80" style={{ marginTop: "-4px", fontSize: "12px" }}>
+            <p className="mt-[6px] text-white/80 font-montserrat" style={{ fontSize: "12px" }}>
               {subtitle}
             </p>
           )}
@@ -80,7 +85,7 @@ export default function HeroVideoBanner({
         {/* The bottom heading + text and the button all sit 124px above the
             bottom edge. */}
         <div
-          className="absolute inset-x-0 bottom-0 z-20 flex items-end justify-start gap-4 px-6"
+          className="hero-banner-fit absolute inset-x-0 bottom-0 z-20 flex items-end justify-start gap-4 px-6"
           style={{ paddingBottom: "124px", display: 'flex', justifyContent: "center" }}
         >
           <div className="min-w-0" style={{ maxWidth: "65%" }}>

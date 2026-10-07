@@ -9,8 +9,8 @@ type AtelierSectionProps = {
 
 export default function AtelierSection({ image, buttonHref }: AtelierSectionProps) {
   return (
-    <section className="bg-white relative left-1/2 flex h-[94vh] w-screen -mx-[50vw] flex-col bg-[#efefef] px-6 pt-[70px] pb-10 text-center">
-      <Link href={buttonHref}>
+    <section className="atelier-section bg-white relative left-1/2 flex h-[94vh] w-screen -mx-[50vw] flex-col bg-[#efefef] px-6 pt-[70px] pb-10 text-center">
+      <Link href={buttonHref} className="atelier-link">
         <h2
           className="font-montserrat italic text-[#130F0F]"
           style={{ fontWeight: 800, fontSize: "66px", lineHeight: 1.1 }}
@@ -37,7 +37,7 @@ export default function AtelierSection({ image, buttonHref }: AtelierSectionProp
           BUY NOW
         </button>
 
-        <div className="relative mx-auto mt-[54px] h-[315px] w-[203px]">
+        <div className="atelier-case relative mx-auto mt-[54px] h-[315px] w-[203px]">
           <Image src={image} alt="Atelier" fill className="object-contain" />
         </div>
       </Link>

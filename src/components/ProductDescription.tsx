@@ -272,7 +272,7 @@ export default function ProductDescription() {
           {/* The texts: each slide has its own, and they move with the
               pictures. They sit on top of each other in one grid cell, which
               gives the row the height of the tallest one. */}
-          <div className="grid overflow-hidden" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
+          <div className="product-story-texts grid overflow-hidden" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
             {SLIDES.map((slide, i) => (
               <div
                 key={slide.label}
@@ -309,7 +309,7 @@ export default function ProductDescription() {
           </div>
 
           {/* The note stays put whichever slide is showing. */}
-          <div className="mx-5 rounded-2xl border border-white/15 bg-white/10 px-4 py-3.5 backdrop-blur-sm sm:mx-8">
+          <div className="product-story-note mx-5 rounded-2xl border border-white/15 bg-white/10 px-4 py-3.5 backdrop-blur-sm sm:mx-8">
             <p className="text-xs leading-relaxed text-white">
               <span className="font-bold text-white">Note:</span> Natural leather
               may vary slightly in grain, texture, and color tone. Each piece is

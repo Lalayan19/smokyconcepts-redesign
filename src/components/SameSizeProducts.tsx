@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
+import DragScroll from "@/components/DragScroll";
 import { formatPrice, type Product } from "@/data/products";
 
 const CARD_PX = 216; // 13.5rem
@@ -273,7 +274,7 @@ function LoopingRow({ products }: { products: Product[] }) {
     // row the height of a card) and are moved sideways from there.
     <div
       ref={trackRef}
-      className="mt-4 pb-1 select-none [-webkit-touch-callout:none] [-webkit-tap-highlight-color:transparent]"
+      className="samesize-loop mt-4 pb-1 select-none [-webkit-touch-callout:none] [-webkit-tap-highlight-color:transparent]"
       style={{
         display: "grid",
         gridTemplateColumns: "minmax(0, 1fr)",
@@ -314,6 +315,27 @@ function LoopingRow({ products }: { products: Product[] }) {
   );
 }
 
+// The same cards as a plain row, each one once: for a tablet and larger (see
+// `.samesize-loop` and `.samesize-flat` in globals.css), where the row is wide and
+// there is no use in looping the cards round to fill it. If there are more than
+// fit, the row scrolls sideways; it never repeats a card.
+function FlatRow({ products }: { products: Product[] }) {
+  return (
+    <DragScroll className="samesize-flat scrollbar-hide mt-4 hidden snap-x gap-3 overflow-x-auto pb-1 pl-2">
+      {products.map((product) => (
+        <Link
+          key={product.slug}
+          href={`/products/${product.slug}`}
+          className="block shrink-0 snap-start"
+          style={{ width: CARD_PX }}
+        >
+          <ProductTile product={product} />
+        </Link>
+      ))}
+    </DragScroll>
+  );
+}
+
 export default function SameSizeProducts({
   collection,
   products,
@@ -326,7 +348,11 @@ export default function SameSizeProducts({
   return (
     <section className="mt-10">
       <div className="flex items-end justify-between">
-        <h2 className="text-[0.9375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
+        {/* In line with the left edge of the first card (which has LEFT_PX before it). */}
+        <h2
+          className="text-[0.9375rem] font-extrabold tracking-[-0.01em] text-[#414141]"
+          style={{ paddingLeft: LEFT_PX }}
+        >
           More in {collection} Collection
         </h2>
         <span className="shrink-0 text-xs font-semibold text-[#898989]">
@@ -342,7 +368,10 @@ export default function SameSizeProducts({
           </Link>
         </div>
       ) : (
-        <LoopingRow products={products} />
+        <>
+          <LoopingRow products={products} />
+          <FlatRow products={products} />
+        </>
       )}
     </section>
   );

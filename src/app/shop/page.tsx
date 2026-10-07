@@ -1,21 +1,40 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useLayoutEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
+import type { StaticImageData } from "next/image";
 import { useSearchParams } from "next/navigation";
 
 import ShopProductCard from "@/components/ShopProductCard";
 import SizeSelectorModal from "@/components/SizeSelectorModal";
 import { PRODUCT_CATEGORIES } from "@/data/products";
+import atelierCoin from "@/assets/images/covered_collections_section/atelier.png";
+import classicCoin from "@/assets/images/covered_collections_section/classic.png";
+import premiumCoin from "@/assets/images/covered_collections_section/premium.png";
+import specialCoin from "@/assets/images/covered_collections_section/special.png";
 
 const COLLECTIONS = PRODUCT_CATEGORIES.map((c) => c.name);
 
-// The collection buttons are always one row across the full width. The row is a
-// container, so on a narrower screen the buttons and their text (sized in
-// container-width units) shrink together and every name still fits.
+// The coin of each collection (the ones in the home page's Collections row), shown
+// at the left of its heading on a tablet and larger; a phone does not show it.
+const COLLECTION_COINS: Record<string, StaticImageData> = {
+  Classic: classicCoin,
+  Premium: premiumCoin,
+  Atelier: atelierCoin,
+  "Special Edition": specialCoin,
+};
+
+// The collection buttons are always one row across the full width, inside a bar
+// with a thin gold edge and a blurred background. The bar is part of the page: it
+// scrolls away with it (it used to stick just under the header).
 //
-// It sticks just under the header while the page scrolls. From then on it sits
-// on a blurred, rounded background that is 90% as wide as the row was, and that
-// drops in from under the header.
+// Its text is as large as it can be (up to FIT_MAX_PX) while all four names still
+// fit; the buttons are sized in `em`, so they shrink with it. This is measured
+// with the real font, so it holds on every phone, whatever its system font: a
+// name is never cut short.
+const FIT_MAX_PX = 12;
+const FIT_MIN_GAP_PX = 8; // least space between two buttons
+
 function CollectionBar({
   selected,
   onToggle,
@@ -24,49 +43,49 @@ function CollectionBar({
   onToggle: (name: string) => void;
 }) {
   const barRef = useRef<HTMLDivElement>(null);
-  const [stuck, setStuck] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const bar = barRef.current;
     if (!bar) return;
-    // Stuck once the bar has reached the offset it sticks at.
-    const update = () => {
-      const stickAt = parseFloat(getComputedStyle(bar).top);
-      setStuck(bar.getBoundingClientRect().top <= stickAt + 0.5);
+    const fit = () => {
+      // The widths of the buttons when the text is at its largest...
+      bar.style.fontSize = `${FIT_MAX_PX}px`;
+      const buttons = Array.from(bar.children);
+      const natural = buttons.reduce((sum, b) => sum + b.getBoundingClientRect().width, 0);
+      const style = getComputedStyle(bar);
+      const inside = bar.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      const room = inside - (buttons.length - 1) * FIT_MIN_GAP_PX;
+      // ...and the size at which they (everything is in em) just fit the room.
+      const size = Math.min(FIT_MAX_PX, (FIT_MAX_PX * room * 0.99) / natural);
+      bar.style.fontSize = `${Math.max(5, Math.floor(size * 10) / 10)}px`;
     };
-    const first = requestAnimationFrame(update);
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(bar);
+    // The sizes of the letters change once the page's fonts have loaded.
+    document.fonts?.ready.then(fit);
+    document.fonts?.addEventListener("loadingdone", fit);
     return () => {
-      cancelAnimationFrame(first);
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      observer.disconnect();
+      document.fonts?.removeEventListener("loadingdone", fit);
     };
   }, []);
 
   return (
     <div
-      ref={barRef}
-      // Only the row itself takes clicks, not the empty space around it.
-      className="pointer-events-none sticky z-30 mt-4 flex h-[60px] items-center"
-      style={{ top: "calc(4rem + 0.25rem)" }}
+      // Only the bar itself takes clicks, not the empty space around it.
+      className="shop-collection-bar pointer-events-none mt-4 flex h-[60px] items-center"
     >
       <div
-        className={`pointer-events-auto mx-auto flex items-center gap-2 rounded-[8px] transition-[width,padding,background-color,box-shadow,backdrop-filter,border-color] duration-300 ease-out ${
-          stuck ? "shop-bar-drop" : ""
-        }`}
+        ref={barRef}
+        className="pointer-events-auto flex w-full items-center justify-between rounded-[8px]"
         style={{
-          containerType: "inline-size",
-          width: stuck ? "90%" : "100%",
-          padding: stuck ? 6 : 0,
-          backgroundColor: stuck ? "rgba(245, 244, 241, 0.55)" : "rgba(245, 244, 241, 0)",
-          backdropFilter: stuck ? "blur(14px) saturate(1.3)" : "blur(0px)",
-          WebkitBackdropFilter: stuck ? "blur(14px) saturate(1.3)" : "blur(0px)",
-          // A soft shadow and a thin light edge (drawn inside, so the row is
-          // exactly as wide as it was before).
-          boxShadow: stuck
-            ? "0 4px 22.5px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.7)"
-            : "0 0 0 rgba(0, 0, 0, 0), inset 0 0 0 1px rgba(255, 255, 255, 0)",
+          padding: 4,
+          border: "1px solid #dcc090",
+          backgroundColor: "rgba(245, 244, 241, 0.55)",
+          backdropFilter: "blur(14.5px)",
+          WebkitBackdropFilter: "blur(14.5px)",
+          fontSize: 11,
         }}
       >
         {COLLECTIONS.map((c) => {
@@ -77,18 +96,9 @@ function CollectionBar({
               type="button"
               onClick={() => onToggle(c)}
               aria-pressed={active}
-              style={{
-                height: "clamp(28px, 8.9cqw, 36px)",
-                // Sized so that "Special Edition", the longest name, just
-                // fits its button (with a little room to spare for fonts
-                // that are wider than expected): about 12px on a wide
-                // screen, 9.2px at 375px, 7.3px at 320px.
-                fontSize: "clamp(7px, calc(3.39cqw - 2.44px), 12px)",
-              }}
-              className={`min-w-0 flex-1 truncate rounded-[6px] border-2 px-1 text-[11px] font-semibold transition-colors sm:px-4 ${
-                active
-                  ? "border-[#dcc090] bg-[#dcc090] text-[#122a26] shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]"
-                  : "border-transparent bg-white text-[#414141] hover:border-[#dcc090]/50"
+              style={{ height: "2.35em", padding: "0 1em", borderRadius: "0.5em" }}
+              className={`shrink-0 whitespace-nowrap font-montserrat font-bold text-black transition-colors ${
+                active ? "bg-[#dcc090]" : "bg-transparent hover:bg-[#dcc090]/10"
               }`}
             >
               {c}
@@ -142,17 +152,18 @@ function ShopContent() {
 
   return (
     <main className="bg-[#f5f4f1]">
-      <div className="mx-auto max-w-[120rem] px-4 pt-8 pb-20 sm:px-8 lg:px-[7.5rem]">
+      <div className="shop-page mx-auto max-w-[120rem] px-4 pt-8 pb-20 sm:px-8 lg:px-[7.5rem]">
         <h1 className="text-[1.75rem] leading-none font-normal text-[#414141] sm:text-[2rem]">
           <span className="hidden font-extrabold lg:inline">Product Line: </span>
           <span className="font-semibold">Smoky Covers</span>
         </h1>
 
-        <div className="mt-6 flex items-center gap-2.5">
+        <div className="shop-filter-row mt-6 flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => setSizeModalOpen(true)}
-            className="h-14 flex-1 truncate rounded-[0.625rem] bg-[#dcc090] px-5 text-left text-base font-semibold text-[#122a26] shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#d3b57c]"
+            style={{ height: 36, padding: "0 14px", fontSize: 13, borderRadius: 8 }}
+            className="flex-1 truncate bg-[#dcc090] text-left font-semibold text-[#122a26] shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#d3b57c]"
           >
             {size ?? "Select size"}
           </button>
@@ -162,9 +173,10 @@ function ShopContent() {
             onClick={clearAll}
             disabled={!hasActiveFilters}
             aria-label="Reset filters"
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[0.625rem] border-2 border-[#dcc090] text-[#dcc090] transition-colors hover:bg-[#dcc090]/10 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+            style={{ height: 36, width: 44, borderRadius: 8, border: "1px solid #dcc090" }}
+            className="flex shrink-0 items-center justify-center text-[#dcc090] transition-colors hover:bg-[#dcc090]/10 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
                 d="M3 12a9 9 0 1 1 3 6.7M3 12V6m0 6h6"
                 stroke="currentColor"
@@ -176,17 +188,28 @@ function ShopContent() {
           </button>
         </div>
 
-        <div className="mt-6 h-px bg-black/10" />
+        <div className="shop-divider mt-6 h-px bg-black/10" />
 
         <CollectionBar selected={collections} onToggle={toggleCollection} />
 
-        <div className="mt-8 flex flex-col gap-12">
+        <div className="shop-list mt-8 flex flex-col gap-12">
           {categories.map((category) => (
-            <section key={category.name}>
-              <h2 className="text-xl font-extrabold text-[#414141] sm:text-2xl">
+            <section key={category.name} className="shop-category">
+              <h2 className="shop-category-title text-xl font-extrabold text-[#414141] sm:text-2xl">
+                {COLLECTION_COINS[category.name] && (
+                  <span className="shop-coin relative hidden shrink-0">
+                    <Image
+                      src={COLLECTION_COINS[category.name]}
+                      alt=""
+                      fill
+                      sizes="40px"
+                      className="object-contain"
+                    />
+                  </span>
+                )}
                 {category.name}
               </h2>
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+              <div className="shop-grid mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
                 {category.products.map((product) => (
                   <ShopProductCard key={product.slug} product={product} />
                 ))}

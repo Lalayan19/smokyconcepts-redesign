@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import CustomizeModal, { type Customization } from "@/components/CustomizeModal";
 import DeliveryInfo from "@/components/DeliveryInfo";
+import DragScroll from "@/components/DragScroll";
 import HowToUse from "@/components/HowToUse";
 import ProductCard from "@/components/ProductCard";
 import ProductDescription from "@/components/ProductDescription";
@@ -29,6 +30,9 @@ const DETAILS = [
   { label: "Construction", value: "Engineered core, wrapped and hand-finished in leather" },
 ];
 
+// What customizing a Classic case costs on top of its price.
+const CLASSIC_CUSTOMIZE_FEE = 2000;
+
 function ChevronRightIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
@@ -39,6 +43,14 @@ function ChevronRightIcon({ className }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -95,37 +107,60 @@ export default function ProductPage() {
     (p) => p.slug !== product.slug && p.collection === product.collection,
   );
 
+  // A Classic case with a customization saved costs the fee on top of its price.
+  // Only the Buy Now button shows the total; the Price in the card stays the
+  // price of the case itself.
+  const customizationFee =
+    product.collection === "Classic" && customization?.text ? CLASSIC_CUSTOMIZE_FEE : 0;
+  const totalPrice = product.price + customizationFee;
+
   return (
     <main className="bg-[#f5f4f1]">
-      <div className="mx-auto max-w-[40rem] px-4 pt-5 pb-16">
+      {/* On a phone the page is one column. The `contents` boxes below (the
+          pictures, the collection's row, the purchase, the rest) have no box of
+          their own there, so nothing changes; on a laptop (see `.product-layout`
+          in globals.css) the pictures and the purchase are the two columns, with
+          the collection's row under both and the rest under that. */}
+      <div className="product-layout mx-auto max-w-[40rem] px-4 pt-5 pb-16">
+        <div className="product-left contents">
         {/* Gallery */}
-        <div className="overflow-hidden rounded-[1.5rem] bg-white shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
+        <div className="product-gallery-card overflow-hidden rounded-[1.5rem] bg-white shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
           <ProductGallery
             images={[product.image, product.image, product.image, product.image]}
             alt={product.name}
             title={product.name}
           />
         </div>
+        </div>
 
+        <div className="product-samesize contents">
         <SameSizeProducts
           key={product.slug}
           collection={product.collection}
           products={sameClass}
         />
+        </div>
 
+        <div className="product-right contents">
         {/* The name of the product, between the collection row and the
-            purchase choices. */}
-        <section className="mt-5 rounded-[1.5rem] bg-white px-5 py-5 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
-          <p className="text-[11px] font-bold tracking-wider text-[#898989] uppercase">
-            Product
-          </p>
-          <h2 className="mt-1 text-[1.5rem] leading-tight font-extrabold text-[#414141]">
-            {product.name}
-          </h2>
-        </section>
+            purchase choices: just the name, on the page itself. */}
+        <h2
+          className="product-name mt-5 px-3.5 font-montserrat leading-snug text-black"
+          style={{ fontSize: 18, fontWeight: 700 }}
+        >
+          {product.name}
+        </h2>
 
         {/* Core purchase decision (name, size, customize, price) */}
-        <div className="mt-5 flex flex-col gap-5 rounded-[1.5rem] bg-white p-5 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
+        <div className="product-card mt-5 flex flex-col gap-5 rounded-[1.5rem] bg-white p-5 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
+          {/* On a tablet and larger the name is here, in the card, above the
+              size and collection (and not above the card, nor in the pictures). */}
+          <h2
+            className="product-card-name hidden font-montserrat leading-snug text-black"
+            style={{ fontSize: 22, fontWeight: 700 }}
+          >
+            {product.name}
+          </h2>
           <span className="inline-flex w-fit items-center rounded-full bg-[#122a26]/[0.06] px-3 py-1 text-[11px] font-bold tracking-wider text-[#122a26] uppercase">
             {product.size} · {product.collection}
           </span>
@@ -147,29 +182,59 @@ export default function ProductPage() {
           </button>
           {product.collection === "Atelier" ? <> </> : 
             <div>
-              <button
-                type="button"
-                onClick={() => setCustomizeOpen(true)}
-                className={`flex h-11 w-full items-center justify-between rounded-full border-2 px-5 shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all active:scale-[0.98] ${
-                  product.collection === "Atelier"
-                    ? "border-black text-black"
-                    : "border-[#dcc090] text-[#dcc090]"
-                }`}
-              >
-                <span className="flex items-center gap-2.5">
-                  <PencilIcon className="h-4 w-4" /> 
-                  <span className="text-xs font-extrabold tracking-[0.14em] uppercase">
-                    {product.collection === "Atelier" ? "Personalize" : "Customize"}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCustomizeOpen(true)}
+                  className={`flex h-11 min-w-0 flex-1 items-center justify-between rounded-full border-2 px-5 shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all active:scale-[0.98] ${
+                    product.collection === "Atelier"
+                      ? "border-black text-black"
+                      : "border-[#dcc090] text-[#dcc090]"
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <PencilIcon className="h-4 w-4" />
+                    <span className="text-xs font-extrabold tracking-[0.14em] uppercase">
+                      {product.collection === "Atelier" ? "Personalize" : "Customize"}
+                    </span>
                   </span>
-                </span>
-                <ChevronRightIcon className="h-4 w-4" />
-              </button>
+                  {/* The same price, inside the button, on a tablet and larger. */}
+                  {product.collection === "Classic" && (
+                    <span className="product-fee-inside hidden whitespace-nowrap font-extrabold text-[#414141]">
+                      +{formatPrice(CLASSIC_CUSTOMIZE_FEE)}
+                    </span>
+                  )}
+                  <ChevronRightIcon className="h-4 w-4" />
+                </button>
+                {/* What customizing costs on top, for the Classic collection. */}
+                {product.collection === "Classic" && (
+                  <span
+                    className="product-fee-outside shrink-0 whitespace-nowrap font-extrabold text-[#414141]"
+                    style={{ fontSize: 14 }}
+                  >
+                    +{formatPrice(CLASSIC_CUSTOMIZE_FEE)}
+                  </span>
+                )}
+              </div>
               {customization?.text && (
-                <div className="mt-3 rounded-2xl bg-[#dcc090]/10 px-4 py-3">
-                  <p className="text-sm leading-snug text-[#414141]">
+                <div className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-[#dcc090]/10 px-4 py-3">
+                  <p className="min-w-0 text-sm leading-snug text-[#414141]">
                     Customized: <span className="font-bold">“{customization.text}”</span> —{" "}
                     {customization.font}
                   </p>
+                  {/* Cancels the customization (and so the extra cost). It is
+                      taller than the text and sits partly in the box's padding
+                      (the negative margins), so the text keeps its room and the
+                      box keeps the height it had. */}
+                  <button
+                    type="button"
+                    aria-label="Cancel customization"
+                    onClick={() => setCustomization(null)}
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#414141]/60 transition-colors hover:bg-black/5 hover:text-[#414141]"
+                    style={{ margin: "-2px -8px -2px 0" }}
+                  >
+                    <XIcon className="h-4 w-4" />
+                  </button>
                 </div>
               )}
             </div>
@@ -189,32 +254,41 @@ export default function ProductPage() {
         <DeliveryInfo />
 
         {/* Purchase actions — sit right before the recommendations, in normal flow */}
-        <div className="mt-8 flex items-center gap-3">
+        <div className="product-actions mt-8 flex items-center gap-3">
           <button
             type="button"
             aria-label="Add to cart"
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-[#122a26] text-[#122a26] shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-transform active:scale-90"
+            className="product-cart flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-[#122a26] text-[#122a26] shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-transform active:scale-90"
           >
-            <CartIcon className="h-6 w-6" />
+            <CartIcon className="product-cart-icon h-6 w-6" />
+            {/* On a tablet and larger the button says it, instead of the icon. */}
+            <span className="product-cart-label hidden text-sm font-extrabold tracking-[0.14em] uppercase">
+              Add to cart
+            </span>
           </button>
           <button
             type="button"
-            className="flex h-14 flex-1 items-center justify-between rounded-2xl bg-[#dcc090] px-5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-transform active:scale-[0.98]"
+            className="product-buy flex h-14 flex-1 items-center justify-between rounded-2xl bg-[#dcc090] px-5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-transform active:scale-[0.98]"
           >
             <span className="text-sm font-extrabold tracking-[0.14em] text-[#122a26] uppercase">
               Buy Now
             </span>
             <span className="text-base font-extrabold text-[#122a26]">
-              {formatPrice(product.price)}
+              {formatPrice(totalPrice)}
             </span>
           </button>
         </div>
+        </div>
 
-        <section className="mt-10">
-          <h2 className="text-[1.375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
+        <div className="product-rest contents">
+        <section className="product-details mt-10">
+          <h2 className="product-details-title text-[1.375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
             Details
           </h2>
-          <dl className="mt-4 overflow-hidden rounded-[1.5rem] bg-white shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
+          {/* Shown with the heading in the middle of the card, like How to Use,
+              on a tablet and larger. */}
+          <p className="product-details-sub hidden">Product specifications</p>
+          <dl className="product-details-list mt-4 overflow-hidden rounded-[1.5rem] bg-white shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
             {DETAILS.map((d, index) => (
               <div
                 key={d.label}
@@ -231,26 +305,31 @@ export default function ProductPage() {
           </dl>
         </section>
 
-        <ProductDescription />
+        <div className="product-story contents">
+          <ProductDescription />
+        </div>
 
-        <div className="mt-8">
+        <div className="product-howto mt-8">
           <HowToUse />
         </div>
 
-        <section className="mt-10">
+        <section className="product-related mt-10">
           <h2 className="text-[1.375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
             You May Also Like
           </h2>
-          <div className="scrollbar-hide mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto pt-2 pb-2">
+          <DragScroll className="scrollbar-hide mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto pt-2 pb-2">
             {related.map((p) => (
               <div key={p.slug} className="shrink-0 snap-start">
                 <ProductCard product={p} />
               </div>
             ))}
-          </div>
+          </DragScroll>
         </section>
 
-        <ShopByCategory />
+        <div className="product-shopby contents">
+          <ShopByCategory />
+        </div>
+        </div>
       </div>
 
       <SizeSelectorModal

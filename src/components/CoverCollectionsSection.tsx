@@ -5,20 +5,42 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { BUTTON_EDGE } from "@/components/buttonEdge";
 import atelierCoin from "@/assets/images/covered_collections_section/atelier.png";
 import classicCoin from "@/assets/images/covered_collections_section/classic.png";
-import collectionsImage from "@/assets/images/covered_collections_section/collections.png";
 import premiumCoin from "@/assets/images/covered_collections_section/premium.png";
 import specialCoin from "@/assets/images/covered_collections_section/special.png";
 
+// `description` is the text under the button while that collection is in the
+// middle of the row.
 const COLLECTIONS = [
-  { name: "Classic", image: classicCoin, href: "/shop?collection=Classic" },
-  { name: "Premium", image: premiumCoin, href: "/shop?collection=Premium" },
-  { name: "Atelier", image: atelierCoin, href: "/shop?collection=Atelier" },
+  {
+    name: "Classic",
+    image: classicCoin,
+    href: "/shop?collection=Classic",
+    description:
+      "The everyday essentials. Clean lines, high-quality leather and timeless colors — brown, blue and black — at the most accessible price in the line, and ready to carry your own text.",
+  },
+  {
+    name: "Premium",
+    image: premiumCoin,
+    href: "/shop?collection=Premium",
+    description:
+      "Richer leathers and bolder character. Each case is hand-finished in a distinctive color or texture, for those who want even a small ritual to feel special.",
+  },
+  {
+    name: "Atelier",
+    image: atelierCoin,
+    href: "/shop?collection=Atelier",
+    description:
+      "Made to order. Every piece is hand-assembled in our atelier to the exact dimensions of your pack, then finished with your personal touch.",
+  },
   {
     name: "Special Edition",
     image: specialCoin,
     href: "/shop?collection=Special+Edition",
+    description:
+      "Limited designs, released once. Rare finishes and unique details created for a moment — when they sell out, they do not return.",
   },
 ];
 const COUNT = COLLECTIONS.length;
@@ -285,7 +307,7 @@ export default function CoverCollectionsSection() {
   return (
     <section className="relative left-1/2 z-10 w-screen -mx-[50vw] bg-white">
       <div
-        className="overflow-hidden rounded-[1.5rem] bg-black px-6 text-center"
+        className="collections-card overflow-hidden rounded-[1.5rem] bg-black px-6 text-center"
         style={{ paddingTop: 62, paddingBottom: 37 }}
       >
         <h2
@@ -413,7 +435,7 @@ export default function CoverCollectionsSection() {
               fontSize: 17,
               fontWeight: 500,
               letterSpacing: "0.1em",
-              border: "1px solid white",
+              ...BUTTON_EDGE,
             }}
             className="inline-flex items-center justify-center rounded-[8px] bg-[#dcc090] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
           >
@@ -421,13 +443,34 @@ export default function CoverCollectionsSection() {
           </Link>
         </div>
 
-        <div className="-mx-6" style={{ marginTop: 0 }}>
-          <Image
-            src={collectionsImage}
-            alt="Cover collections"
-            sizes="100vw"
-            className="block h-auto w-full"
-          />
+        {/* What the collection in the middle is. The four texts sit on top of
+            each other in one grid cell, so the block is as tall as the longest
+            and nothing moves when the text changes; the one for the coin in the
+            middle fades in as the others fade out. */}
+        <div
+          className="collections-desc mx-auto grid"
+          style={{ marginTop: 28, maxWidth: 320, gridTemplateColumns: "minmax(0, 1fr)" }}
+        >
+          {COLLECTIONS.map((collection, index) => {
+            const shown = index === label.current;
+            return (
+              <p
+                key={collection.name}
+                aria-hidden={shown ? undefined : true}
+                className="font-montserrat text-center text-white"
+                style={{
+                  gridArea: "1 / 1",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  lineHeight: 1.55,
+                  opacity: shown ? 0.85 : 0,
+                  transition: "opacity 350ms ease",
+                }}
+              >
+                {collection.description}
+              </p>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
     "192.168.10.19",
     "192.168.11.176",
     "192.168.20.156",
+    // Any other address on a home or office network (the PC's address changes
+    // with the Wi-Fi it is on), and a phone's hotspot.
+    "192.168.*.*",
+    "10.*.*.*",
+    "172.*.*.*",
     "*.trycloudflare.com",
   ],
 };

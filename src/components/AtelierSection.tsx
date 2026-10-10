@@ -40,6 +40,12 @@ export default function AtelierSection({ image, buttonHref }: AtelierSectionProp
         <div className="atelier-case relative mx-auto mt-[54px] h-[315px] w-[203px]">
           <Image src={image} alt="Atelier" fill className="object-contain" />
         </div>
+
+        {/* Tablet and up: the same picture again, mirrored, on the other side of
+            the text. Not shown on a phone. */}
+        <div aria-hidden="true" className="atelier-case-mirror relative hidden">
+          <Image src={image} alt="" fill className="object-contain" />
+        </div>
       </Link>
     </section>
   );

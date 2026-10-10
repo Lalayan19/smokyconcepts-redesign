@@ -258,6 +258,244 @@
   min-height: calc((100svh - 4rem) * 0.55);
 }
 
+/* The Personalization page, for now: the page is only a film that a scroll plays
+   (see PersonalizationScrollVideo), on every screen, so the banner screen and the
+   form are not shown. The film fills the window from edge to edge under the header
+   (4rem): the header and the film are as tall as the window (100vh), so the
+   footer is below, out of sight until the page is scrolled on past the last
+   frame. 1.5rem of black is left under the film: the footer's rounded corners
+   slide up over that (see `.personalization-page`), not over the film. */
+.personalization-banner-screen,
+.personalization-form-screen {
+  display: none;
+}
+
+.personalization-scrub {
+  margin-bottom: 1.5rem;
+  /* A swipe of a finger on the film is the film's, not the page's: the page does
+     not scroll under the finger (the component takes the swipe). */
+  touch-action: none;
+}
+
+.personalization-scrub-stage {
+  position: relative;
+  height: calc(100vh - 4rem);
+  height: calc(100svh - 4rem);
+  overflow: hidden;
+  background: #000;
+}
+
+/* The page is black all through (so no strip of the page's grey can show beside
+   the footer's rounded corners, or if the window is a pixel taller than the
+   film). No pulling the page down to refresh it, no bounce. */
+html:has(.personalization-scrub),
+body:has(.personalization-scrub) {
+  overscroll-behavior-y: none;
+  background: #000;
+}
+
+/* The film is the pictures on a canvas for a window taller than wide (a phone, a
+   tablet upright), the video for one wider than tall (below); both fill the
+   stage, a little of the picture's edges cut off where its shape is not the
+   window's. */
+.personalization-scrub-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+.personalization-scrub-video {
+  display: none;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
+/* The cards of the stops, and the picture and the cards moving a little (the
+   component sets on the stage --px and --py, where the mouse is on the film, or the
+   drag of a finger the other way round, -1 to 1, and --ps, how much of this is on,
+   0 to 1; on each card --depth, --delay and, for a wide picture, its edges). The
+   cards are made for a tall picture (a phone) first: the first card at the top left,
+   the second at the bottom right, small. */
+.personalization-scrub-canvas,
+.personalization-scrub-video {
+  /* The picture is a little larger while the effect is on, so its edges do not
+     show when it moves. */
+  transform: translate3d(calc(var(--px, 0) * -14px), calc(var(--py, 0) * -9px), 0)
+    scale(calc(1 + var(--ps, 0) * 0.05));
+  will-change: transform;
+}
+
+.stop-cards {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* The cards of one stop: out of sight, except while the film rests on it. */
+.stop-group {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease,
+    visibility 0s linear 0.25s;
+}
+
+.stop-group[data-active="true"] {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.45s ease 0.1s,
+    visibility 0s;
+}
+
+/* The card moves with the mouse or the finger (the outer box); it comes in by
+   itself (the box inside it), a moment after the one before. */
+.stop-card {
+  position: absolute;
+  width: min(17.5rem, 72vw);
+  /* The same way as the picture, and further (the nearer something is, the more
+     it seems to move when you look from another side). */
+  transform: translate3d(
+    calc(var(--px, 0) * var(--depth, 1) * -24px),
+    calc(var(--py, 0) * var(--depth, 1) * -15px),
+    0
+  );
+  will-change: transform;
+}
+
+.stop-card:nth-child(1) {
+  left: 4%;
+  top: 3%;
+}
+
+.stop-card:nth-child(2) {
+  right: 4%;
+  bottom: 3%;
+}
+
+.stop-card-body {
+  pointer-events: auto;
+  padding: 0.875rem 1rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(220, 192, 144, 0.3);
+  background: rgba(12, 22, 20, 0.62);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  color: #fff;
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) var(--delay, 0ms),
+    opacity 0.5s ease var(--delay, 0ms);
+}
+
+.stop-group[data-active="true"] .stop-card-body {
+  opacity: 1;
+  transform: none;
+}
+
+.stop-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #fff;
+}
+
+.stop-card-text {
+  margin-top: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.stop-card-button {
+  margin-top: 0.75rem;
+  height: 34px;
+  padding: 0 1rem;
+  border-radius: 8px;
+  background: #dcc090;
+  color: #122a26;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background-color 0.2s ease;
+}
+
+.stop-card-button:hover {
+  background: #d3b57c;
+}
+
+/* A wide picture (a laptop, a desktop, a tablet on its side): larger cards, in
+   the empty parts of each picture (the edges come from the component). */
+@media (min-aspect-ratio: 1/1) {
+  .stop-card {
+    width: clamp(15rem, 21vw, 21rem);
+  }
+
+  .stop-card:nth-child(n) {
+    left: var(--dl, auto);
+    right: var(--dr, auto);
+    top: var(--dt, auto);
+    bottom: var(--db, auto);
+  }
+
+  .stop-card-body {
+    padding: 1.25rem 1.375rem 1.375rem;
+    border-radius: 1.125rem;
+  }
+
+  .stop-card-title {
+    font-size: 1.125rem;
+  }
+
+  .stop-card-text {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .stop-card-button {
+    margin-top: 1rem;
+    height: 38px;
+    padding: 0 1.125rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* A phone on its side has too little height for cards. */
+@media (min-aspect-ratio: 1/1) and (max-height: 499.98px) {
+  .stop-cards {
+    display: none;
+  }
+}
+
+@media (min-aspect-ratio: 1/1) {
+  .personalization-scrub-canvas {
+    display: none;
+  }
+
+  .personalization-scrub-video {
+    display: block;
+  }
+}
+
+/* The shop page is at least as tall as the window under the header (4rem). With
+   few products, or none (a collection with nothing in it yet, like Special
+   Edition), the page does not shrink and bring the footer into sight: the footer
+   stays below the window and shows when the page is scrolled on. */
+.shop-page {
+  min-height: calc(100vh - 4rem);
+  min-height: calc(100svh - 4rem);
+}
+
 /* A field of the Personalization form: 33px tall, the name of the field sitting
    just above its gold line. When the field is focused or has something in it the
    name moves up and gets smaller, so what is typed has the line to itself.
@@ -336,6 +574,14 @@ body:has(.about-photo) .site-footer {
   margin-top: -46px;
 }
 
+/* The "Say Hi" section is between the About photo and the footer, so the footer
+   no longer slides up over the photo: it slides up 1.5rem over the bottom of the
+   white "Say Hi" section (which has that much more padding under it), so the
+   footer's rounded corners show white and not the page's gray. */
+body:has(.say-hi-section) .site-footer {
+  margin-top: -1.5rem;
+}
+
 /* The Personalization page is black to the bottom, so the footer's rounded corners
    slide up 1.5rem over it (the form screen leaves that much room) and show black
    behind them, not the page's white. */
@@ -354,14 +600,19 @@ body:has(.personalization-page) .site-footer {
   }
 }
 
-/* Popular Sizes: the row of packs starts under the button. The space between
-   them is 60px (as it was before the packs were made bigger), or less on a
-   screen without the room for it: it never leaves less than about 18px under
-   the row (70vh is the section's height; 213px reaches down to the button and
-   246px is the row) and never less than 25px above it. On a small phone (below)
-   the row has its own place. */
+/* Popular Sizes: the row of packs (246px tall) is under the text and the
+   "Select Cigarette" button (42px) under the row. What is above the row is about
+   122px (the section's top padding, the title and the two lines of text), so of
+   the section's 70vh, (70vh - 410px) is free. The row takes 30% of it above
+   itself (28px at least, 64px at most), the button 20% above itself (24px to
+   44px), and the rest is under the button. On a small phone (below) they have
+   their own places. */
 .popular-sizes-strip {
-  margin-top: clamp(25px, calc(70vh - 477px), 60px);
+  margin-top: clamp(28px, calc((70vh - 410px) * 0.3), 64px);
+}
+
+.popular-sizes-button {
+  margin-top: clamp(24px, calc((70vh - 410px) * 0.2), 44px);
 }
 
 /* SMALL PHONES ONLY (iPhone SE and the like).
@@ -382,20 +633,18 @@ body:has(.personalization-page) .site-footer {
     padding-top: clamp(12px, calc(94vh - 598px), 70px);
   }
 
-  /* Popular Sizes (70vh): the "Select Cigarette" button moves up, to half the
-     space it has above it (49px -> 24px)... */
-  .popular-sizes-button {
-    margin-top: 24px;
-  }
-
-  /* ...and the row of packs is pushed down: the packs are drawn at 82% of their
-     size here (the row is then 209px tall instead of 246px), and the row ends
-     12px above the bottom of the section (70vh - 188px for the button - 209px
-     for the row - 12px = 70vh - 409px between the button and the row). It is
-     never closer to the button than 37px, and never further than 58px. */
+  /* Popular Sizes (70vh): the packs are drawn at 82% of their size here (the
+     row is then 209px tall instead of 246px), so what is above the row, the row
+     and the button come to 373px and (70vh - 373px) is free: the row takes 35%
+     of it above itself (16px to 40px), the button 25% above itself (14px to
+     30px), and the rest is under the button. */
   .popular-sizes-strip {
     --pack-k: 0.82;
-    margin-top: clamp(37px, calc(70vh - 409px), 58px);
+    margin-top: clamp(16px, calc((70vh - 373px) * 0.35), 40px);
+  }
+
+  .popular-sizes-button {
+    margin-top: clamp(14px, calc((70vh - 373px) * 0.25), 30px);
   }
 }
 
@@ -489,6 +738,60 @@ body:has(.personalization-page) .site-footer {
     width: calc(var(--case-h) * 203 / 315);
   }
 
+  /* Home, Atelier, three columns: the case, the text and button in the middle,
+     and the same picture again, mirrored. The cases are smaller than a laptop's
+     on a tablet (250px up to 330px, by the width) so the three fit; the text
+     column takes what is left, at most 28rem. */
+  .atelier-link {
+    display: grid;
+    grid-template-columns: auto minmax(0, 28rem) auto;
+    grid-template-rows: 1fr auto auto auto 1fr;
+    justify-content: center;
+    column-gap: clamp(1.5rem, 6vw, 6.5rem);
+    width: 100%;
+  }
+
+  .atelier-case,
+  .atelier-case-mirror {
+    --case-h: clamp(250px, 32vw, 330px);
+    height: var(--case-h);
+    width: calc(var(--case-h) * 203 / 315);
+    margin: 0;
+    justify-self: center;
+    align-self: center;
+  }
+
+  .atelier-case {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .atelier-case-mirror {
+    display: block;
+    grid-column: 3;
+    grid-row: 1 / -1;
+  }
+
+  .atelier-case-mirror img {
+    transform: scaleX(-1);
+  }
+
+  .atelier-link h2 {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .atelier-link p {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .atelier-link button {
+    grid-column: 2;
+    grid-row: 4;
+    justify-self: center;
+  }
+
   /* Home, Collections: a taller section (90% of the screen, at most 58rem; on a
      phone it is as tall as its content, about 675px), with the content in the
      middle of it (the content is about 33rem tall, so the space left is shared
@@ -516,14 +819,88 @@ body:has(.personalization-page) .site-footer {
   }
 
   /* Popular Sizes is taller than on a phone (85% of the screen, at most 54rem,
-     instead of 70%), and its content (about 30rem tall) is in the middle of it. */
+     instead of 70%), and its content (about 30rem tall) is in the middle of it.
+     The row of packs is 3.5rem under the text and the button 2.5rem under the
+     row. */
   .popular-sizes-section {
     height: min(85vh, 54rem);
     padding-top: clamp(3rem, calc((min(85vh, 54rem) - 30rem) / 2), 9rem);
   }
 
+  .popular-sizes-strip {
+    margin-top: 3.5rem;
+  }
+
+  .popular-sizes-button {
+    margin-top: 2.5rem;
+  }
+
+  /* Popular Sizes has no slider here: the six packs stand in one row, on one
+     line, each with its name (and the "3 versions" under it) beneath. The row is
+     as tall as the slider was (208px of packs, 4px, 34px of name). The packs are drawn
+     at their own size when the row has room, and all get narrower together when
+     it has not (a tablet upright); the space between them is 1.1% of the screen,
+     from 0.5rem to 1.125rem. */
+  .popular-sizes-track {
+    display: none;
+  }
+
+  .popular-sizes-static {
+    display: flex;
+    justify-content: center;
+    gap: clamp(0.5rem, 1.1vw, 1.125rem);
+    height: 246px;
+    padding-inline: 1.5rem;
+  }
+
+  .popular-sizes-static-item {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .popular-sizes-static-art {
+    display: flex;
+    flex: none;
+    align-items: flex-end;
+    justify-content: center;
+    height: 208px;
+  }
+
+  .popular-sizes-static-art img {
+    display: block;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    max-height: 208px;
+    object-fit: contain;
+    object-position: bottom;
+  }
+
+  .popular-sizes-static-label {
+    flex: none;
+    height: 34px;
+    margin-top: 4px;
+    white-space: nowrap;
+  }
+
   .personalization-card {
     height: min(90vh, 56rem);
+  }
+
+  /* Home, Personalization: a phone has the picture and then the button under it;
+     from here up it is the button (80px under the text) and then the picture. */
+  .personalization-card a {
+    margin-top: 80px;
+    margin-bottom: 0;
+  }
+
+  .personalization-art {
+    order: 1;
+    flex: 1 1 0%;
+    aspect-ratio: auto !important;
   }
 
   /* A product's page: the one column is wider (46rem) than on a phone (40rem).
@@ -793,44 +1170,15 @@ body:has(.personalization-page) .site-footer {
 
 /* ---- Laptop and up (1024px) ---- */
 @media (min-width: 1024px) and (min-height: 500px) {
-  /* Home, Atelier: the case on the left and the text on the right (the text
-     block is in the middle of the case's height). The two columns are as wide as
-     what is in them and the pair is in the middle of the section, with 6.5rem
-     between the case and the text (about half of what there was). */
-  .atelier-link {
-    display: grid;
-    grid-template-columns: auto auto;
-    grid-template-rows: 1fr auto auto auto 1fr;
-    justify-content: center;
-    column-gap: 6.5rem;
-    width: 100%;
-    text-align: left;
-  }
-
-  .atelier-link h2 {
-    grid-column: 2;
-    grid-row: 2;
+  /* Home, Atelier: a laptop's cases are the full size again (315px up to 560px
+     by the screen's height) and the text a little larger. */
+  .atelier-case,
+  .atelier-case-mirror {
+    --case-h: clamp(315px, 40vh, 560px);
   }
 
   .atelier-link p {
-    grid-column: 2;
-    grid-row: 3;
-    margin-inline: 0;
     font-size: 16px !important;
-  }
-
-  .atelier-link button {
-    grid-column: 2;
-    grid-row: 4;
-    justify-self: start;
-  }
-
-  .atelier-case {
-    grid-column: 1;
-    grid-row: 1 / -1;
-    margin: 0;
-    justify-self: center;
-    align-self: center;
   }
 
   /* Home, Personalization: the same, the picture on the left and the text on the
@@ -925,6 +1273,10 @@ body:has(.personalization-page) .site-footer {
     grid-template-columns: auto minmax(0, 22rem) minmax(0, 1fr);
     column-gap: 1.5rem;
     align-items: start;
+    /* The page is at least a screen tall (see `.shop-page` above): the rows stay
+       as tall as what is in them, and the space left is under them, so the
+       buttons do not move down when there are few products. */
+    align-content: start;
   }
 
   .shop-page > h1 {

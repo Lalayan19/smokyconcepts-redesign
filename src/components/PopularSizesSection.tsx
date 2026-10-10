@@ -30,19 +30,21 @@ export default function PopularSizesSection({ onButtonClick }: PopularSizesSecti
         versions that match yours
       </p>
 
-      <button
-        type="button"
-        style={{fontWeight: 500, letterSpacing: "0.1em", textTransform: "uppercase", ...BUTTON_EDGE }}
-        className="popular-sizes-button mt-[49px] inline-flex h-[42px] w-[228px] items-center justify-center self-center rounded-[8px] bg-[#dcc090] text-[15px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
-      >
-        Select Cigarette
-      </button>
-
-      {/* The row of packs (its distance from the button is set in globals.css);
-          the packs and their names slide in a loop. */}
+      {/* The row of packs (its distance from the text is set in globals.css); on
+          a phone the packs and their names slide in a loop. */}
       <div className="popular-sizes-strip relative -mx-6">
         <PopularSizesSlider />
       </div>
+
+      {/* The button is under the packs (its distance from them is set in
+          globals.css). */}
+      <button
+        type="button"
+        style={{fontWeight: 500, letterSpacing: "0.1em", textTransform: "uppercase", ...BUTTON_EDGE }}
+        className="popular-sizes-button mx-auto flex h-[42px] w-[228px] items-center justify-center rounded-[8px] bg-[#dcc090] text-[15px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
+      >
+        Select Cigarette
+      </button>
     </section>
   );
 }

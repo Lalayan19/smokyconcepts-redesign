@@ -10,6 +10,7 @@ import UltraSlimsSection from "@/components/UltraSlimsSection";
 import PopularSizesSection from "@/components/PopularSizesSection";
 import PersonalizationSection from "@/components/PersonalizationSection";
 import AboutSection from "@/components/AboutSection";
+import SayHiSection from "@/components/SayHiSection";
 import SizeSelectorModal from "@/components/SizeSelectorModal";
 
 import newAccessory from "@/assets/images/Unlock.png";
@@ -55,6 +56,8 @@ export default function Home() {
       <PersonalizationSection image={personalization} buttonHref="/personalization" />
 
       <AboutSection image={aboutUs} buttonHref="/shop" />
+
+      <SayHiSection />
 
       <SizeSelectorModal
         open={sizeModalOpen}

@@ -36,17 +36,27 @@ export default function PersonalizationSection({
           Ultra Slims sizes
         </p>
 
+        {/* On a phone the picture comes first and the button is under it, at the
+            bottom of the card; a tablet and larger have them the other way round
+            (see `.personalization-card` in globals.css). */}
+        <div
+          className="personalization-art relative mt-8 min-h-0"
+          // On a phone the picture has its own shape (so the button is right
+          // under it); it gives up height, keeping its place, if the card is short.
+          style={{ aspectRatio: `${image.width} / ${image.height}` }}
+        >
+          <Image src={image} alt="Personalization" fill className="object-contain object-top" />
+        </div>
+
         <Link
           href={buttonHref}
           style={{ letterSpacing: "0.1em", textTransform: "uppercase", ...BUTTON_EDGE }}
-          className="mt-[80px] inline-flex h-[42px] w-[220px] items-center justify-center self-center rounded-[8px] bg-[#dcc090] text-[20px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
+          // The bottom of the picture is dark and empty, so on a phone the button
+          // goes up into it (and is painted over it: `relative`).
+          className="relative -mt-[72px] mb-10 inline-flex h-[42px] w-[220px] shrink-0 items-center justify-center self-center rounded-[8px] bg-[#dcc090] text-[20px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
         >
           Personalize
         </Link>
-
-        <div className="personalization-art relative mt-8 flex-1">
-          <Image src={image} alt="Personalization" fill className="object-contain object-top" />
-        </div>
       </div>
     </section>
   );

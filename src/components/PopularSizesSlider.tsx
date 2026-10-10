@@ -4,12 +4,15 @@ import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { StaticImageData } from "next/image";
 
-import compact from "@/assets/images/Popular sizes/Compact.png";
-import kingSize from "@/assets/images/Popular sizes/KIngSize.png";
-import slims from "@/assets/images/Popular sizes/Slims.png";
-import sticks from "@/assets/images/Popular sizes/Sticks.png";
-import superSlims from "@/assets/images/Popular sizes/SuperSlims.png";
-import ultraSlims from "@/assets/images/Popular sizes/ultraslims.png";
+// The six drawings of the packs, in the order they are in the row (Asset 1 is
+// Ultra Slims, ... Asset 6 is Sticks). They are drawn to one scale, so their
+// sizes next to each other are the sizes of the packs.
+import ultraSlims from "@/assets/images/Popular sizes/Asset 1.svg";
+import compact from "@/assets/images/Popular sizes/Asset 2.svg";
+import superSlims from "@/assets/images/Popular sizes/Asset 3.svg";
+import slims from "@/assets/images/Popular sizes/Asset 4.svg";
+import kingSize from "@/assets/images/Popular sizes/Asset 5.svg";
+import sticks from "@/assets/images/Popular sizes/Asset 6.svg";
 
 type Item = { name: string; image: StaticImageData; versions?: string };
 
@@ -26,11 +29,10 @@ const COUNT = ITEMS.length;
 // Which item is in the middle when the page loads.
 const START_INDEX = 2;
 
-// The packs stand on a line 208px below the top of the row (the tallest pack,
-// Super Slims, is drawn 208px tall), and under them there is room for the name
-// of the pack in the middle and the small line under it. The row starts 25px
-// under the button (see globals.css), so it ends 20px lower than the old picture
-// of the row did, in the empty space at the bottom of the section.
+// The packs stand on a line 208px below the top of the row (the tallest packs,
+// Super Slims and Slims, are drawn 208px tall), and under them there is room for the name
+// of the pack in the middle and the small line under it. The row is under the
+// section's text, and the button under the row (see globals.css).
 const PACK_BOX_PX = 208;
 const LABEL_GAP_PX = 4;
 const LABEL_H = 34;
@@ -42,22 +44,56 @@ const K = "var(--pack-k, 1)";
 const ROW_H = `calc(${K} * ${PACK_BOX_PX}px + ${LABEL_GAP_PX + LABEL_H}px)`;
 const PACK_H = `calc(${K} * ${PACK_BOX_PX}px)`;
 
-// Packs are SLOT_PX apart: the one in the middle at full size, with one next to
-// it on each side (a little smaller, and a little cut off by the edge of the
-// screen), and the next ones already out of sight on a phone. The size changes
-// continuously with the distance from the middle while you drag.
-const SLOT_PX = 150;
+// The packs stand in a loop, each GAP_PX from the next (edge to edge, at full
+// size; the packs are not all as wide, so their centres are not all the same
+// distance apart): the one in the middle at full size, with one next to it on
+// each side (a little smaller). The size changes continuously with the distance
+// from the middle while you drag.
+const GAP_PX = 12;
 const MIN_SCALE = 0.8;
+// The box each pack stands in (the picture is centred in it).
+const BOX_PX = 150;
+// The packs further out than the ones next to the middle one fade out between
+// 1 and FADE_END items from the middle, so none shows at the edge of the screen
+// when the row is at rest, and they fade in as they come close.
+const FADE_END = 1.8;
+
+// Where each pack's centre is along the loop, in px at full size, and the
+// length of the whole loop.
+const WIDTHS = ITEMS.map((item) => Math.round(item.image.width * ART_SCALE));
+const CENTERS: number[] = [];
+WIDTHS.forEach((width, i) => {
+  CENTERS.push(i === 0 ? 0 : CENTERS[i - 1] + (WIDTHS[i - 1] + width) / 2 + GAP_PX);
+});
+const PERIOD = WIDTHS.reduce((sum, width) => sum + width + GAP_PX, 0);
 
 // Letting go of a drag: how far ahead (ms) the swipe speed is projected to
 // choose the item to land on, and the most items one swipe can travel.
 const PROJECT_MS = 280;
 const MAX_FLING = 6;
-// A pack starts to fade out this many slots before it wraps round to the other
-// side, so on a wide screen it never visibly pops from one side to the other.
-const FADE_SPAN = 0.5;
 
 const mod = (value: number, size: number) => ((value % size) + size) % size;
+
+// The distance along the loop (px at full size) of the row's position `pos`
+// (in items, may be a fraction, may be any number), and back.
+function posToStrip(pos: number) {
+  const turns = Math.floor(pos / COUNT);
+  const within = pos - turns * COUNT;
+  const n = Math.floor(within);
+  const from = CENTERS[n];
+  const to = n + 1 < COUNT ? CENTERS[n + 1] : PERIOD;
+  return turns * PERIOD + from + (within - n) * (to - from);
+}
+
+function stripToPos(strip: number) {
+  const turns = Math.floor(strip / PERIOD);
+  const within = strip - turns * PERIOD;
+  let n = COUNT - 1;
+  while (n > 0 && CENTERS[n] > within) n -= 1;
+  const from = CENTERS[n];
+  const to = n + 1 < COUNT ? CENTERS[n + 1] : PERIOD;
+  return turns * COUNT + n + (within - from) / (to - from);
+}
 
 // How far, in items, the item at `index` is from the middle when the row is at
 // `pos` (the item `pos` is exactly in the middle), going the short way round
@@ -73,9 +109,14 @@ function placementFor(index: number, pos: number) {
   const t = Math.min(1, distance);
   const eased = t * t * (3 - 2 * t);
   const scale = 1 - (1 - MIN_SCALE) * eased;
-  const opacity = Math.min(1, (COUNT / 2 - distance) / FADE_SPAN);
+  const opacity = Math.max(0, Math.min(1, (FADE_END - distance) / (FADE_END - 1)));
+  // Going the short way round the loop; the pack that leaves on one side is the
+  // same one that arrives on the other, out of sight (it has faded out by then).
+  const x = mod(CENTERS[index] - posToStrip(pos) + PERIOD / 2, PERIOD) - PERIOD / 2;
   return {
-    transform: `translate3d(${(offset * SLOT_PX).toFixed(2)}px, 0, 0) scale(${scale.toFixed(4)})`,
+    // The packs are smaller on a small phone (see globals.css), and so are the
+    // spaces between them.
+    transform: `translate3d(calc(${K} * ${x.toFixed(2)}px), 0, 0) scale(${scale.toFixed(4)})`,
     opacity: Number(opacity.toFixed(3)),
     zIndex: Math.round(100 - distance * 10),
   };
@@ -203,10 +244,16 @@ export default function PopularSizesSlider() {
 
     // Touch and mouse dragging. A mouse that leaves the row keeps dragging, so
     // once a drag has started the listeners are on the window.
+    // How much smaller than full size the packs are drawn (a small phone).
+    const packScale = () =>
+      parseFloat(getComputedStyle(track).getPropertyValue("--pack-k")) || 1;
+
     let drag: {
       id: number;
       startX: number;
       startPos: number;
+      startStrip: number; // where along the loop the row was when the finger went down
+      scale: number; // packScale() when the finger went down
       pack: number | null; // the pack the finger went down on
       moved: boolean;
       stoppedMotion: boolean; // the finger went down on a row that was still moving
@@ -226,7 +273,7 @@ export default function PopularSizesSlider() {
       while (drag.samples.length > 2 && e.timeStamp - drag.samples[0].t > 100) {
         drag.samples.shift();
       }
-      show(drag.startPos - dx / SLOT_PX);
+      show(stripToPos(drag.startStrip - dx / drag.scale));
     };
     const endDrag = (e: PointerEvent, cancelled: boolean) => {
       if (!drag || e.pointerId !== drag.id) return;
@@ -278,7 +325,10 @@ export default function PopularSizesSlider() {
       const rest = Math.round(pos);
       const target = Math.min(
         rest + MAX_FLING,
-        Math.max(rest - MAX_FLING, Math.round(pos - (speed / SLOT_PX) * PROJECT_MS)),
+        Math.max(
+          rest - MAX_FLING,
+          Math.round(stripToPos(posToStrip(pos) - (speed / d.scale) * PROJECT_MS)),
+        ),
       );
       animateTo(target, 300 + 120 * Math.min(Math.abs(target - pos), 5));
     };
@@ -299,6 +349,8 @@ export default function PopularSizesSlider() {
         id: e.pointerId,
         startX: e.clientX,
         startPos: posRef.current,
+        startStrip: posToStrip(posRef.current),
+        scale: packScale(),
         pack: pack ? Number(pack.getAttribute("data-pack")) : null,
         moved: false,
         stoppedMotion,
@@ -322,7 +374,10 @@ export default function PopularSizesSlider() {
       e.preventDefault();
       stop();
       show(
-        posRef.current + (e.deltaMode === 1 ? e.deltaX * 16 : e.deltaX) / SLOT_PX,
+        stripToPos(
+          posToStrip(posRef.current) +
+            (e.deltaMode === 1 ? e.deltaX * 16 : e.deltaX) / packScale(),
+        ),
       );
       window.clearTimeout(wheelTimer);
       wheelTimer = window.setTimeout(
@@ -355,12 +410,13 @@ export default function PopularSizesSlider() {
   const shift = { "--name-shift": `${label.direction * 50}%` } as CSSProperties;
 
   return (
+    <>
     <div
       ref={trackRef}
       role="group"
       aria-roledescription="carousel"
       aria-label="Popular sizes"
-      className="relative select-none [-webkit-touch-callout:none] [-webkit-tap-highlight-color:transparent]"
+      className="popular-sizes-track relative select-none [-webkit-touch-callout:none] [-webkit-tap-highlight-color:transparent]"
       style={{
         height: ROW_H,
         // Nothing in here can be scrolled into view, so the packs off to the
@@ -386,9 +442,9 @@ export default function PopularSizesSlider() {
             style={{
               top: 0,
               left: "50%",
-              width: SLOT_PX,
+              width: BOX_PX,
               height: PACK_H,
-              marginLeft: -SLOT_PX / 2,
+              marginLeft: -BOX_PX / 2,
               // They shrink towards the line they stand on.
               transformOrigin: "50% 100%",
               willChange: "transform",
@@ -457,5 +513,38 @@ export default function PopularSizesSlider() {
         </span>
       </div>
     </div>
+
+    {/* A tablet and larger (see `.popular-sizes-static` in globals.css) has no
+        slider: all the packs stand in one row, each with its name under it. */}
+    <div
+      role="list"
+      aria-label="Popular sizes"
+      className="popular-sizes-static hidden font-montserrat"
+    >
+      {ITEMS.map((item) => (
+        <div
+          key={item.name}
+          role="listitem"
+          className="popular-sizes-static-item"
+          // The pack's own width is what it is when the row has room; when the
+          // row is narrower the packs all get narrower together.
+          style={{ flexBasis: Math.round(item.image.width * ART_SCALE) }}
+        >
+          <div className="popular-sizes-static-art">
+            <Image
+              src={item.image}
+              alt={item.name}
+              width={Math.round(item.image.width * ART_SCALE)}
+              height={Math.round(item.image.height * ART_SCALE)}
+              draggable={false}
+            />
+          </div>
+          <div className="popular-sizes-static-label">
+            <Name item={item} />
+          </div>
+        </div>
+      ))}
+    </div>
+    </>
   );
 }

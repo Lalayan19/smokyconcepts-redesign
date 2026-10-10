@@ -3,13 +3,17 @@
 import Image from "next/image";
 
 import { BUTTON_EDGE } from "@/components/buttonEdge";
+import PersonalizationScrollVideo from "@/components/PersonalizationScrollVideo";
 import banner from "@/assets/images/homepage_redesign_assets/personalization_realsizes.png";
 import { formatPrice } from "@/data/products";
 
 // The page is two screens, each as tall as the part of the window under the
 // header (see `.screen-height` in globals.css): the banner, then the form. Both
 // are black, so the page is one black field with no edge between them.
-// Nothing here moves or reacts to scrolling: it is a plain page.
+// For now the page is only a video that is played by scrolling, on a phone and
+// on a tablet, laptop or desktop (see PersonalizationScrollVideo); the two
+// screens below (the banner and the form) are not shown, and are kept here for
+// when they come back.
 
 const FIELDS = [
   { name: "name", label: "Name", type: "text", autoComplete: "name" },
@@ -26,7 +30,7 @@ export default function PersonalizationPage() {
           (whole, never cropped), and the title is in the middle of the space
           above it. The picture has no background of its own, so it sits on the
           black with no edge. */}
-      <section className="screen-height flex flex-col overflow-hidden bg-black">
+      <section className="personalization-banner-screen screen-height flex flex-col overflow-hidden bg-black">
         <div className="flex min-h-[110px] flex-1 items-center justify-center px-6 text-center">
           <h1
             className="personalization-title font-montserrat italic text-white"
@@ -47,12 +51,18 @@ export default function PersonalizationPage() {
         </div>
       </section>
 
+      {/* The video played by scrolling. For now it is the only thing on the page:
+          the banner above and the form below are not shown (see
+          `.personalization-banner-screen` and `.personalization-form-screen` in
+          globals.css). */}
+      <PersonalizationScrollVideo />
+
       {/* Screen 2: the form, 55% of a screen tall (see `.screen-form` in
           globals.css), or as tall as the form needs on a screen too short for
           that. The form sits at the top, and the black under it is the room the
           footer's rounded corners slide up over (the last 1.5rem, see
           `.personalization-page` in globals.css). */}
-      <section className="screen-form flex items-start justify-center bg-black px-8 pb-6">
+      <section className="personalization-form-screen screen-form flex items-start justify-center bg-black px-8 pb-6">
         <form
           // There is nowhere to send it to yet: the browser checks the fields
           // and the box, and that is all.

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import HeroVideoBanner from "@/components/HeroVideoBanner";
+import HomeVideoLoader from "@/components/HomeVideoLoader";
 import AtelierSection from "@/components/AtelierSection";
 import CoverCollectionsSection from "@/components/CoverCollectionsSection";
 import UltraSlimsSection from "@/components/UltraSlimsSection";
@@ -11,11 +12,9 @@ import PopularSizesSection from "@/components/PopularSizesSection";
 import PersonalizationSection from "@/components/PersonalizationSection";
 import AboutSection from "@/components/AboutSection";
 import SayHiSection from "@/components/SayHiSection";
-import SizeSelectorModal from "@/components/SizeSelectorModal";
+import BrandSelectorModal from "@/components/BrandSelectorModal";
 
 import newAccessory from "@/assets/images/Unlock.png";
-import atelier from "@/assets/images/homepage_redesign_assets/AtelierV2_1_real_size.png";
-import personalization from "@/assets/images/homepage_redesign_assets/personalization_realsizes.png";
 import aboutUs from "@/assets/images/about_image_final.png";
 
 export default function Home() {
@@ -24,11 +23,12 @@ export default function Home() {
 
   return (
     <main className="flex flex-col">
+        <HomeVideoLoader />
         <HeroVideoBanner
           title={
             <>
-              New Accessory
-              <br />
+              New Accessory{" "}
+              <br className="hero-banner-break" />
               Unlocked
             </>
           }
@@ -42,10 +42,11 @@ export default function Home() {
           bottomText="The standard chunk of Lorem Ipsum used since the 1500s is reproduced below, The standard chunk of Lorem Ipsum used since the 1500s is reproduced below,The standard chunk of "
           image={newAccessory}
           video="/videos/smoky-unlock.mp4"
+          wideVideo="/videos/smoky-unlock-opener.mp4"
           buttonLabel="Shop"
           buttonHref="/shop"
         />
-      <AtelierSection image={atelier} buttonHref="/products/crocos" />
+      <AtelierSection buttonHref="/products/crocos" />
 
       <CoverCollectionsSection />
 
@@ -53,13 +54,13 @@ export default function Home() {
 
       <PopularSizesSection onButtonClick={() => setSizeModalOpen(true)} />
 
-      <PersonalizationSection image={personalization} buttonHref="/personalization" />
+      <PersonalizationSection buttonHref="/personalization" />
 
       <AboutSection image={aboutUs} buttonHref="/shop" />
 
       <SayHiSection />
 
-      <SizeSelectorModal
+      <BrandSelectorModal
         open={sizeModalOpen}
         onClose={() => setSizeModalOpen(false)}
         onApply={(item) => {

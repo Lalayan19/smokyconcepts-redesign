@@ -83,9 +83,9 @@ const ROUTE_ICONS: Record<string, (props: { className?: string }) => React.JSX.E
   "/personalization": PersonalizationIcon,
 };
 
-// The order and wording the design shows: English, Russian, Armenian; AMD, USD, RUB.
+// The order the menu shows: English, Russian, Armenian; USD, RUB, AMD.
 const LANGUAGE_ORDER = ["EN", "RU", "HY"];
-const CURRENCY_ORDER = ["AMD", "USD", "RUB"];
+const CURRENCY_ORDER = ["USD", "RUB", "AMD"];
 
 function inOrder<T extends { code: string }>(items: T[], order: string[]) {
   return order

@@ -11,9 +11,18 @@ type HeroVideoBannerProps = {
   bottomText?: ReactNode;
   image: StaticImageData;
   video: string;
+  // The video for a tablet, a laptop and a desktop (a horizontal one, 16:9): it fills
+  // the width of the section, with the texts and the button over it (see `.hero-banner`
+  // in globals.css). A phone keeps `video` (the portrait one). Only the one that is
+  // shown is fetched.
+  wideVideo?: string;
   buttonLabel: string;
   buttonHref: string;
 };
+
+// The windows that get the horizontal video (the same test as in globals.css: a tablet
+// and larger).
+const WIDE_WINDOW = "(min-width: 744px) and (min-height: 500px)";
 
 export default function HeroVideoBanner({
   title,
@@ -22,10 +31,12 @@ export default function HeroVideoBanner({
   bottomText,
   image,
   video,
+  wideVideo,
   buttonLabel,
   buttonHref,
 }: HeroVideoBannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const wideRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const el = videoRef.current;
@@ -41,12 +52,57 @@ export default function HeroVideoBanner({
     };
   }, [video]);
 
+  // On a tablet, a laptop or a desktop the horizontal video is played and the portrait
+  // one is let go of (its file is not wanted there); on a phone it is the other way round. (The portrait one has its file from the first paint, so a
+  // phone does not wait for the script.)
+  useEffect(() => {
+    const portrait = videoRef.current;
+    const wideEl = wideRef.current;
+    if (!portrait || !wideEl || !wideVideo) return;
+    const wide = window.matchMedia(WIDE_WINDOW);
+    const play = (el: HTMLVideoElement) => {
+      el.muted = true;
+      el.play().catch(() => { });
+    };
+    const apply = () => {
+      if (wide.matches) {
+        if (portrait.getAttribute("src")) {
+          portrait.pause();
+          portrait.removeAttribute("src");
+          portrait.load();
+        }
+        if (wideEl.getAttribute("src") !== wideVideo) {
+          wideEl.src = wideVideo;
+          wideEl.load();
+        }
+        play(wideEl);
+      } else {
+        wideEl.pause();
+        if (!portrait.getAttribute("src")) {
+          portrait.src = video;
+          portrait.load();
+        }
+        play(portrait);
+      }
+    };
+    const onCanPlay = () => {
+      if (wide.matches) play(wideEl);
+    };
+    apply();
+    wideEl.addEventListener("canplay", onCanPlay);
+    wide.addEventListener("change", apply);
+    return () => {
+      wideEl.removeEventListener("canplay", onCanPlay);
+      wide.removeEventListener("change", apply);
+    };
+  }, [video, wideVideo]);
+
   return (
     <section className="hero-banner bg-white relative left-1/2 w-screen -mx-[50vw] overflow-hidden bg-black">
-      <Link href={buttonHref}>
+      <Link href={buttonHref} className="hero-banner-link">
         <video
           ref={videoRef}
-          src={video}     
+          src={video}
           autoPlay
           muted
           loop
@@ -60,23 +116,42 @@ export default function HeroVideoBanner({
           style={{ aspectRatio: "464 / 848", backgroundColor: "#000" }}
         />
      </Link>
+        {/* The horizontal video, for a tablet, a laptop and a desktop only (it is not
+            shown, and has no file, on a phone). */}
+        {wideVideo && (
+          <Link href={buttonHref} className="hero-banner-wide-link" tabIndex={-1}>
+            <video
+              ref={wideRef}
+              muted
+              loop
+              playsInline
+              preload="none"
+              aria-hidden="true"
+              className="hero-banner-wide"
+              style={{ aspectRatio: "16 / 9", backgroundColor: "#000" }}
+            />
+          </Link>
+        )}
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[30%]"
+          className="hero-banner-gradient pointer-events-none absolute inset-x-0 top-0 z-10 h-[30%]"
           style={{
             background:
               "linear-gradient(to bottom, var(--color-brand-dark) 0%, transparent 100%)",
           }}
         />
 
-        <div className="hero-banner-fit absolute inset-x-0 top-0 z-20 px-6 pt-3 text-center">
+        <div className="hero-banner-fit hero-banner-top absolute inset-x-0 top-0 z-20 px-6 pt-3 text-center">
           <h2
-            className="font-montserrat tracking-[-0.01em] text-white"
+            className="hero-banner-title font-montserrat tracking-[-0.01em] text-white"
             style={{ lineHeight: "30px", fontSize: "24px", fontWeight: 500 }}
           >
             {title}
           </h2>
           {subtitle && (
-            <p className="mt-[6px] text-white/80 font-montserrat" style={{ fontSize: "12px" }}>
+            <p
+              className="hero-banner-subtitle mt-[6px] text-white/80 font-montserrat"
+              style={{ fontSize: "12px" }}
+            >
               {subtitle}
             </p>
           )}
@@ -85,17 +160,17 @@ export default function HeroVideoBanner({
         {/* The bottom heading + text and the button all sit 124px above the
             bottom edge. */}
         <div
-          className="hero-banner-fit absolute inset-x-0 bottom-0 z-20 flex items-end justify-start gap-4 px-6"
+          className="hero-banner-fit hero-banner-bottom absolute inset-x-0 bottom-0 z-20 flex items-end justify-start gap-4 px-6"
           style={{ paddingBottom: "124px", display: 'flex', justifyContent: "center" }}
         >
-          <div className="min-w-0" style={{ maxWidth: "65%" }}>
+          <div className="hero-banner-copy min-w-0" style={{ maxWidth: "65%" }}>
             {bottomHeading && (
-              <h3 className="text-xl font-extrabold tracking-[-0.01em] text-white sm:text-2xl">
+              <h3 className="hero-banner-heading text-xl font-extrabold tracking-[-0.01em] text-white sm:text-2xl">
                 {bottomHeading}
               </h3>
             )}
             {bottomText && (
-              <p className="mt-1.5 text-[8px] leading-snug text-white sm:text-xs">
+              <p className="hero-banner-text mt-1.5 text-[8px] leading-snug text-white sm:text-xs">
                 {bottomText}
               </p>
             )}
@@ -111,7 +186,7 @@ export default function HeroVideoBanner({
               textTransform: "uppercase",
               fontSize: "17px"
             }}
-            className="inline-flex shrink-0 items-center justify-center rounded-[8px] bg-[#dcc090] font-montserrat text-[20px] text-[#122a26] transition-colors hover:bg-[#d3b57c]"
+            className="hero-banner-button inline-flex shrink-0 items-center justify-center rounded-[8px] bg-[#dcc090] font-montserrat text-[20px] text-[#122a26] transition-colors hover:bg-[#d3b57c]"
           >
             {buttonLabel}
           </Link>

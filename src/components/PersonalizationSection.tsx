@@ -1,27 +1,34 @@
 import Link from "next/link";
-import Image from "next/image";
-import type { StaticImageData } from "next/image";
 
 import { BUTTON_EDGE } from "@/components/buttonEdge";
+import ScrollVideo from "@/components/ScrollVideo";
+import { PERSONALIZED_VIDEO } from "@/lib/homeVideos";
+
+// How the video plays (see ScrollVideo), the same as the Atelier videos (see
+// AtelierSection.tsx): no hold, and later than it used to start. It has played to its last
+// frame exactly when the card is in the middle of the window, and starts when its top is
+// this share of the window's height further down; scrolling back up it plays backwards at
+// once.
+const PERSONALIZATION_RAMP = 0.435;
+// It played over 0.55 of the window's height of scroll, ending in the middle. Now it starts 5
+// of the video's 24 original frames of scroll later (5/24 of 0.55 = 0.115) at the same
+// speed, so it ends that much past the middle: 0.435 - (-0.115) is still 0.55.
+const PERSONALIZATION_RAMP_END = -0.115;
 
 type PersonalizationSectionProps = {
-  image: StaticImageData;
   buttonHref: string;
 };
 
-export default function PersonalizationSection({
-  image,
-  buttonHref,
-}: PersonalizationSectionProps) {
+export default function PersonalizationSection({ buttonHref }: PersonalizationSectionProps) {
   return (
     // White behind the black section's corners, except for the last 1.5rem: there
     // the About photo, which starts that far up behind this section, shows
     // through the rounded bottom corners. `z-10` keeps this section in front of it.
     <section
-      className="relative left-1/2 z-10 w-screen -mx-[50vw]"
+      className="group relative left-1/2 z-10 w-screen -mx-[50vw]"
       style={{ background: "linear-gradient(to bottom, #ffffff calc(100% - 1.5rem), transparent 0)" }}
     >
-      <div className="personalization-card flex h-[90vh] flex-col overflow-hidden rounded-[1.5rem] bg-black px-6 pt-12 text-center">
+      <div className="personalization-card flex h-[105vh] flex-col overflow-hidden rounded-[1.5rem] bg-black px-6 pt-12 text-center">
         <h2
           className="font-montserrat mt-[10px] italic text-white"
           style={{ fontWeight: 700, fontSize: "36px", lineHeight: 1.1 }}
@@ -36,28 +43,42 @@ export default function PersonalizationSection({
           Ultra Slims sizes
         </p>
 
-        {/* On a phone the picture comes first and the button is under it, at the
-            bottom of the card; a tablet and larger have them the other way round
-            (see `.personalization-card` in globals.css). */}
-        <div
-          className="personalization-art relative mt-8 min-h-0"
-          // On a phone the picture has its own shape (so the button is right
-          // under it); it gives up height, keeping its place, if the card is short.
-          style={{ aspectRatio: `${image.width} / ${image.height}` }}
-        >
-          <Image src={image} alt="Personalization" fill className="object-contain object-top" />
+        {/* On a phone the video comes first and the button is under it; a tablet and
+            larger have them the other way round (see `.personalization-card` in
+            globals.css). The video is played by the scroll (see ScrollVideo and
+            `.personalization-art-video` in globals.css), on every screen. */}
+        <div className="personalization-art relative mt-8 min-h-0">
+          <ScrollVideo
+            src={PERSONALIZED_VIDEO}
+            sectionSelector=".personalization-card"
+            windows="all"
+            className="personalization-art-video"
+            ramp={PERSONALIZATION_RAMP}
+            rampEnd={PERSONALIZATION_RAMP_END}
+            // The file is the original 24 frames with two more made between each pair
+            // (70 frames), so the scroll plays it in finer steps.
+            frames={70}
+          />
         </div>
 
         <Link
           href={buttonHref}
           style={{ letterSpacing: "0.1em", textTransform: "uppercase", ...BUTTON_EDGE }}
-          // The bottom of the picture is dark and empty, so on a phone the button
-          // goes up into it (and is painted over it: `relative`).
-          className="relative -mt-[72px] mb-10 inline-flex h-[42px] w-[220px] shrink-0 items-center justify-center self-center rounded-[8px] bg-[#dcc090] text-[20px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
+          className="relative -mt-[72px] mb-10 inline-flex h-[42px] w-[220px] shrink-0 items-center justify-center self-center rounded-[8px] bg-[#dcc090] text-[20px] font-montserrat text-[#122a26] transition-colors group-hover:bg-[#d3b57c]"
         >
           Personalize
         </Link>
       </div>
+
+      {/* The whole section is a link to the Personalization page: this covers it (it is
+          not inside the card, so the card's rules for its own links do not touch it). The
+          button above is the same link, which shows the button's hover colour (`group`). */}
+      <Link
+        href={buttonHref}
+        aria-label="Personalization"
+        tabIndex={-1}
+        className="absolute inset-0 z-20"
+      />
     </section>
   );
 }

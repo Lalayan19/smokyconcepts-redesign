@@ -258,23 +258,75 @@
   min-height: calc((100svh - 4rem) * 0.55);
 }
 
-/* The Personalization page, for now: the page is only a film that a scroll plays
-   (see PersonalizationScrollVideo), on every screen, so the banner screen and the
-   form are not shown. The film fills the window from edge to edge under the header
-   (4rem): the header and the film are as tall as the window (100vh), so the
-   footer is below, out of sight until the page is scrolled on past the last
-   frame. 1.5rem of black is left under the film: the footer's rounded corners
-   slide up over that (see `.personalization-page`), not over the film. */
-.personalization-banner-screen,
-.personalization-form-screen {
+/* The Personalization page: a film that a scroll plays (see
+   PersonalizationScrollVideo), on every screen, then the contact form, which is the
+   end of the page (no footer); the banner screen is not shown. The film fills the window from edge to
+   edge under the header (4rem): the header and the film are as tall as the window
+   (100vh), so the contact form is below, out of sight until the page is scrolled
+   on past the last frame. */
+.personalization-banner-screen {
   display: none;
 }
 
 .personalization-scrub {
-  margin-bottom: 1.5rem;
+  /* The film stays under the header while the page is scrolled: the contact form
+     (below, and on top of it) rises over it. */
+  position: sticky;
+  top: 4rem;
+  z-index: 0;
+  /* On a phone the window is taller than 100svh while the browser's address bar is
+     away (it slides away when the page is scrolled, and can still be away when the
+     page is opened at its top, from another page that was scrolled): the film is
+     100svh tall, so the contact form, which comes right after it, would show under
+     it. This much black between them (the tallest window less the shortest) keeps
+     the form out of sight at the top of the page. Where the two are the same (a
+     laptop, a desktop) it is nothing. (A browser without `lvh` keeps the 0.) */
+  margin-bottom: 0;
+  margin-bottom: calc(100lvh - 100svh);
   /* A swipe of a finger on the film is the film's, not the page's: the page does
      not scroll under the finger (the component takes the swipe). */
   touch-action: none;
+}
+
+/* The contact form: a white sheet with rounded top corners that rises over the
+   film as the page is scrolled past its last frame. It is as tall as the film (the
+   part of the window under the header), at least: once its top has got to the header
+   the film is covered and the window is full of the sheet, and that is the end of the
+   page (there is no footer). The link back to the shop (gray, underlined) is at its
+   bottom, in the room the bottom padding leaves. The sheet has a thin gold edge and a
+   shadow above it, so it is seen against the film. */
+.personalization-contact {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 4rem);
+  min-height: calc(100svh - 4rem);
+  padding: 3.5rem 2rem 5.5rem;
+  border-top: 1px solid rgba(220, 192, 144, 0.6);
+  border-radius: 1.5rem 1.5rem 0 0;
+  background: #fff;
+  box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.6);
+}
+
+.personalization-contact-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #000;
+  text-align: center;
+}
+
+.personalization-contact-text {
+  max-width: 22rem;
+  margin: 0.75rem 0 2.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.7);
+  text-align: center;
 }
 
 .personalization-scrub-stage {
@@ -292,6 +344,20 @@ html:has(.personalization-scrub),
 body:has(.personalization-scrub) {
   overscroll-behavior-y: none;
   background: #000;
+}
+
+/* With a mouse (a laptop, a desktop) the page has no scrollbar, and cannot be
+   scrolled by it, by End or by the like, until the film has played to its last
+   frame: the contact form below is out of reach until then. The component sets
+   data-film-open on the page when the last frame is there (or the film could not
+   come, or the page is already scrolled down), and takes it off again when the
+   film is played back. (It is in the style, not set by the script, so no scrollbar
+   shows for a moment before the script has run. A phone's finger cannot scroll
+   the film anyway, see `touch-action` below.) */
+@media (hover: hover) and (pointer: fine) {
+  html:has(.personalization-scrub):not([data-film-open]) {
+    overflow: hidden;
+  }
 }
 
 /* The film is the pictures on a canvas for a window taller than wide (a phone, a
@@ -313,110 +379,75 @@ body:has(.personalization-scrub) {
   background: #000;
 }
 
-/* The cards of the stops, and the picture and the cards moving a little (the
-   component sets on the stage --px and --py, where the mouse is on the film, or the
-   drag of a finger the other way round, -1 to 1, and --ps, how much of this is on,
-   0 to 1; on each card --depth, --delay and, for a wide picture, its edges). The
-   cards are made for a tall picture (a phone) first: the first card at the top left,
-   the second at the bottom right, small. */
-.personalization-scrub-canvas,
-.personalization-scrub-video {
-  /* The picture is a little larger while the effect is on, so its edges do not
-     show when it moves. */
-  transform: translate3d(calc(var(--px, 0) * -14px), calc(var(--py, 0) * -9px), 0)
-    scale(calc(1 + var(--ps, 0) * 0.05));
-  will-change: transform;
-}
-
-.stop-cards {
+/* The bar shown over the film (black, so the film is never seen half there) while
+   the film is coming; the component sets how much is there (the width of the
+   gold line inside the bar) and data-phase on it: loading, done (it fades away and
+   lets the film be touched), or failed (it offers to try again). */
+.personalization-loading {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-}
-
-/* The cards of one stop: out of sight, except while the film rests on it. */
-.stop-group {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  visibility: hidden;
-  transition:
-    opacity 0.25s ease,
-    visibility 0s linear 0.25s;
-}
-
-.stop-group[data-active="true"] {
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2rem;
+  background: #000;
   opacity: 1;
-  visibility: visible;
   transition:
-    opacity 0.45s ease 0.1s,
+    opacity 0.5s ease,
     visibility 0s;
 }
 
-/* The card moves with the mouse or the finger (the outer box); it comes in by
-   itself (the box inside it), a moment after the one before. */
-.stop-card {
-  position: absolute;
-  width: min(17.5rem, 72vw);
-  /* The same way as the picture, and further (the nearer something is, the more
-     it seems to move when you look from another side). */
-  transform: translate3d(
-    calc(var(--px, 0) * var(--depth, 1) * -24px),
-    calc(var(--py, 0) * var(--depth, 1) * -15px),
-    0
-  );
-  will-change: transform;
-}
-
-.stop-card:nth-child(1) {
-  left: 4%;
-  top: 3%;
-}
-
-.stop-card:nth-child(2) {
-  right: 4%;
-  bottom: 3%;
-}
-
-.stop-card-body {
-  pointer-events: auto;
-  padding: 0.875rem 1rem 1rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(220, 192, 144, 0.3);
-  background: rgba(12, 22, 20, 0.62);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
-  color: #fff;
+.personalization-loading[data-phase="done"] {
   opacity: 0;
-  transform: translateY(18px);
+  visibility: hidden;
+  pointer-events: none;
   transition:
-    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) var(--delay, 0ms),
-    opacity 0.5s ease var(--delay, 0ms);
+    opacity 0.5s ease,
+    visibility 0s linear 0.5s;
 }
 
-.stop-group[data-active="true"] .stop-card-body {
-  opacity: 1;
-  transform: none;
+.personalization-loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: min(16rem, 100%);
 }
 
-.stop-card-title {
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.2;
-  color: #fff;
+.personalization-loading-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #dcc090;
 }
 
-.stop-card-text {
-  margin-top: 0.375rem;
-  font-size: 0.8125rem;
+.personalization-loading-bar {
+  width: 100%;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(220, 192, 144, 0.25);
+}
+
+.personalization-loading-bar span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #dcc090;
+  transform-origin: left center;
+  transition: transform 0.2s linear;
+}
+
+.personalization-loading-percent {
+  font-size: 0.75rem;
   font-weight: 500;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.78);
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.7);
+  font-variant-numeric: tabular-nums;
 }
 
-.stop-card-button {
-  margin-top: 0.75rem;
+.personalization-loading-retry {
   height: 34px;
   padding: 0 1rem;
   border-radius: 8px;
@@ -429,52 +460,206 @@ body:has(.personalization-scrub) {
   transition: background-color 0.2s ease;
 }
 
-.stop-card-button:hover {
+.personalization-loading-retry:hover {
   background: #d3b57c;
 }
 
-/* A wide picture (a laptop, a desktop, a tablet on its side): larger cards, in
-   the empty parts of each picture (the edges come from the component). */
+/* The title on the first frame: "Build Your" over "DESIGN" (Montserrat ExtraBold
+   Italic, white) and an arrow pointing down, in the middle of the film. It is shown
+   only while the film is at its start and at rest (data-shown). --intro-size is the
+   size of "Build Your"; "DESIGN" is 1.336 times that (122px and 163px on a
+   desktop), which makes the two lines about as wide as each other.
+   A window taller than wide (a phone, a tablet upright) takes the lines as 8.2% of
+   its width for "Build Your", so the two lines are 45% of the width; a window wider
+   than tall (a laptop, a desktop) takes 6.35% of the width, up to 122px (at 1920px
+   wide), and no more than 15% of the height, so it fits a low window. */
+.personalization-intro {
+  --intro-size: min(8.2vw, 13svh);
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  font-style: italic;
+  font-weight: 800;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.personalization-intro[data-shown="true"] {
+  opacity: 1;
+  transition: opacity 0.5s ease 0.1s;
+}
+
+.personalization-intro-small,
+.personalization-intro-big {
+  display: block;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.personalization-intro-small {
+  font-size: var(--intro-size);
+}
+
+.personalization-intro-big {
+  font-size: calc(var(--intro-size) * 1.336);
+}
+
+/* The arrow is half the height of "DESIGN" and a little under it (at most 56px, and
+   72px under). */
+.personalization-intro-arrow {
+  flex: none;
+  width: auto;
+  height: min(calc(var(--intro-size) * 0.668), 56px);
+  margin-top: min(calc(var(--intro-size) * 1.2), 72px);
+  stroke-width: 2px;
+}
+
 @media (min-aspect-ratio: 1/1) {
-  .stop-card {
-    width: clamp(15rem, 21vw, 21rem);
+  .personalization-intro {
+    --intro-size: min(122px, 6.354vw, 15svh);
   }
 
-  .stop-card:nth-child(n) {
-    left: var(--dl, auto);
-    right: var(--dr, auto);
-    top: var(--dt, auto);
-    bottom: var(--db, auto);
-  }
-
-  .stop-card-body {
-    padding: 1.25rem 1.375rem 1.375rem;
-    border-radius: 1.125rem;
-  }
-
-  .stop-card-title {
-    font-size: 1.125rem;
-  }
-
-  .stop-card-text {
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
-  }
-
-  .stop-card-button {
-    margin-top: 1rem;
-    height: 38px;
-    padding: 0 1.125rem;
-    font-size: 0.8125rem;
+  .personalization-intro-arrow {
+    stroke-width: 3px;
   }
 }
 
-/* A phone on its side has too little height for cards. */
+/* The text of a stop: two big lines in Montserrat ExtraBold Italic (for example
+   "START" over "DESIGNING"), a heading (ExtraBold) and a paragraph (Medium), white,
+   left-aligned. It is shown only while the film rests on the stop (data-shown).
+   The component sets on each line --n, its size in px on the desktop design (a
+   window 1920px wide), and on each block --left and --top, where the block is on a
+   wide window. --u is what 1px of that design is on this window, so the heading is
+   40 of them and the paragraph 16 (40px and 16px at 1920px wide).
+   A window taller than wide (a phone, a tablet upright) has every block at the top
+   left, where the pictures are empty (a note, the heading and paragraph apart from
+   the big lines, at the bottom left), scaled so that a line of 110px is 10% of the
+   width, with a soft dark glow behind the letters, for the pictures that are not
+   dark there; a window wider than tall (a laptop, a desktop) has it where --left and
+   --top say, scaled with the width up to the size of the design (no bigger), and
+   with the height too, so it fits a low window. With a mouse the block moves a
+   little the other way (the rules for a wide window, below). */
+.stop-text {
+  --u: min(0.0909vw, 0.0418svh);
+  position: absolute;
+  z-index: 2;
+  left: 7vw;
+  top: 3%;
+  width: min(86vw, 34rem);
+  color: #fff;
+  text-align: left;
+  pointer-events: none;
+}
+
+/* The box inside: it comes in by itself (it fades in and rises), while the box
+   outside is where the text is, and moves with the mouse (a laptop, a desktop). */
+.stop-text-inner {
+  text-shadow:
+    0 0 14px rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+
+.stop-text[data-shown="true"] .stop-text-inner {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s ease 0.15s,
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s;
+}
+
+.stop-text-title {
+  font-style: italic;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stop-text-line {
+  display: block;
+  white-space: nowrap;
+  font-size: calc(var(--n) * var(--u));
+}
+
+.stop-text-note {
+  top: auto;
+  bottom: 6%;
+}
+
+.stop-text-heading {
+  margin-top: calc(19.8 * var(--u));
+  font-size: max(calc(40 * var(--u)), 18px);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.stop-text-note .stop-text-heading {
+  margin-top: 0;
+}
+
+.stop-text-body {
+  margin-top: calc(11 * var(--u));
+  font-size: max(calc(16 * var(--u)), 13px);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+@media (min-aspect-ratio: 1/1) {
+  .stop-text {
+    --u: min(1px, 0.05208vw, 0.1091svh);
+    left: var(--left);
+    top: var(--top);
+    bottom: auto;
+    width: auto;
+    /* In the middle of --top, and moved the opposite way to the mouse (--tx and
+       --ty, -1 to 1, set on the stage), the more the nearer: just a little, 8px and
+       5px at the edge for a depth of 1 (the cards moved 24px and 15px). */
+    transform: translate3d(
+      calc(var(--tx, 0) * var(--depth, 1) * -8px),
+      calc(-50% + var(--ty, 0) * var(--depth, 1) * -5px),
+      0
+    );
+    will-change: transform;
+  }
+
+  .stop-text-inner {
+    text-shadow: none;
+  }
+
+  .stop-text-body {
+    margin-top: calc(7.7 * var(--u));
+    max-width: calc(396 * var(--u));
+  }
+}
+
+/* A phone on its side has too little height for the text of a stop. */
 @media (min-aspect-ratio: 1/1) and (max-height: 499.98px) {
-  .stop-cards {
+  .stop-text {
     display: none;
   }
+}
+
+/* On a laptop or a desktop (a mouse, not a touch screen) the picture moves a little
+   with the mouse while the film rests on a stop (the component sets on the stage
+   --px and --py, where the mouse is on the film, -1 to 1, and --ps, how much of
+   this is on, 0 to 1). On a phone and a tablet they are 0 and nothing moves. */
+.personalization-scrub-canvas,
+.personalization-scrub-video {
+  /* The picture is a little larger while the effect is on, so its edges do not
+     show when it moves. */
+  transform: translate3d(calc(var(--px, 0) * -14px), calc(var(--py, 0) * -9px), 0)
+    scale(calc(1 + var(--ps, 0) * 0.05));
+  will-change: transform;
 }
 
 @media (min-aspect-ratio: 1/1) {
@@ -499,7 +684,7 @@ body:has(.personalization-scrub) {
 /* A field of the Personalization form: 33px tall, the name of the field sitting
    just above its gold line. When the field is focused or has something in it the
    name moves up and gets smaller, so what is typed has the line to itself.
-   The form is on black, so the texts are light. */
+   The form is on white, so the texts are dark. */
 .float-field {
   position: relative;
   height: 33px;
@@ -513,23 +698,23 @@ body:has(.personalization-scrub) {
   border-bottom: 1px solid #dcc090;
   border-radius: 0;
   background: transparent;
-  color: #ffffff;
-  caret-color: #ffffff;
+  color: #000000;
+  caret-color: #000000;
   outline: none;
   transition: border-color 0.2s;
 }
 
 .float-field input:focus {
-  border-bottom-color: #ffffff;
+  border-bottom-color: #000000;
 }
 
-/* When the browser fills a field in by itself it paints it light, with dark text:
-   cover that with the black and keep the text white. */
+/* When the browser fills a field in by itself it paints it light blue or yellow:
+   cover that with the white and keep the text black. */
 .float-field input:-webkit-autofill,
 .float-field input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #ffffff;
-  -webkit-box-shadow: 0 0 0 1000px #000000 inset;
-  box-shadow: 0 0 0 1000px #000000 inset;
+  -webkit-text-fill-color: #000000;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  box-shadow: 0 0 0 1000px #ffffff inset;
 }
 
 .float-field label {
@@ -539,7 +724,7 @@ body:has(.personalization-scrub) {
   font-size: 13px;
   line-height: 16px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(0, 0, 0, 0.7);
   pointer-events: none;
   transition: transform 0.16s ease, font-size 0.16s ease;
 }
@@ -565,6 +750,24 @@ body:has(.personalization-scrub) {
   }
 }
 
+/* The search field of the brand and cigarette list (BrandSelectorModal.tsx) is a
+   line of editable text, not an input, so it has no placeholder of its own. */
+.brand-search-field:empty::before {
+  content: attr(data-placeholder);
+  color: #9d9d9d;
+  pointer-events: none;
+}
+
+/* Select size: the width of a card and the least space between two cards in a
+   row of pages (SizeSelectorModal.tsx reads these to know how many cards a page
+   holds). The pages are the same space apart as the cards in a page, so the last
+   card of one page does not touch the first of the next. A tablet and larger
+   have their own (below). */
+.size-pages {
+  --size-card: 82px;
+  --size-gap: 8px;
+}
+
 /* The footer has rounded top corners. On the home page it also slides up over the
    bottom of the About photo (46px, as in the design), so the corners show the
    photo behind them and not the page's own background. */
@@ -582,13 +785,10 @@ body:has(.say-hi-section) .site-footer {
   margin-top: -1.5rem;
 }
 
-/* The Personalization page is black to the bottom, so the footer's rounded corners
-   slide up 1.5rem over it (the form screen leaves that much room) and show black
-   behind them, not the page's white. */
+/* The Personalization page ends with the white contact form: it has no footer (the
+   way back to the shop is the button at the bottom of the form). */
 body:has(.personalization-page) .site-footer {
-  position: relative;
-  z-index: 10;
-  margin-top: -1.5rem;
+  display: none;
 }
 
 /* The About photo runs from edge to edge on a phone. Wider than 560px it stops
@@ -600,26 +800,172 @@ body:has(.personalization-page) .site-footer {
   }
 }
 
-/* Popular Sizes: the row of packs (246px tall) is under the text and the
-   "Select Cigarette" button (42px) under the row. What is above the row is about
-   122px (the section's top padding, the title and the two lines of text), so of
-   the section's 70vh, (70vh - 410px) is free. The row takes 30% of it above
-   itself (28px at least, 64px at most), the button 20% above itself (24px to
-   44px), and the rest is under the button. On a small phone (below) they have
-   their own places. */
-.popular-sizes-strip {
-  margin-top: clamp(28px, calc((70vh - 410px) * 0.3), 64px);
+/* Popular Sizes: the "Select Cigarette" button (42px) is under the text and the
+   row of packs (190px tall: the packs, 161px, and their names) under the button. What
+   is above the button is about 115px (the section's top padding, the title and the
+   two lines of text), so of the section's 70vh, (70vh - 347px) is free. The button
+   takes 29% of it above itself (--pop-btn: 24px at least, 70px at most: about 66px
+   on a 402 x 824 screen), and the packs the same under it; the rest is under the
+   names. On a small phone (below) it has its own place.
+
+   The packs are as far under the button as the button is under the text: on a phone
+   the row of packs is as tall as the tallest of them (see PopularSizesSlider.tsx), so
+   it starts where they start, --pop-btn under the button. The rest of the section is
+   under their names. */
+/* (The section is 90vh tall on a phone, but the gaps are still worked out from 70vh, as
+   they were when it was that tall: everything in it stays where it was, and the room the
+   section has more is white, under the packs.) */
+.popular-sizes-section {
+  --pop-btn: clamp(24px, calc((70vh - 347px) * 0.29), 70px);
 }
 
 .popular-sizes-button {
-  margin-top: clamp(24px, calc((70vh - 410px) * 0.2), 44px);
+  margin-top: var(--pop-btn);
 }
 
+.popular-sizes-strip {
+  margin-top: var(--pop-btn);
+}
+
+/* Home, Atelier: the pictures of the case are videos (see ScrollVideo), played by the
+   scroll, on every screen: the left one in the box of the case, the right one (the silver
+   case) in the box of the mirrored case, which a tablet and larger have (a phone does not
+   show that box). Each video is the whole frame (16:9, white all round the case), drawn
+   so that the case in its last frame stands in the middle of its box, the same height
+   (--case-h, the height of the box). The left one's (the gold case) case fills 94% of the
+   frame's height and 30% of its width and ends at 42% to 72% of the width (the middle of it
+   at 57%); the right one's fills 97% of the height and ends at 27% to 57% of the width (the
+   middle at 42%; it comes in from the right). Each is bigger than its box and goes out of it into
+   the white, under the text (which is above it, see the larger screens below) and not in
+   the way of a click. */
+.atelier-case {
+  --case-h: 315px;
+}
+
+.atelier-case-video {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: none;
+  pointer-events: none;
+  /* Its own layer: a new frame does not make the browser draw the section again. */
+  will-change: transform;
+}
+
+.atelier-case-video-left {
+  height: calc(var(--case-h) / 0.94);
+  width: calc(var(--case-h) / 0.94 * 16 / 9);
+  transform: translate(-57%, -50%);
+}
+
+.atelier-case-video-right {
+  height: calc(var(--case-h) / 0.97);
+  width: calc(var(--case-h) / 0.97 * 16 / 9);
+  transform: translate(-42%, -50%);
+}
+
+/* Home, Personalization: the picture of the case is a video (see ScrollVideo), played by
+   the scroll, on every screen. It is the whole frame (16:9, black all round the case, as
+   black as the card, so no edge shows); the case in its last frame is in the middle of it,
+   69% of its width and 64% of its height. It is drawn 150% as wide as its box (the card's
+   width less its padding: 354px on a 402px phone), so the case in its last frame is about
+   as wide as the card; it goes out of the box into the black (the card clips it), and is
+   not in the way of a click. */
+.personalization-art-video {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-width: none;
+  transform: translate(-50%, -50%);
+  /* Its own layer: the card clips it with rounded corners, and a new frame should not
+     make the browser draw the card again. */
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Home, Atelier, Popular Sizes and Personalization, a phone: what is in each section is in
+   the middle of it, up and down. The content is the same height as ever and the
+   sections are taller than it, so the room that is left is shared between above and
+   under it (an automatic margin on the first and the last thing in it: where there is
+   no room left, it is simply at the top). A tablet and larger have their own layout.
+   In Personalization the space between the title, the text, the video and the button is a
+   little more than it was, and the video's box is as tall as the case in it (56% of its
+   width, the case being 54%), so the case is not far from the text. The title and the
+   text are above the video (its frame is bigger than its box). */
+@media not ((min-width: 744px) and (min-height: 500px)) {
+  .atelier-section {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  .atelier-section > .atelier-link {
+    margin-block: auto;
+  }
+
+  .popular-sizes-section {
+    display: flex;
+    flex-direction: column;
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  .popular-sizes-section > h2 {
+    margin-top: auto;
+  }
+
+  /* The title and the text under it are 20px higher than where they are placed (the
+     button and the packs stay). */
+  .popular-sizes-section > h2,
+  .popular-sizes-section > p {
+    position: relative;
+    top: -20px;
+  }
+
+  .popular-sizes-section > .popular-sizes-strip {
+    margin-bottom: auto;
+  }
+
+  .personalization-card {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  .personalization-card h2 {
+    position: relative;
+    z-index: 1;
+    top: -24px;
+    margin-top: auto;
+  }
+
+  .personalization-card p {
+    position: relative;
+    z-index: 1;
+    top: -24px;
+    margin-top: 6px;
+  }
+
+  .personalization-art {
+    aspect-ratio: 1 / 0.56;
+    margin-top: 52px;
+  }
+
+  .personalization-card a {
+    margin-top: 80px;
+    margin-bottom: auto;
+  }
+}
+
+
 /* SMALL PHONES ONLY (iPhone SE and the like).
-   The homepage sections are as tall as a share of the screen (94vh, 70vh), but
+   The homepage sections are as tall as a share of the screen (105vh, 90vh), but
    what is in them has a fixed size, so on a screen as short as an SE's the
-   bottom of the content runs into the next section. These two rules push the
-   content up, by as much as is missing; the sections keep their height.
+   bottom of the content runs into the next section. This rule makes the packs
+   smaller and moves the button; the sections keep their height.
 
    The test is the size of the DEVICE's screen (`device-height`, at most 700px,
    held upright), not of the page: a taller phone (an iPhone 14 and up, a Galaxy
@@ -627,24 +973,14 @@ body:has(.personalization-page) .site-footer {
    the page itself shorter than that, so none of them match and nothing changes
    for them. */
 @media (max-device-height: 700px) and (orientation: portrait) {
-  /* Atelier (94vh): the picture of the case ends 24px above the bottom of the
-     section; the space above the title shrinks from 70px to as little as 12px. */
-  .atelier-section {
-    padding-top: clamp(12px, calc(94vh - 598px), 70px);
-  }
-
   /* Popular Sizes (70vh): the packs are drawn at 82% of their size here (the
-     row is then 209px tall instead of 246px), so what is above the row, the row
-     and the button come to 373px and (70vh - 373px) is free: the row takes 35%
-     of it above itself (16px to 40px), the button 25% above itself (14px to
-     30px), and the rest is under the button. */
-  .popular-sizes-strip {
+     row is then 161px tall instead of 190px), so what is above the button, the
+     button and the row come to 318px and (70vh - 318px) is free: the button
+     takes 29% of it above itself (14px to 58px), and the packs are as far under
+     the button as it is under the text, as above. */
+  .popular-sizes-section {
     --pack-k: 0.82;
-    margin-top: clamp(16px, calc((70vh - 373px) * 0.35), 40px);
-  }
-
-  .popular-sizes-button {
-    margin-top: clamp(14px, calc((70vh - 373px) * 0.25), 30px);
+    --pop-btn: clamp(14px, calc((70vh - 318px) * 0.29), 58px);
   }
 }
 
@@ -682,6 +1018,15 @@ body:has(.personalization-page) .site-footer {
   }
 }
 
+/* The menu is in the exact middle of the header (see Header.tsx); on the narrowest laptops
+   (1024 - 1099px) its links are closer together, so it does not touch the buttons on the
+   right. */
+@media (min-width: 1024px) and (max-width: 1099.98px) {
+  .site-header-nav {
+    gap: 1.25rem;
+  }
+}
+
 /* The header's side padding, 744 - 767px (from 768px the page's own `md:` rule has it). */
 @media (min-width: 744px) and (max-width: 767.98px) and (min-height: 500px) {
   .site-header-inner {
@@ -691,39 +1036,13 @@ body:has(.personalization-page) .site-footer {
 
 /* ---- Tablet and up (744px wide, 500px tall) ---- */
 @media (min-width: 744px) and (min-height: 500px) {
-  /* Home, the video. On a phone it fills the width (464 x 848). Here it keeps its
-     proportions and is as tall as the screen under the header (at most 75rem):
-     a portrait picture in the middle, on black, with its sides fading out like
-     the About photo's. The texts on it (the title above, the heading, text and
-     button below) are cut to the same width, so they stay on the picture. */
-  .hero-banner {
-    --hero-w: min(100vw, calc(min(100svh - 4rem, 75rem) * 464 / 848));
-    background-color: #000;
-    border-bottom-left-radius: 1.5rem;
-    border-bottom-right-radius: 1.5rem;
-  }
-
-  .hero-banner-video {
-    width: var(--hero-w);
-    margin-inline: auto;
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
-    mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
-  }
-
-  .hero-banner-fit {
-    right: auto;
-    left: 50%;
-    width: var(--hero-w);
-    translate: -50% 0;
-  }
-
   /* Home, Atelier: a section as tall as the screen, at most 60rem, with its
      content in the middle; the title grows with the screen (66px up to 96px) and
      the case, in the proportions it has on a phone (203 x 315), with the screen's
      height (315px up to 560px). */
   .atelier-section {
     height: auto;
-    min-height: min(94vh, 60rem);
+    min-height: 102vh;
     justify-content: center;
     padding-block: 4.5rem;
   }
@@ -772,8 +1091,13 @@ body:has(.personalization-page) .site-footer {
     grid-row: 1 / -1;
   }
 
-  .atelier-case-mirror img {
-    transform: scaleX(-1);
+  /* The text is above the videos (their frames are bigger than the boxes of the cases,
+     and go out of them into the white). */
+  .atelier-link h2,
+  .atelier-link p,
+  .atelier-link button {
+    position: relative;
+    z-index: 1;
   }
 
   .atelier-link h2 {
@@ -792,14 +1116,14 @@ body:has(.personalization-page) .site-footer {
     justify-self: center;
   }
 
-  /* Home, Collections: a taller section (90% of the screen, at most 58rem; on a
-     phone it is as tall as its content, about 675px), with the content in the
-     middle of it (the content is about 33rem tall, so the space left is shared
-     above and below), a wider line of text under the button, and a title that
-     grows from 44px to 64px. */
+  /* Home, Collections: as tall as the screen (100vh, as on a phone), with the content
+     in the middle of it (the content is about 33rem tall, so the space left is
+     shared above and below; on a very tall screen the content stays a little above
+     the middle, the top space stops at 20rem), a wider line of text under the
+     button, and a title that grows from 44px to 64px. */
   .collections-card {
-    min-height: min(90vh, 58rem);
-    padding-top: clamp(5rem, calc((min(90vh, 58rem) - 33rem) / 2), 12rem) !important;
+    min-height: 100vh;
+    padding-top: clamp(5rem, calc((100vh - 33rem) / 2), 20rem) !important;
     padding-bottom: 4.5rem !important;
   }
 
@@ -811,17 +1135,32 @@ body:has(.personalization-page) .site-footer {
     max-width: 34rem !important;
   }
 
-  /* Home, Ultra Slims and Personalization keep the share of the screen they have
-     on a phone, up to a most (80vh -> 52rem, 90vh -> 56rem), so on a tall screen
-     they do not turn into empty bands. */
+  /* Home, Ultra Slims: 44% taller than it was (it was as tall as its
+     content, about 725px, or 80vh up to 52rem, whichever was more; made 20% taller, then
+     20% more again): 1044px, or 115vh up to 74.9rem. Its content is in the middle of it, up and down: the room that is
+     left is shared between above and under it. The title has 36px of margin above it
+     and the row of cards 12px of room under them, so the paddings (24px and 48px) make
+     the same 60px of room at the two ends. */
   .ultra-slims-section {
-    min-height: min(80vh, 52rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: max(1044px, min(115vh, 74.9rem));
+    padding-top: 24px;
+    padding-bottom: 48px;
+  }
+
+  /* The name of the card under the line: its two names are placed over each other, so
+     it has no width of its own, and in this flex column (with its automatic side
+     margins) it was 0px wide and not seen. It is as wide as the section. */
+  .ultra-slims-name {
+    width: 100%;
   }
 
   /* Popular Sizes is taller than on a phone (85% of the screen, at most 54rem,
      instead of 70%), and its content (about 30rem tall) is in the middle of it.
-     The row of packs is 3.5rem under the text and the button 2.5rem under the
-     row. */
+     The button is 2.5rem under the text and the row of packs 3.5rem under the
+     button. */
   .popular-sizes-section {
     height: min(85vh, 54rem);
     padding-top: clamp(3rem, calc((min(85vh, 54rem) - 30rem) / 2), 9rem);
@@ -887,7 +1226,7 @@ body:has(.personalization-page) .site-footer {
   }
 
   .personalization-card {
-    height: min(90vh, 56rem);
+    height: 105vh;
   }
 
   /* Home, Personalization: a phone has the picture and then the button under it;
@@ -903,11 +1242,16 @@ body:has(.personalization-page) .site-footer {
     aspect-ratio: auto !important;
   }
 
+  /* A tablet: the video is as wide as its box (the card's width less its padding), so
+     the case in its last frame (69% of the video's width) is 69% of that. */
+  .personalization-art-video {
+    width: 100%;
+  }
+
   /* A product's page: the one column is wider (46rem) than on a phone (40rem).
      The name is not in the pictures (it stays there for screen readers) and not
      above the purchase card: it is in the card, over the size and collection. The
-     price of customizing is in the customize button, at its right. The delivery
-     card has a short text and "more", which opens the whole text. The two buttons
+     price of customizing is in the customize button, at its right. The two buttons
      under it are 40% and 60% of the row, and the first one says "Add to cart"
      instead of showing an icon. */
   .product-layout {
@@ -932,25 +1276,6 @@ body:has(.personalization-page) .site-footer {
   .product-card-name {
     display: block;
     margin-bottom: -0.5rem;
-  }
-
-  .product-fee-outside {
-    display: none;
-  }
-
-  .product-fee-inside {
-    display: inline;
-    margin-left: auto;
-    margin-right: 0.75rem;
-    font-size: 14px;
-  }
-
-  .delivery-full {
-    display: none;
-  }
-
-  .delivery-short {
-    display: inline;
   }
 
   /* The two buttons are inside the delivery card, at its bottom: the card has room
@@ -1016,6 +1341,12 @@ body:has(.personalization-page) .site-footer {
     box-shadow: -20px 0 60px rgba(0, 0, 0, 0.25);
   }
 
+  /* The brand and cigarette list is a column, not a grid of cards: its panel is
+     narrower (32rem). */
+  .brand-modal-panel {
+    width: min(100%, 32rem);
+  }
+
   .size-modal-head {
     display: flex;
     align-items: flex-start;
@@ -1025,6 +1356,24 @@ body:has(.personalization-page) .site-footer {
 
   .size-modal-close {
     display: block;
+  }
+
+  /* The cards of a page are 88px wide and 32px apart (not spread over the whole
+     width of the panel, with 50px and more between them), from the left, and the
+     next page starts 32px after the last card. The row is as wide as one page
+     (`--cols` cards, set by SizeSelectorModal.tsx), so no part of the next page
+     shows at its right. */
+  .size-pages {
+    --size-card: 88px;
+    --size-gap: 32px;
+    column-gap: var(--size-gap);
+    max-width: calc(var(--cols) * var(--size-card) + (var(--cols) - 1) * var(--size-gap));
+  }
+
+  .size-page {
+    column-gap: var(--size-gap);
+    grid-template-columns: repeat(var(--cols), var(--size-card)) !important;
+    width: calc(var(--cols) * var(--size-card) + (var(--cols) - 1) * var(--size-gap)) !important;
   }
 
   /* A row that can be dragged with a mouse shows the hand. */
@@ -1049,7 +1398,7 @@ body:has(.personalization-page) .site-footer {
      it at the left in black, then the items, each a small name over its value
      (underlined in gold), with no lines between the rows. */
   .product-details {
-    padding: 2.5rem;
+    padding: 1.25rem 2.5rem;
     border-radius: 1.5rem;
     background: #fff;
     box-shadow: 0 4px 22.5px rgba(0, 0, 0, 0.08);
@@ -1079,12 +1428,52 @@ body:has(.personalization-page) .site-footer {
 
   .product-details-list {
     display: grid;
-    margin-top: 2.25rem;
+    margin-top: 0;
     overflow: visible;
     border-radius: 0;
     background: transparent;
     box-shadow: none;
-    row-gap: 2.25rem;
+    row-gap: 0.625rem;
+  }
+
+  /* How to Use: the four steps in one row, each a big drawing (it is 48px on a phone)
+     with its title under it in small letters, in the middle of its quarter of the card.
+     The step's number is not shown here. */
+  .howto-steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: 1.5rem;
+  }
+
+  .howto-step {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    text-align: center;
+  }
+
+  .howto-number {
+    display: none;
+  }
+
+  .howto-body {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .howto-icon {
+    width: clamp(5rem, 9vw, 8.5rem);
+    height: clamp(5rem, 9vw, 8.5rem);
+    align-self: center;
+    order: -1; /* above the title */
+  }
+
+  .howto-title {
+    font-size: 12px;
+    line-height: 1.35;
   }
 
   .product-details-list > div {
@@ -1170,6 +1559,28 @@ body:has(.personalization-page) .site-footer {
 
 /* ---- Laptop and up (1024px) ---- */
 @media (min-width: 1024px) and (min-height: 500px) {
+  /* The brand and cigarette list is a small dialog in the middle of the screen here
+     (a tablet has it as a panel at the right): 28rem wide and 40rem tall at the
+     most (82% of the screen's height if that is less). */
+  .brand-modal-root {
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .brand-modal-panel {
+    width: min(100%, 28rem);
+    height: min(40rem, 82dvh);
+    border-radius: 1.75rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  }
+
+  /* The customize modal has an X at its top right here (a phone and a tablet
+     don't). */
+  .customize-close {
+    display: flex;
+  }
+
   /* Home, Atelier: a laptop's cases are the full size again (315px up to 560px
      by the screen's height) and the text a little larger. */
   .atelier-case,
@@ -1182,13 +1593,21 @@ body:has(.personalization-page) .site-footer {
   }
 
   /* Home, Personalization: the same, the picture on the left and the text on the
-     right; the card's own padding keeps the content in 72rem in the middle. */
+     right; the card's own padding keeps the content in 72rem (--pers-w), a little to
+     the right of the middle: the padding on the left is --pers-shift more than the
+     space either side of the block, and on the right that much less (up to 3vw, and
+     never so much that less than 1.5rem is left on the right; none on a narrow
+     laptop, where the block fills the width). */
   .personalization-card {
+    --pers-w: 72rem;
+    --pers-side: max(1.5rem, calc((100% - var(--pers-w)) / 2));
+    --pers-shift: clamp(0px, calc((100% - var(--pers-w)) / 2 - 1.5rem), 3vw);
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: 1fr auto auto auto 1fr;
     column-gap: 3rem;
-    padding-inline: max(1.5rem, calc((100% - 72rem) / 2));
+    padding-left: calc(var(--pers-side) + var(--pers-shift));
+    padding-right: calc(var(--pers-side) - var(--pers-shift));
     text-align: left;
   }
 
@@ -1217,6 +1636,21 @@ body:has(.personalization-page) .site-footer {
     grid-column: 1;
     grid-row: 1 / -1;
     margin: 0;
+  }
+
+  /* The video is in the left column, drawn 145% as wide as the column, so the case in its
+     last frame (69% of the video's width) is as wide as the column; the video goes out of
+     the column into the black on both sides, under the title, the text and the button
+     (which are above it). */
+  .personalization-art-video {
+    width: 145%;
+  }
+
+  .personalization-card h2,
+  .personalization-card p,
+  .personalization-card a {
+    position: relative;
+    z-index: 1;
   }
 
   /* Home, About: the photo on the left; on the right the title, the text and the
@@ -1350,8 +1784,8 @@ body:has(.personalization-page) .site-footer {
      purchase column). Under them the row of the collection's other cases, across
      the whole width. Then, one under the other and each across the whole width:
      the details (4 items on the left, 4 on the right, a line between), the
-     product story, how to use (2 steps on the left, 2 on the right, a line
-     between), and the rows of other products. */
+     product story, how to use (the four steps in one row, see the tablet rules),
+     and the rows of other products. */
   .product-layout {
     max-width: 72rem;
     padding-inline: 2rem;
@@ -1448,26 +1882,6 @@ body:has(.personalization-page) .site-footer {
   .product-story-note {
     max-width: 44rem;
   }
-
-  .howto-steps {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(2, auto);
-    grid-auto-flow: column;
-    column-gap: 5rem;
-    row-gap: 2.25rem;
-  }
-
-  .howto-steps::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    width: 1px;
-    background: rgb(0 0 0 / 0.08);
-  }
 }
 
 /* ---- Desktop (1536px) ---- */
@@ -1488,7 +1902,7 @@ body:has(.personalization-page) .site-footer {
   }
 
   .personalization-card {
-    padding-inline: max(1.5rem, calc((100% - 80rem) / 2));
+    --pers-w: 80rem;
   }
 
   .product-layout {
@@ -1517,5 +1931,618 @@ body:has(.personalization-page) .site-footer {
 @media (min-width: 64rem) {
   .about-page .lg\:font-medium {
     font-weight: 400;
+  }
+}
+
+/* Home, the unlock section: the horizontal video (see HeroVideoBanner) is not shown on a
+   phone. */
+.hero-banner-wide-link {
+  display: none;
+}
+
+/* Home, the unlock section on a tablet, a laptop and a desktop: the horizontal video fills
+   the whole section, which is as tall as the screen under the header (the video is cut at
+   the sides to fit). The texts are over it: the title (on one row) and the line under it at
+   the top, in the middle; the heading, the text and the button at the bottom, on the left,
+   over a dark shade. The green shade is over the top, as on a phone. */
+@media (min-width: 744px) and (min-height: 500px) {
+  .hero-banner {
+    --hero-h: calc(100svh - 4rem);
+    --hero-text: clamp(0.63rem, 0.7vw, 0.85rem);
+    /* The size of the title, and the width of the column of texts: the width of "New
+       Accessory", the longer row of the title (7.52 times its size), so the text under
+       "Contrary" is as wide as the title. */
+    --hero-title: clamp(1.4rem, 2.2vw, 2.9rem);
+    --hero-block: calc(var(--hero-title) * 7.52);
+    /* How far the video is moved out of the screen to the left, which is the width of the
+       empty place on the right where the texts are (they fit in it, with room at the sides). */
+    --hero-shift: 14vw;
+    /* The texts are one column on the right of the section (its middle is 77.5% of the way
+       across less 100px, and a little above the middle of the section's height), over the video's right
+       side, which fades to black (see `.hero-banner-wide-link::after`). */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: calc(77.5vw - var(--hero-block) / 2 - 100px);
+    padding-bottom: calc(var(--hero-h) * 0.14 + 4px);
+    height: var(--hero-h);
+    background-color: #000;
+    border-bottom-left-radius: 1.5rem;
+    border-bottom-right-radius: 1.5rem;
+  }
+
+  .hero-banner .hero-banner-link {
+    display: none;
+  }
+
+  /* The video keeps its size (the whole width of the section) but is moved to the left by
+     `--hero-shift`, so that much of it is out of the screen, on the left; the black on the
+     right is where the texts are. */
+  .hero-banner .hero-banner-wide-link {
+    display: block;
+    position: absolute;
+    inset: 0 var(--hero-shift) 0 calc(var(--hero-shift) * -1);
+  }
+
+  /* The right side of the video fades into the black, so the texts over it can be read and
+     the video has no hard edge. */
+  .hero-banner .hero-banner-wide-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0) 35%,
+      rgba(0, 0, 0, 0.55) 55%,
+      rgba(0, 0, 0, 0.88) 80%,
+      #000 100%
+    );
+  }
+
+  .hero-banner-wide {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The shade at the bottom, so the texts can be read over the lighter scenes. */
+  .hero-banner::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 10;
+    height: 45%;
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0) 100%);
+  }
+
+  .hero-banner .hero-banner-fit {
+    right: 0;
+    left: 0;
+    width: auto;
+    translate: none;
+    z-index: 20;
+  }
+
+  /* The title and the line under it, on the left of the block, just over the heading
+     ("Contrary"): the two texts are one column at the bottom of the empty place on the right
+     (the section lines them up from the bottom), the column in the middle of that place. */
+  .hero-banner .hero-banner-top {
+    position: relative;
+    inset: auto;
+    top: 20px; /* the whole column is drawn 20px lower, and "Contrary" 15px more (below) */
+    width: var(--hero-block);
+    margin-bottom: clamp(0.9rem, 2.4svh, 1.75rem);
+    padding: 0;
+    text-align: left;
+  }
+
+  /* The heading and the text, and the button under them, on the left. */
+  .hero-banner .hero-banner-bottom {
+    position: relative;
+    inset: auto;
+    top: 35px;
+    translate: none;
+    width: var(--hero-block);
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start !important;
+    align-items: flex-start;
+    gap: 0;
+    padding-inline: 0;
+    padding-bottom: 0 !important;
+  }
+
+  /* The sizes grow with the screen (the phone's are 24px, 12px, 20px and 8px). */
+  .hero-banner .hero-banner-title {
+    font-size: var(--hero-title) !important;
+    line-height: 1.15 !important;
+    white-space: nowrap;
+  }
+
+  /* "New Accessory" and "Unlocked" are on two rows (the break in the title). */
+  .hero-banner .hero-banner-subtitle {
+    margin-top: clamp(0.4rem, 1svh, 0.9rem);
+    font-size: clamp(0.7rem, 0.75vw, 1rem) !important;
+  }
+
+  .hero-banner .hero-banner-copy {
+    flex: none;
+    min-width: 0;
+    width: 100%;
+    max-width: none !important;
+  }
+
+  .hero-banner .hero-banner-heading {
+    font-size: clamp(0.92rem, 1.13vw, 1.5rem);
+  }
+
+  .hero-banner .hero-banner-text {
+    margin-top: 0.5rem;
+    font-size: var(--hero-text);
+    line-height: 1.55;
+  }
+
+  /* Under the text, as wide as the column of texts. */
+  .hero-banner .hero-banner-button {
+    flex: none;
+    align-self: stretch;
+    margin-top: clamp(0.9rem, 2.2svh, 1.4rem);
+    /* Drawn 5px lower (not moved in the layout, so the texts above stay where they are). */
+    position: relative;
+    top: 5px;
+    width: 100% !important;
+    height: 42px !important;
+    font-size: 17px !important;
+  }
+}
+
+
+/* ==========================================================================
+   PRODUCT PASSPORT (/passport/classic, /premium, /atelier, /special-edition)
+
+   One screen, as tall as the window under the header (the page is `.passport-page`, and
+   `svh` is the height with a phone's toolbars showing, see `.screen-height`), on every
+   device, with no footer. What is in it is in the middle of the screen, and every gap and
+   size that is tied to the height (`svh`) gets smaller on a short screen, so it fits.
+   A phone is one column: the coin, the pill, the name of the collection and the line
+   under it, the card with the piece's data, SHOP. A tablet is the same, larger. From
+   a laptop on it is two columns: the coin and the name on the left, the pill, the
+   headline, the card and the buttons on the right.
+   ========================================================================== */
+body:has(.passport-page) .site-footer {
+  display: none;
+}
+
+.passport-page {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: calc(100vh - 4rem);
+  min-height: calc(100svh - 4rem);
+  padding: clamp(8px, 1.6svh, 20px) 20px clamp(8px, 1.4svh, 14px);
+  /* The top edge is the colour of the header (#122a26) all the way across, and fades down
+     into the page's own gradient, so there is no seam under the header. */
+  background:
+    linear-gradient(180deg, #122a26 0%, rgba(18, 42, 38, 0) 9rem),
+    radial-gradient(ellipse 130% 55% at 50% 0%, #12342d 0%, #0a1916 42%, #040807 100%);
+  color: #ffffff;
+}
+
+.passport-inner {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.8svh, 18px);
+  width: 100%;
+  max-width: 30rem;
+  margin-inline: auto;
+}
+
+.passport-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, 1.3svh, 12px);
+  width: 100%;
+  text-align: center;
+}
+
+.passport-details {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.8svh, 18px);
+  width: 100%;
+}
+
+.passport-coin {
+  width: clamp(88px, 19svh, 190px);
+  aspect-ratio: 1;
+  perspective: 900px;
+  /* A drag sideways turns it; up and down still scrolls the page on a touch screen. */
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.passport-coin-held {
+  cursor: grabbing;
+}
+
+.passport-coin-disc {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Both faces are the disc: the collection's knight on the front and on the back. */
+.passport-coin-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Turned round, and a little behind the dark edge disc (which is 6px behind the front), so
+   from behind the back face is the one in front. */
+.passport-coin-back {
+  transform: rotateY(180deg) translateZ(7px);
+}
+
+/* A little thickness: a dark disc just behind the front face. */
+.passport-coin-edge {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transform: translateZ(-6px);
+  background: #2a2a2a;
+  box-shadow: 0 0 0 2px #111;
+}
+
+.passport-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid #2f6b5c;
+  border-radius: 999px;
+  background: #0e2823;
+  color: #e8f3ef;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.passport-pill svg {
+  color: #6fd1ae;
+}
+
+.passport-pill-wide,
+.passport-eyebrow,
+.passport-headline,
+.passport-contact,
+.passport-foot-site {
+  display: none;
+}
+
+.passport-title {
+  font-size: clamp(26px, 4.4svh, 36px);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.passport-tagline {
+  max-width: 20rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.passport-card {
+  margin: 0;
+  padding: 2px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.passport-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: clamp(5px, 1.3svh, 12px) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+}
+
+.passport-row:last-child {
+  border-bottom: 0;
+}
+
+.passport-row dt {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+}
+
+.passport-row dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.passport-gold {
+  color: #dcc090;
+  letter-spacing: 0.04em;
+}
+
+.passport-badge {
+  padding: 2px 7px;
+  border: 1px solid #2f6b5c;
+  border-radius: 6px;
+  background: #0e2823;
+  color: #9fd9c6;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.passport-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5ed39a;
+}
+
+.passport-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: clamp(2px, 0.8svh, 8px);
+}
+
+.passport-shop,
+.passport-contact {
+  align-items: center;
+  justify-content: center;
+  height: clamp(40px, 5.6svh, 48px);
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.passport-shop {
+  display: flex;
+  flex: 1 1 auto;
+  background: #dcc090;
+  color: #122a26;
+  transition: background-color 0.15s;
+}
+
+.passport-shop:hover {
+  background: #d3b57c;
+}
+
+.passport-foot {
+  padding-top: clamp(6px, 1.4svh, 14px);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  text-align: center;
+}
+
+/* A short phone (an iPhone SE, 360 x 640): the rows of the card are closer, so all of it
+   fits in the screen. */
+@media (max-width: 743px) and (max-height: 680px) {
+  .passport-row {
+    padding-block: 5px;
+  }
+}
+
+/* A tablet (the header has the phone's menu here): the one column, larger. */
+@media (min-width: 744px) and (min-height: 500px) {
+  .passport-inner {
+    max-width: 36rem;
+    gap: clamp(10px, 2.2svh, 26px);
+  }
+
+  .passport-coin {
+    width: clamp(120px, 23svh, 280px);
+  }
+
+  .passport-title {
+    font-size: clamp(32px, 4.2svh, 46px);
+  }
+
+  .passport-tagline {
+    max-width: 26rem;
+    font-size: 16px;
+  }
+
+  .passport-pill {
+    font-size: 12px;
+  }
+
+  .passport-card {
+    padding-inline: 22px;
+  }
+
+  .passport-row {
+    padding-block: clamp(7px, 1.5svh, 16px);
+    font-size: 15px;
+  }
+
+  .passport-row dt {
+    font-size: 14px;
+  }
+
+  .passport-badge {
+    font-size: 10px;
+  }
+
+  .passport-shop,
+  .passport-contact {
+    font-size: 16px;
+  }
+
+  .passport-foot {
+    font-size: 12px;
+  }
+}
+
+/* A laptop and larger: the two columns. */
+@media (min-width: 1024px) and (min-height: 500px) {
+  .passport-page {
+    padding-inline: 32px;
+  }
+
+  .passport-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: clamp(32px, 7vw, 120px);
+    max-width: 66rem;
+  }
+
+  .passport-coin {
+    width: clamp(150px, 33svh, 300px);
+  }
+
+  .passport-pill-narrow {
+    display: none;
+  }
+
+  .passport-pill-wide {
+    display: inline-flex;
+    align-self: flex-start;
+  }
+
+  .passport-eyebrow {
+    display: block;
+    margin-top: clamp(4px, 1.4svh, 14px);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .passport-title {
+    font-size: clamp(34px, 3.4vw, 48px);
+  }
+
+  .passport-tagline {
+    max-width: 22rem;
+    font-size: 14px;
+  }
+
+  .passport-details {
+    max-width: 34rem;
+  }
+
+  .passport-headline {
+    display: block;
+    font-size: clamp(22px, 2vw, 30px);
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: left;
+  }
+
+  .passport-row {
+    padding-block: clamp(7px, 1.4svh, 14px);
+    font-size: 14px;
+  }
+
+  .passport-row dt {
+    font-size: 13px;
+  }
+
+  .passport-actions {
+    gap: 12px;
+  }
+
+  .passport-shop,
+  .passport-contact {
+    display: flex;
+    flex: 0 0 auto;
+    width: 9rem;
+    font-size: 14px;
+  }
+
+  .passport-contact {
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    color: #ffffff;
+    transition: background-color 0.15s;
+  }
+
+  .passport-contact:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .passport-foot {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 66rem;
+    margin-inline: auto;
+    font-size: 12px;
+  }
+
+  .passport-foot-site {
+    display: block;
+  }
+}
+
+/* A desktop: a little more of everything. */
+@media (min-width: 1536px) and (min-height: 500px) {
+  .passport-inner {
+    max-width: 78rem;
+  }
+
+  .passport-coin {
+    width: clamp(180px, 36svh, 340px);
+  }
+
+  .passport-title {
+    font-size: clamp(44px, 3vw, 58px);
+  }
+
+  .passport-tagline {
+    max-width: 26rem;
+    font-size: 16px;
+  }
+
+  .passport-details {
+    max-width: 40rem;
+  }
+
+  .passport-headline {
+    font-size: clamp(30px, 1.9vw, 38px);
+  }
+
+  .passport-row {
+    padding-block: clamp(8px, 1.5svh, 17px);
+    font-size: 16px;
+  }
+
+  .passport-row dt {
+    font-size: 15px;
+  }
+
+  .passport-shop,
+  .passport-contact {
+    width: 10.5rem;
+    font-size: 16px;
   }
 }

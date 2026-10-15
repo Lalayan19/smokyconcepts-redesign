@@ -31,19 +31,19 @@ export default function HowToUse() {
         {STEPS.map((step, index) => {
           const icon = ICONS[index];
           return (
-            <li key={step.title} className="flex items-start gap-4">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#dcc090]/15 text-sm font-extrabold text-[#dcc090]">
+            <li key={step.title} className="howto-step flex items-start gap-4">
+              <div className="howto-number flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#dcc090]/15 text-sm font-extrabold text-[#dcc090]">
                 {index + 1}
               </div>
               {/* The title stays level with the number, as it was with the text
                   under it; the drawing is centered on the row. */}
-              <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
+              <div className="howto-body flex min-w-0 flex-1 items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="inline-block w-fit border-b-2 border-[#dcc090] pb-1 text-[15px] font-bold text-[#414141]">
+                  <p className="howto-title inline-block w-fit border-b-2 border-[#dcc090] pb-1 text-[15px] font-bold text-[#414141]">
                     {step.title}
                   </p>
                 </div>
-                <span className="relative h-12 w-12 shrink-0 self-center">
+                <span className="howto-icon relative h-12 w-12 shrink-0 self-center">
                   <Image src={icon} alt="" fill className="object-contain" />
                 </span>
               </div>

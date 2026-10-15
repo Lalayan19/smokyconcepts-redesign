@@ -12,11 +12,13 @@ import premiumCoin from "@/assets/images/covered_collections_section/premium.png
 import specialCoin from "@/assets/images/covered_collections_section/special.png";
 
 // `description` is the text under the button while that collection is in the
-// middle of the row.
+// middle of the row; `glow` is the colour of the soft light behind the coins while
+// it is.
 const COLLECTIONS = [
   {
     name: "Classic",
     image: classicCoin,
+    glow: "#767676",
     href: "/shop?collection=Classic",
     description:
       "The everyday essentials. Clean lines, high-quality leather and timeless colors — brown, blue and black — at the most accessible price in the line, and ready to carry your own text.",
@@ -24,6 +26,7 @@ const COLLECTIONS = [
   {
     name: "Premium",
     image: premiumCoin,
+    glow: "#C5A677",
     href: "/shop?collection=Premium",
     description:
       "Richer leathers and bolder character. Each case is hand-finished in a distinctive color or texture, for those who want even a small ritual to feel special.",
@@ -31,6 +34,7 @@ const COLLECTIONS = [
   {
     name: "Atelier",
     image: atelierCoin,
+    glow: "#2858BA",
     href: "/shop?collection=Atelier",
     description:
       "Made to order. Every piece is hand-assembled in our atelier to the exact dimensions of your pack, then finished with your personal touch.",
@@ -38,6 +42,7 @@ const COLLECTIONS = [
   {
     name: "Special Edition",
     image: specialCoin,
+    glow: "#7A3BB2",
     href: "/shop?collection=Special+Edition",
     description:
       "Limited designs, released once. Rare finishes and unique details created for a moment — when they sell out, they do not return.",
@@ -65,6 +70,31 @@ const MAX_FLING = 6;
 // A coin starts to fade out this many coins before it wraps round to the other
 // side, so on a wide screen it never visibly pops from one side to the other.
 const FADE_SPAN = 0.5;
+// How see-through the coins that are not in the middle are.
+const SIDE_OPACITY = 0.5;
+// The light behind the coins changes colour once the row has stopped: when it comes
+// to rest by itself, or when a finger holding it stays still this long (ms).
+const GLOW_SETTLE_MS = 200;
+// The light behind the coins: a round haze of the collection's colour on the card's
+// black, brightest in the middle of the coin and the button under it and fading out
+// the way a bell curve does: GLOW_SIGMA_PX from the middle it is 61% of what it is
+// there, at twice that 14%, and at three times it is gone. GLOW_PEAK is how much of
+// the colour is there in the middle (the rest is black).
+const GLOW_PEAK = 0.71;
+const GLOW_SIGMA_PX = 117;
+const GLOW_RADIUS_PX = 3 * GLOW_SIGMA_PX;
+// Where the middle of it is, down from the top of the coin: half way down the coin
+// and the button under it (the coin, a 37px gap, and the button, 42px tall).
+const GLOW_CENTER_PX = (COIN_PX + 37 + 42) / 2;
+const glowGradient = (color: string) => {
+  const stops = [0, 0.5, 1, 1.5, 2, 2.5, 3].map((k) => {
+    const alpha = Math.round(GLOW_PEAK * Math.exp(-(k * k) / 2) * 255)
+      .toString(16)
+      .padStart(2, "0");
+    return `${color}${alpha} ${((k / 3) * 100).toFixed(1)}%`;
+  });
+  return `radial-gradient(closest-side, ${stops.join(", ")}, ${color}00 100%)`;
+};
 
 const mod = (value: number, size: number) => ((value % size) + size) % size;
 
@@ -83,7 +113,10 @@ function placementFor(index: number, pos: number) {
   const t = Math.min(1, distance);
   const eased = t * t * (3 - 2 * t);
   const scale = 1 - (1 - MIN_SCALE) * eased;
-  const opacity = Math.min(1, (COUNT / 2 - distance) / FADE_SPAN);
+  // 1 in the middle, SIDE_OPACITY from one coin away on, and from there it also
+  // fades out towards the far side of the loop.
+  const opacity =
+    (1 - (1 - SIDE_OPACITY) * eased) * Math.min(1, (COUNT / 2 - distance) / FADE_SPAN);
   return {
     transform: `translate3d(${(offset * SLOT_PX).toFixed(2)}px, 0, 0) scale(${scale.toFixed(4)})`,
     opacity: Number(opacity.toFixed(3)),
@@ -108,6 +141,9 @@ export default function CoverCollectionsSection() {
     previous: null,
     changes: 0,
   });
+  // The coin the light behind the coins is the colour of: the one the row last
+  // stopped on (not the one passing the middle while it is moving).
+  const [glowIndex, setGlowIndex] = useState(START_INDEX);
 
   // The row is moved by hand rather than by the browser's own scrolling: a
   // scroller has two ends, and a hard swipe would run into one of them. Here
@@ -129,6 +165,13 @@ export default function CoverCollectionsSection() {
       });
     });
 
+    // The row has stopped: the light takes the colour of the coin in the middle.
+    let settleTimer: number | undefined;
+    const settle = () => {
+      window.clearTimeout(settleTimer);
+      setGlowIndex(mod(Math.round(pos), COUNT));
+    };
+
     const show = (next: number) => {
       pos = next;
       const nearest = mod(Math.round(pos), COUNT);
@@ -149,6 +192,11 @@ export default function CoverCollectionsSection() {
           changes: s.changes + 1,
         }));
       }
+      // While the row keeps moving this is started over with every step, so it only
+      // runs when a finger holding the row has stayed still for a moment (a row that
+      // comes to rest by itself settles at once, in `animateTo`).
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(settle, GLOW_SETTLE_MS);
     };
 
     const stop = () => {
@@ -160,12 +208,16 @@ export default function CoverCollectionsSection() {
     const animateTo = (target: number, duration: number) => {
       stop();
       const from = pos;
-      if (from === target) return;
+      if (from === target) {
+        settle();
+        return;
+      }
       if (
         duration <= 0 ||
         window.matchMedia("(prefers-reduced-motion: reduce)").matches
       ) {
         show(mod(target, COUNT));
+        settle();
         return;
       }
       const startedAt = performance.now();
@@ -178,6 +230,7 @@ export default function CoverCollectionsSection() {
           // Looks identical, keeps the numbers small.
           frame = null;
           show(mod(target, COUNT));
+          settle();
         }
       };
       frame = requestAnimationFrame(step);
@@ -259,7 +312,7 @@ export default function CoverCollectionsSection() {
         rest + MAX_FLING,
         Math.max(rest - MAX_FLING, Math.round(pos - (speed / SLOT_PX) * PROJECT_MS)),
       );
-      animateTo(target, 300 + 120 * Math.min(Math.abs(target - pos), 5));
+      animateTo(target, 210 + 84 * Math.min(Math.abs(target - pos), 5));
     };
     const onPointerUp = (e: PointerEvent) => endDrag(e, false);
     const onPointerCancel = (e: PointerEvent) => endDrag(e, true);
@@ -293,6 +346,7 @@ export default function CoverCollectionsSection() {
     return () => {
       stop();
       window.clearTimeout(wheelTimer);
+      window.clearTimeout(settleTimer);
       track.removeEventListener("pointerdown", onPointerDown);
       track.removeEventListener("pointermove", onPointerMove);
       track.removeEventListener("pointerup", onPointerUp);
@@ -307,8 +361,12 @@ export default function CoverCollectionsSection() {
   return (
     <section className="relative left-1/2 z-10 w-screen -mx-[50vw] bg-white">
       <div
-        className="collections-card overflow-hidden rounded-[1.5rem] bg-black px-6 text-center"
-        style={{ paddingTop: 62, paddingBottom: 37 }}
+        // A phone: the card is 105% of the screen's height at least, and what is in it
+        // starts lower than it did (the top padding is 144px, not 62) (a tablet and
+        // larger have their own height and padding, `.collections-card` in
+        // globals.css).
+        className="collections-card relative isolate min-h-[105vh] overflow-hidden rounded-[1.5rem] bg-black px-6 text-center"
+        style={{ paddingTop: 144, paddingBottom: 37 }}
       >
         <h2
           className="font-montserrat text-center italic text-white"
@@ -360,6 +418,28 @@ export default function CoverCollectionsSection() {
 
         {/* Full width of the section, 180px tall. */}
         <div className="relative -mx-6" style={{ marginTop: 18, height: COIN_PX }}>
+          {/* The light behind the coins, in the colour of the coin the row has stopped
+              on (the card clips it). The four sit behind everything in the card, one
+              on top of the other; the one for that coin fades in as the others fade
+              out, once the row has stopped. */}
+          {COLLECTIONS.map((collection, index) => (
+            <div
+              key={collection.name}
+              aria-hidden="true"
+              className="pointer-events-none absolute -z-10"
+              style={{
+                left: "50%",
+                top: GLOW_CENTER_PX - GLOW_RADIUS_PX,
+                width: 2 * GLOW_RADIUS_PX,
+                height: 2 * GLOW_RADIUS_PX,
+                marginLeft: -GLOW_RADIUS_PX,
+                background: glowGradient(collection.glow),
+                opacity: index === glowIndex ? 1 : 0,
+                transition: "opacity 500ms ease",
+              }}
+            />
+          ))}
+
           <div
             ref={trackRef}
             tabIndex={0}
@@ -372,7 +452,7 @@ export default function CoverCollectionsSection() {
               inset: 0,
               overflow: "hidden",
               // The coins' stacking order (middle one on top) stays inside the
-              // row, so the fade below is always drawn over all of them.
+              // row.
               isolation: "isolate",
               // Sideways is ours, up and down still scrolls the page.
               touchAction: "pan-y",
@@ -414,16 +494,6 @@ export default function CoverCollectionsSection() {
               </div>
             ))}
           </div>
-
-          {/* Fades the coins out towards both edges. */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to right, #000000 0%, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0) 75%, #000000 100%)",
-            }}
-          />
         </div>
 
         <div className="flex justify-center" style={{ marginTop: 37 }}>
@@ -439,7 +509,7 @@ export default function CoverCollectionsSection() {
             }}
             className="inline-flex items-center justify-center rounded-[8px] bg-[#dcc090] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
           >
-            LEARN MORE
+            SHOP
           </Link>
         </div>
 

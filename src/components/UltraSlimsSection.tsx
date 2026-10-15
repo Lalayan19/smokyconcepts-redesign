@@ -285,7 +285,7 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
         rest + MAX_FLING,
         Math.max(rest - MAX_FLING, Math.round(pos - (speed / slot) * PROJECT_MS)),
       );
-      animateTo(target, 300 + 120 * Math.min(Math.abs(target - pos), 5));
+      animateTo(target, 210 + 84 * Math.min(Math.abs(target - pos), 5));
     };
     function onPointerUp(e: PointerEvent) {
       endDrag(e, false);
@@ -414,7 +414,7 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
         style={{ marginTop: 24, width: "80%",margin: "24px auto", height: 1, backgroundColor: "#DEDEDE" }}
       />
       <div
-        className="relative mx-auto overflow-hidden font-montserrat italic text-[#000000]"
+        className="ultra-slims-name relative mx-auto overflow-hidden font-montserrat italic text-[#000000]"
         style={{
           marginTop: 28,
           height: 28,

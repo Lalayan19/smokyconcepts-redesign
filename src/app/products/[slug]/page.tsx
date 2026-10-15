@@ -12,7 +12,7 @@ import ProductDescription from "@/components/ProductDescription";
 import ProductGallery from "@/components/ProductGallery";
 import SameSizeProducts from "@/components/SameSizeProducts";
 import ShopByCategory from "@/components/ShopByCategory";
-import SizeSelectorModal from "@/components/SizeSelectorModal";
+import BrandSelectorModal from "@/components/BrandSelectorModal";
 import {
   findProductBySlug,
   formatPrice,
@@ -87,7 +87,9 @@ export default function ProductPage() {
   const params = useParams<{ slug: string }>();
   const product = findProductBySlug(params.slug);
 
-  const [size, setSize] = useState<string | null>(null);
+  // The name of the cigarette picked in the list ("Chapman Cherry"), shown in the
+  // size button.
+  const [cigarette, setCigarette] = useState<string | null>(null);
   const [sizeModalOpen, setSizeModalOpen] = useState(false);
 
   const [customization, setCustomization] = useState<Customization | null>(null);
@@ -170,17 +172,21 @@ export default function ProductPage() {
             onClick={() => setSizeModalOpen(true)}
             className="flex h-14 w-full items-center justify-between rounded-2xl bg-[#dcc090] px-5 text-left shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-transform active:scale-[0.98]"
           >
-            <span className="flex flex-col gap-0.5">
+            <span className="flex min-w-0 flex-col gap-0.5">
               <span className="text-[10px] font-bold tracking-wider text-[#122a26]/70 uppercase">
                 Size
               </span>
-              <span className="text-[15px] leading-none font-extrabold text-[#122a26]">
-                {size ?? "Select size"}
+              <span className="truncate text-[15px] leading-none font-extrabold text-[#122a26]">
+                {cigarette ?? "Select cigarette"}
               </span>
             </span>
             <ChevronRightIcon className="h-5 w-5 shrink-0 text-[#122a26]" />
           </button>
-          {product.collection === "Atelier" ? <> </> : 
+          {product.collection === "Atelier" ? (
+            // An Atelier case is made to order, so there is no customizing here and
+            // no button in its place.
+            null
+          ) :
             <div>
               <div className="flex items-center gap-3">
                 <button
@@ -198,23 +204,15 @@ export default function ProductPage() {
                       {product.collection === "Atelier" ? "Personalize" : "Customize"}
                     </span>
                   </span>
-                  {/* The same price, inside the button, on a tablet and larger. */}
+                  {/* What customizing costs on top, for the Classic collection:
+                      inside the button, before the arrow, on every screen. */}
                   {product.collection === "Classic" && (
-                    <span className="product-fee-inside hidden whitespace-nowrap font-extrabold text-[#414141]">
+                    <span className="ml-auto mr-3 whitespace-nowrap text-[14px] font-extrabold text-[#414141]">
                       +{formatPrice(CLASSIC_CUSTOMIZE_FEE)}
                     </span>
                   )}
                   <ChevronRightIcon className="h-4 w-4" />
                 </button>
-                {/* What customizing costs on top, for the Classic collection. */}
-                {product.collection === "Classic" && (
-                  <span
-                    className="product-fee-outside shrink-0 whitespace-nowrap font-extrabold text-[#414141]"
-                    style={{ fontSize: 14 }}
-                  >
-                    +{formatPrice(CLASSIC_CUSTOMIZE_FEE)}
-                  </span>
-                )}
               </div>
               {customization?.text && (
                 <div className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-[#dcc090]/10 px-4 py-3">
@@ -332,11 +330,11 @@ export default function ProductPage() {
         </div>
       </div>
 
-      <SizeSelectorModal
+      <BrandSelectorModal
         open={sizeModalOpen}
         onClose={() => setSizeModalOpen(false)}
         onApply={(item) => {
-          setSize(item.category);
+          setCigarette(item.name);
           setSizeModalOpen(false);
         }}
       />

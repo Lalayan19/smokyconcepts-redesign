@@ -16,6 +16,7 @@ export const CIGARETTE_SIZES: SizeCategory[] = [
       "Ararat Exclusive",
       "Ararat Lazur",
       "Ararat Perla",
+      "Ararat Silver",
       "Ararat Special",
       "Arto White",
       "Cavallo",

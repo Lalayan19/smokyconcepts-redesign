@@ -253,10 +253,13 @@ export default function ProductLightbox({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="animate-modal-scale-in relative flex w-full max-w-[36rem] flex-col overflow-hidden rounded-[1.5rem] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+      {/* From a tablet up the picture is much larger (a phone keeps its size): the
+          box is 56rem wide at most, and its picture area as tall as 76% of the
+          window, at most 50rem. */}
+      <div className="animate-modal-scale-in relative flex w-full max-w-[36rem] flex-col overflow-hidden rounded-[1.5rem] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.45)] md:max-w-[56rem]">
         <h2
           ref={titleRef}
-          className="pointer-events-none absolute top-3 left-3 z-10 max-w-[60%] text-[1.375rem] leading-tight font-extrabold text-[#414141] transition-opacity duration-200"
+          className="pointer-events-none absolute top-3 left-3 z-10 max-w-[60%] text-[1.375rem] leading-tight font-extrabold text-[#414141] transition-opacity duration-200 md:top-5 md:left-6 md:text-[1.75rem]"
         >
           {title}
         </h2>
@@ -266,7 +269,7 @@ export default function ProductLightbox({
           onClick={onClose}
           autoFocus
           aria-label="Close"
-          className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-[#122a26]/70 text-white backdrop-blur-sm transition-transform active:scale-90"
+          className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-[#122a26]/70 text-white backdrop-blur-sm transition-transform active:scale-90 md:top-5 md:right-5 md:h-10 md:w-10"
         >
           <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
@@ -275,13 +278,15 @@ export default function ProductLightbox({
 
         <div
           ref={areaRef}
-          className="relative flex touch-none items-center justify-center overflow-hidden select-none"
-          style={{ height: "min(26rem, 56dvh)", cursor: "zoom-in" }}
+          className="relative flex h-[min(26rem,56dvh)] touch-none items-center justify-center overflow-hidden select-none md:h-[min(50rem,76dvh)]"
+          style={{ cursor: "zoom-in" }}
         >
           <span
             key={active}
             ref={imageRef}
-            className="animate-gallery-fade-in relative h-[17rem] w-[13rem] sm:h-[22rem] sm:w-[16.5rem]"
+            // The picture's box keeps its proportions (13 : 17) and, from a tablet
+            // up, is 80% as tall as the area (with room round it, until it is zoomed).
+            className="animate-gallery-fade-in relative h-[17rem] w-[13rem] sm:h-[22rem] sm:w-[16.5rem] md:aspect-[13/17] md:h-[80%] md:w-auto"
             style={{ willChange: "transform" }}
           >
             <Image
@@ -289,8 +294,9 @@ export default function ProductLightbox({
               alt={alt}
               fill
               priority
-              // Drawn up to five times larger, so the file is picked for that.
-              sizes="900px"
+              // Drawn up to five times larger, so the file is picked for that (a
+              // larger one on a tablet and up, where the picture is larger).
+              sizes="(min-width: 768px) 1600px, 900px"
               draggable={false}
               className="object-contain object-bottom"
             />

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 import caseIcon from "@/assets/icons/case.svg";
 import { useSwipeSheet } from "@/hooks/useSwipeSheet";
@@ -11,28 +11,40 @@ const FONTS = [
   { label: "Segoe UI", family: "'Segoe UI', system-ui, sans-serif" },
   { label: "ArmAllegroU", family: "'ArmAllegroU', cursive" },
 ];
+// The font a customization starts with when it has none saved: ArmAllegroU.
+const DEFAULT_FONT_INDEX = 2;
 
-function ChevronIcon({ className }: { className?: string }) {
+const fontIndexFor = (label: string | undefined) => {
+  const index = FONTS.findIndex((f) => f.label === label);
+  return index === -1 ? DEFAULT_FONT_INDEX : index;
+};
+
+// Which font is chosen, and the one that is on its way out if it just changed
+// (the same way the Ultra Slims name on the home page changes).
+type FontNav = {
+  current: number;
+  previous: number | null;
+  // How many times the font has changed; used to restart the animation.
+  changes: number;
+  // Which way the arrow went: 1 for the next font (the new name comes in from
+  // the right), -1 for the one before.
+  direction: 1 | -1;
+};
+
+const startFontNav = (label: string | undefined): FontNav => ({
+  current: fontIndexFor(label),
+  previous: null,
+  changes: 0,
+  direction: 1,
+});
+
+function ArrowIcon({ className, direction }: { className?: string; direction: "left" | "right" }) {
   return (
     <svg viewBox="0 0 20 20" fill="none" className={className} aria-hidden="true">
       <path
-        d="M7 8.5L10 11.5L13 8.5"
+        d={direction === "left" ? "M12 5L7 10L12 15" : "M8 5L13 10L8 15"}
         stroke="currentColor"
         strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" className={className} aria-hidden="true">
-      <path
-        d="M4 10.5l3.5 3.5L16 5.5"
-        stroke="currentColor"
-        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -61,29 +73,10 @@ export default function CustomizeModal({
   initial,
 }: CustomizeModalProps) {
   const [text, setText] = useState(initial?.text ?? "");
-  const [font, setFont] = useState(
-    FONTS.find((f) => f.label === initial?.font) ?? FONTS[2],
-  );
+  const [fontNav, setFontNav] = useState(() => startFontNav(initial?.font));
   const [bold, setBold] = useState(initial?.bold ?? false);
   const [italic, setItalic] = useState(initial?.italic ?? false);
-  const [fontOpen, setFontOpen] = useState(false);
-  // Blank room added under the form while the font list is open, so there is
-  // always enough to scroll for the list to be brought up into view.
-  const [listSpace, setListSpace] = useState(0);
-  const fontRef = useRef<HTMLDivElement>(null);
-  const spacerRef = useRef<HTMLDivElement>(null);
-  const spaceTimer = useRef<number | undefined>(undefined);
-  const scrollBackTo = useRef(0);
-  const fontOpenRef = useRef(false);
-  // Whichever way the sheet closes (drag, backdrop, Save), the font list goes
-  // back to closed so it isn't left open the next time the modal appears.
-  const handleClose = useCallback(() => {
-    window.clearTimeout(spaceTimer.current);
-    fontOpenRef.current = false;
-    setFontOpen(false);
-    setListSpace(0);
-    onClose();
-  }, [onClose]);
+  const font = FONTS[fontNav.current];
   const {
     mounted,
     sheetRef,
@@ -93,75 +86,26 @@ export default function CustomizeModal({
     backdropClassName,
     handleProps,
     requestClose,
-  } = useSwipeSheet({ open, onClose: handleClose });
+  } = useSwipeSheet({ open, onClose });
 
-  // Opening the list scrolls the modal a little so the whole list is in view;
-  // closing it (or picking a font) scrolls back to where it was.
-  const openFontList = useCallback(() => {
-    const scroller = contentRef.current;
-    const row = fontRef.current;
-    const spacer = spacerRef.current;
-    if (!scroller || !row || !spacer) return;
-    window.clearTimeout(spaceTimer.current);
-    fontOpenRef.current = true;
-    setFontOpen(true);
-
-    scrollBackTo.current = scroller.scrollTop;
-    const scrollerRect = scroller.getBoundingClientRect();
-    const rowRect = row.getBoundingClientRect();
-    // Scrolled all the way, the Style row would be at the top of the modal.
-    const toTop = Math.max(0, scroller.scrollTop + rowRect.top - scrollerRect.top - 8);
-    // Only half of that way; but never so little that the end of the list (the
-    // last child of the row, at most 10rem high, 8px under the row) is out of
-    // view, and never back up.
-    const list = row.lastElementChild;
-    const listBottom = rowRect.bottom + 8 + Math.min(160, list?.scrollHeight ?? 160);
-    const half = scroller.scrollTop + (toTop - scroller.scrollTop) / 2;
-    const showAll = scroller.scrollTop + (listBottom - scrollerRect.bottom) + 8;
-    const target = Math.min(toTop, Math.max(half, showAll, scroller.scrollTop));
-    // Where the form ends (the spacer sits right after it) plus bottom padding.
-    const contentHeight =
-      scroller.scrollTop +
-      spacer.getBoundingClientRect().top -
-      scrollerRect.top +
-      parseFloat(getComputedStyle(scroller).paddingBottom);
-    setListSpace(Math.max(0, target + scroller.clientHeight - contentHeight));
-    // A moment later, once the extra room has been laid out, bring the list up.
-    window.setTimeout(() => scroller.scrollTo({ top: target, behavior: "smooth" }), 30);
-  }, [contentRef]);
-
-  const closeFontList = useCallback(() => {
-    if (!fontOpenRef.current) return;
-    fontOpenRef.current = false;
-    setFontOpen(false);
-    contentRef.current?.scrollTo({ top: scrollBackTo.current, behavior: "smooth" });
-    // Keep the extra room until the scroll back has played out.
-    window.clearTimeout(spaceTimer.current);
-    spaceTimer.current = window.setTimeout(() => setListSpace(0), 450);
-  }, [contentRef]);
+  // The arrows go round: after the last font comes the first, and the other way.
+  const stepFont = (direction: 1 | -1) =>
+    setFontNav((s) => ({
+      current: (s.current + direction + FONTS.length) % FONTS.length,
+      previous: s.current,
+      changes: s.changes + 1,
+      direction,
+    }));
 
   useEffect(() => {
     if (open) {
       setText(initial?.text ?? "");
-      setFont(FONTS.find((f) => f.label === initial?.font) ?? FONTS[2]);
+      setFontNav(startFontNav(initial?.font));
       setBold(initial?.bold ?? false);
       setItalic(initial?.italic ?? false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (fontRef.current && !fontRef.current.contains(event.target as Node)) {
-        closeFontList();
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      window.clearTimeout(spaceTimer.current);
-    };
-  }, [closeFontList]);
 
   if (!mounted) return null;
 
@@ -181,6 +125,18 @@ export default function CustomizeModal({
         style={sheetStyle}
         className={`relative z-10 sheet-height flex w-full max-w-[40rem] flex-col overflow-hidden rounded-t-[1.75rem] bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.25)] sm:rounded-[1.75rem] sm:shadow-[0_20px_60px_rgba(0,0,0,0.25)] ${modalAnimation}`}
       >
+        {/* Closes the modal: at the top right, on a laptop and desktop only (a phone
+            pulls the sheet down by its handle, a tablet taps outside). */}
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={requestClose}
+          className="customize-close absolute top-1.5 right-3 z-20 hidden h-9 w-9 items-center justify-center rounded-full text-[#9d9d9d] transition-colors hover:bg-black/5 hover:text-[#414141]"
+        >
+          <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
+          </svg>
+        </button>
         <div {...handleProps} className="sheet-handle flex shrink-0 touch-none justify-center py-3">
           <div className="h-1 w-10 rounded-full bg-black/20" />
         </div>
@@ -276,26 +232,77 @@ export default function CustomizeModal({
             </div>
           </div>
 
-          <div ref={fontRef} className="relative mt-4 bg-white">
+          <div className="relative mt-4 bg-white">
             <label className="text-[11px] font-bold tracking-[0.14em] text-[#898989] uppercase">
               Style
             </label>
             <div className="mt-2 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => (fontOpen ? closeFontList() : openFontList())}
-                className="flex h-12 flex-1 items-center justify-between rounded-2xl border border-[#dcdcd8] bg-white px-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-colors hover:border-[#dcc090]"
+              {/* The font: an arrow on each side and its name between them. When
+                  it changes, the old name leaves the way the arrow points and the
+                  new one comes in from the other side, as the Ultra Slims name
+                  does on the home page. */}
+              <div
+                role="group"
+                aria-label="Font"
+                className="flex h-12 min-w-0 flex-1 items-center rounded-2xl border border-[#dcdcd8] bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-colors hover:border-[#dcc090]"
               >
-                <span
-                  className="truncate text-[15px] font-medium text-[#414141]"
-                  style={{ fontFamily: font.family }}
+                <button
+                  type="button"
+                  aria-label="Previous font"
+                  onClick={() => stepFont(-1)}
+                  className="flex h-full w-10 shrink-0 items-center justify-center rounded-l-2xl text-[#414141] transition-all hover:text-[#a9752e] active:scale-90"
                 >
-                  {font.label}
-                </span>
-                <ChevronIcon
-                  className={`h-4 w-4 shrink-0 text-[#414141] transition-transform ${fontOpen ? "rotate-180" : ""}`}
-                />
-              </button>
+                  <ArrowIcon direction="left" className="h-5 w-5" />
+                </button>
+                <div
+                  className="relative h-full min-w-0 flex-1 overflow-hidden text-[15px] font-medium text-[#414141]"
+                  style={{ lineHeight: "46px" }}
+                >
+                  {fontNav.previous !== null && (
+                    <span
+                      key={`out-${fontNav.changes}`}
+                      aria-hidden="true"
+                      className="product-name-out absolute inset-0 truncate px-1 text-center"
+                      style={
+                        {
+                          "--name-shift": `${fontNav.direction * 50}%`,
+                          fontFamily: FONTS[fontNav.previous].family,
+                        } as CSSProperties
+                      }
+                      onAnimationEnd={() =>
+                        setFontNav((s) =>
+                          s.changes === fontNav.changes ? { ...s, previous: null } : s,
+                        )
+                      }
+                    >
+                      {FONTS[fontNav.previous].label}
+                    </span>
+                  )}
+                  <span
+                    key={`in-${fontNav.changes}`}
+                    aria-live="polite"
+                    className={`absolute inset-0 truncate px-1 text-center ${
+                      fontNav.changes > 0 ? "product-name-in" : ""
+                    }`}
+                    style={
+                      {
+                        "--name-shift": `${fontNav.direction * 50}%`,
+                        fontFamily: font.family,
+                      } as CSSProperties
+                    }
+                  >
+                    {font.label}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Next font"
+                  onClick={() => stepFont(1)}
+                  className="flex h-full w-10 shrink-0 items-center justify-center rounded-r-2xl text-[#414141] transition-all hover:text-[#a9752e] active:scale-90"
+                >
+                  <ArrowIcon direction="right" className="h-5 w-5" />
+                </button>
+              </div>
 
               <button
                 type="button"
@@ -324,36 +331,7 @@ export default function CustomizeModal({
                 I
               </button>
             </div>
-
-            <div
-              className="absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-[#dcdcd8] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.1)] transition-all"
-              style={{
-                maxHeight: fontOpen ? "10rem" : 0,
-                opacity: fontOpen ? 1 : 0,
-                pointerEvents: fontOpen ? "auto" : "none",
-              }}
-              aria-hidden={!fontOpen}
-            >
-              {FONTS.map((f) => (
-                <button
-                  key={f.label}
-                  type="button"
-                  tabIndex={fontOpen ? 0 : -1}
-                  onClick={() => {
-                    setFont(f);
-                    closeFontList();
-                  }}
-                  className={`flex w-full items-center justify-between px-4 py-3 text-left text-[15px] transition-colors hover:bg-[#f5f4f1] ${
-                    font.label === f.label ? "bg-[#dcc090]/10 text-[#a9752e]" : "text-[#414141]"
-                  }`}
-                >
-                  <span style={{ fontFamily: f.family }}>{f.label}</span>
-                  {font.label === f.label && <CheckIcon className="h-4 w-4 shrink-0" />}
-                </button>
-              ))}
-            </div>
           </div>
-          <div ref={spacerRef} aria-hidden="true" style={{ height: listSpace }} />
         </div>
 
         {/* Same room under the button as under the Apply button in the size sheet. */}

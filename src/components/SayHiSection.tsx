@@ -3,10 +3,11 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 // "Say Hi", the small section at the end of the home page, above the footer: the
 // texts of the one on smokyconcepts.com (in Montserrat, black), a little smaller,
 // on white, and a button like the other buttons of the home page. The button does
-// not go anywhere yet.
+// not go anywhere yet. Its top corners are rounded, with a gap above it, like the
+// sections of the home page before it.
 export default function SayHiSection() {
   return (
-    <section className="say-hi-section w-full bg-white font-montserrat">
+    <section className="say-hi-section w-full rounded-t-[1.5rem] bg-white font-montserrat">
       {/* The bottom 1.5rem of the padding is behind the footer (see `.site-footer`
           in globals.css), so its rounded corners show white. */}
       <div className="mx-auto flex max-w-[120rem] flex-col items-center gap-6 px-5 pb-[5.5rem] pt-[100px] sm:px-8 sm:pb-[6.5rem] lg:px-[7.5rem]">

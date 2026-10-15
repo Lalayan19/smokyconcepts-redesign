@@ -21,14 +21,16 @@ const BUTTON_MIDDLE = "81.8%";
 export default function AboutSection({ image, buttonHref }: AboutSectionProps) {
   return (
     // The top 1.5rem of the section is behind the Personalization section above
-    // it (whose rounded bottom corners show the photo). The section itself is
-    // white and its content is in a div with the rounded bottom corners, so what
-    // shows behind the corners is white, not the page's gray.
+    // it (whose rounded bottom corners show the photo). The white is on the div
+    // inside, which has the rounded bottom corners: the section itself is clear, so
+    // behind those corners is the page's gray, in the 12px gap (`mb-3`) between
+    // this section and "Say Hi" under it, the same gap as between Ultra Slims and
+    // Popular Sizes.
     <section
-      className="relative left-1/2 w-screen -mx-[50vw] overflow-hidden bg-white text-center"
+      className="relative left-1/2 mb-3 w-screen -mx-[50vw] overflow-hidden text-center"
       style={{ marginTop: "-1.5rem" }}
     >
-      <div className="overflow-hidden rounded-b-[1.5rem]">
+      <div className="overflow-hidden rounded-b-[1.5rem] bg-white">
         {/* On a wide screen the picture stops growing at 560px and is centered. */}
         <div className="about-split relative mx-auto" style={{ maxWidth: 560 }}>
           <Image

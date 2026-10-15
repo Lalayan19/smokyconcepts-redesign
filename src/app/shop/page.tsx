@@ -6,7 +6,7 @@ import type { StaticImageData } from "next/image";
 import { useSearchParams } from "next/navigation";
 
 import ShopProductCard from "@/components/ShopProductCard";
-import SizeSelectorModal from "@/components/SizeSelectorModal";
+import BrandSelectorModal from "@/components/BrandSelectorModal";
 import { PRODUCT_CATEGORIES } from "@/data/products";
 import atelierCoin from "@/assets/images/covered_collections_section/atelier.png";
 import classicCoin from "@/assets/images/covered_collections_section/classic.png";
@@ -165,7 +165,7 @@ function ShopContent() {
             style={{ height: 36, padding: "0 14px", fontSize: 13, borderRadius: 8 }}
             className="flex-1 truncate bg-[#dcc090] text-left font-semibold text-[#122a26] shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#d3b57c]"
           >
-            {size ?? "Select size"}
+            {size ?? "Select cigarette"}
           </button>
 
           <button
@@ -222,7 +222,7 @@ function ShopContent() {
         </div>
       </div>
 
-      <SizeSelectorModal
+      <BrandSelectorModal
         open={sizeModalOpen}
         onClose={() => setSizeModalOpen(false)}
         onApply={(item) => {

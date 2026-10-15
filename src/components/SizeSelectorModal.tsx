@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import cigaretteIcon from "@/assets/images/cigarete-icon.svg";
 import { CIGARETTE_SIZES } from "@/data/cigaretteSizes";
@@ -43,11 +43,18 @@ function CategoryRow({
   const rowRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const [containerWidth, setContainerWidth] = useState(580);
+  // The width there is for the row (the row's own width on a tablet and larger is
+  // as much as its pages need, so it is the section's that is measured), and the
+  // width of a card and the space between cards (CSS variables of the row, see
+  // `.size-pages` in globals.css: a phone's cards are 82px wide and 8px apart at
+  // the least, a tablet's and larger 88px and 32px).
+  const [{ width: containerWidth, card: CARD_WIDTH, gap: GAP }, setMeasured] = useState({
+    width: 580,
+    card: 82,
+    gap: 8,
+  });
 
-  const CARD_WIDTH = 82;
-  const GAP = 8;
-  const MAX_COLS = 7;
+  const MAX_COLS = 8;
   const cols = Math.min(
     MAX_COLS,
     Math.max(1, Math.floor((containerWidth + GAP) / (CARD_WIDTH + GAP))),
@@ -72,18 +79,39 @@ function CategoryRow({
 
   useEffect(() => {
     const row = rowRef.current;
-    if (!row) return;
-    const observer = new ResizeObserver((entries) => {
-      setContainerWidth(entries[0].contentRect.width);
-    });
-    observer.observe(row);
-    return () => observer.disconnect();
+    const section = row?.parentElement;
+    if (!row || !section) return;
+    const measure = () => {
+      const style = getComputedStyle(row);
+      const next = {
+        width: section.clientWidth,
+        card: parseFloat(style.getPropertyValue("--size-card")) || 82,
+        gap: parseFloat(style.getPropertyValue("--size-gap")) || 8,
+      };
+      setMeasured((now) =>
+        now.width === next.width && now.card === next.card && now.gap === next.gap ? now : next,
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(section);
+    // (A screen turned to the other side can change the card and the gap without
+    // changing the row's width.)
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, []);
 
+  // One page on: from where a page starts to where the next one starts (the page
+  // and the space between the pages).
   const scrollByPage = (direction: 1 | -1) => {
     const row = rowRef.current;
     if (!row) return;
-    row.scrollBy({ left: direction * row.clientWidth, behavior: "smooth" });
+    const [first, second] = Array.from(row.children) as HTMLElement[];
+    const stride = second ? second.offsetLeft - first.offsetLeft : row.clientWidth;
+    row.scrollBy({ left: direction * stride, behavior: "smooth" });
   };
 
   if (items.length === 0) return null;
@@ -123,14 +151,17 @@ function CategoryRow({
       <div
         ref={rowRef}
         onScroll={updateScrollState}
-        className="scrollbar-hide mt-6 flex overflow-x-auto scroll-smooth pb-1"
+        // The pages are as far apart as the cards in a page are (at the least), so
+        // the last card of a page and the first of the next one do not touch.
+        className="size-pages scrollbar-hide mt-6 flex gap-x-2 overflow-x-auto scroll-smooth pb-1 sm:gap-x-4"
+        style={{ "--cols": cols } as CSSProperties}
       >
         {pages.map((page, pageIndex) => (
           <div
             key={pageIndex}
             // As many rows as the page needs, up to two. With a fixed two, a
             // category left with a few results kept an empty second row.
-            className="grid shrink-0 gap-x-2 gap-y-5 sm:gap-x-4 sm:gap-y-6"
+            className="size-page grid shrink-0 gap-x-2 gap-y-5 sm:gap-x-4 sm:gap-y-6"
             style={{
               gridTemplateColumns: `repeat(${cols}, minmax(82px, 1fr))`,
               width: containerWidth,

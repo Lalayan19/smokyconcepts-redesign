@@ -219,7 +219,7 @@ export default function MobileFilterDrawer({
               onClick={onOpenSizeModal}
               className="h-12 w-full rounded-[0.5rem] border-2 border-transparent bg-[#dcc090] px-4 text-left text-[0.9375rem] leading-none font-semibold text-[#122a26]"
             >
-              {size ?? "Select size"}
+              {size ?? "Select cigarette"}
             </button>
           </div>
         </div>

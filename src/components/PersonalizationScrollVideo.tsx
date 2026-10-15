@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { BUTTON_EDGE } from "@/components/buttonEdge";
 
@@ -9,8 +9,10 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 // the next stop, where it stays; scrolling up plays it backwards to the one
 // before. The places the film can be at: the start (a black frame), the four
 // stops, and the last frame. The film is as tall as the window (under the
-// header), so the footer is not in sight; after the last frame the page goes on
-// to the footer, and back.
+// header) and stays in place; after the last frame the page scrolls on: the
+// contact form rises from below over the film, and once it covers it, that is the
+// end of the page (there is no footer). Scrolling up goes back the same way, to the
+// film.
 //
 // Scrolling is a wheel or a trackpad (a laptop, a desktop), the arrow keys, Page
 // Up and Down and Space, or a swipe of a finger (a phone, a tablet).
@@ -27,11 +29,48 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 //    scrubbing it, is jerky on a phone; a picture is drawn at once.
 // Nothing is fetched until the page is open, and then only the shape that fits
 // the window (and the other one if the window changes to it).
+//
+// The film is fetched whole before it can be played: a black screen with a bar
+// shows how much has come, and scrolling waits (the film would otherwise run
+// ahead of what has arrived, and stop and jerk). The video is fetched as one file
+// and played from memory; the pictures one by one. The browser keeps both, so the
+// next visit does not wait: the pictures by what the server says (a year,
+// next.config.ts), the video in Cache Storage (see `openFilmCache`).
 
-const SRC_LARGE = "/videos/personalization-scrub.mp4";
+// Raise it when a file of the film is changed (see next.config.ts): the new
+// address is not in the browser's keeping.
+const FILM_VERSION = 1;
+const SRC_LARGE = `/videos/personalization-scrub.mp4?v=${FILM_VERSION}`;
+// The size of the video, for the bar if the server does not say (bytes).
+const FALLBACK_LARGE_BYTES = 8_200_000;
+// Where the video is kept in the browser once it has come. (The browser's own
+// keeping, which the server's headers ask for, does not hold a file this big in
+// some browsers, Safari among them, so the video is also put in Cache Storage,
+// which holds it for as long as the browser has room. The pictures are small and
+// need nothing more than the headers.) One for each version of the film.
+const FILM_CACHE_PREFIX = "personalization-film-";
+const FILM_CACHE = `${FILM_CACHE_PREFIX}${FILM_VERSION}`;
+
+// The place for the video in Cache Storage, or null where there is none (a page
+// that is not on https, or a private window). The films of older versions are
+// thrown out.
+const openFilmCache = async (): Promise<Cache | null> => {
+  try {
+    if (typeof caches === "undefined") return null;
+    const names = await caches.keys();
+    await Promise.all(
+      names
+        .filter((name) => name.startsWith(FILM_CACHE_PREFIX) && name !== FILM_CACHE)
+        .map((name) => caches.delete(name)),
+    );
+    return await caches.open(FILM_CACHE);
+  } catch {
+    return null;
+  }
+};
 const FRAMES_DIR = "/videos/personalization-mobile-frames";
 const frameUrl = (index: number) =>
-  `${FRAMES_DIR}/f${String(index).padStart(3, "0")}.webp`;
+  `${FRAMES_DIR}/f${String(index).padStart(3, "0")}.webp?v=${FILM_VERSION}`;
 const FPS = 24;
 // The length of each shape, in frames.
 const FRAMES_LARGE = 199;
@@ -49,141 +88,162 @@ const STOP_TIMES = STOP_FRAMES.map((frame) => (frame + 0.5) / FPS);
 const placesFor = (frames: number) => [0, ...STOP_TIMES, (frames - 0.5) / FPS];
 const PLACES_LARGE = placesFor(FRAMES_LARGE);
 const PLACES_PHONE = placesFor(FRAMES_PHONE);
-// How fast the film plays between two places (1 is the speed it was made at).
-const PLAY_SPEED = 1;
+// How fast the film plays between two places (1 is the speed it was made at):
+// the speed of each stretch of the film, in the order of the places (the start to
+// the first stop, the first stop to the second, and so on to the last frame). The
+// stretches from the second stop to the third and from the third to the fourth
+// are a little slower. (Going back plays the same stretch at the same speed.)
+const PLAY_SPEED = 1.6;
+const SLOWER_SPEED = 1.25;
+const STRETCH_SPEEDS = [PLAY_SPEED, PLAY_SPEED, SLOWER_SPEED, SLOWER_SPEED, PLAY_SPEED];
+
+// A finger's swipe takes the page on to the contact form (and back) by itself, not
+// all at once: this many ms for each px it has to go (but at least, and at most,
+// the other two), and it eases in and out.
+const SCROLL_MS_PER_PX = 1.3;
+const SCROLL_MS_LEAST = 600;
+const SCROLL_MS_MOST = 1500;
 
 // A flick of the wheel or the trackpad is many events in a row (and a trackpad
 // goes on for a second or more after the fingers have left, dying away), a click
 // of a wheel is one. Which events start a new scroll is decided in `isNewScroll`
-// with these numbers: a pause of GESTURE_GAP ms is where a new scroll may start,
-// of LONG_PAUSE ms it always does; a push of PUSH_PX px (or one FLICK_RATIO times
-// bigger than the tail of the scroll before, looked at over TAIL_MS ms) is a new
-// scroll; two scrolls are at least MIN_BETWEEN ms apart. One that comes while the
-// film is playing counts (it sends the film on, or turns it round); one that
-// comes in the first moment after the film has stopped (SETTLE_MS) does not.
+// with these numbers: a pause of GESTURE_GAP ms is where a new scroll may start (if
+// what comes after it is a push FLICK_RATIO times bigger than the tail of the
+// scroll before, looked at over TAIL_MS ms), a pause of LONG_PAUSE ms is where it
+// always does; a push of PUSH_PX px with no pause, as much bigger than the tail, is
+// a new scroll too; two scrolls are at least MIN_BETWEEN ms apart. However long or
+// big a scroll is, it is one scroll: it moves the film one place, and the rest of
+// it (a wheel turned on and on, a trackpad's tail) does nothing. A scroll the same
+// way while the film is playing does nothing either; one the other way turns the
+// film round. One that comes in the first moment after the film has stopped
+// (SETTLE_MS) does not count.
 const GESTURE_GAP = 70;
 const LONG_PAUSE = 350;
 const PUSH_PX = 40;
 const FLICK_RATIO = 4;
 const TAIL_MS = 150;
 const MIN_BETWEEN = 350;
-const SETTLE_MS = 150;
+const SETTLE_MS = 300;
 // A swipe of a finger: how far (px) it has to go up or down to count.
 const SWIPE_PX = 28;
-// A finger dragging on the film, at a stop, moves the picture and the cards: this
-// far (px) from where it went down is as much as the mouse at the edge.
-const DRAG_PX = 90;
-// At a stop a slow drag only moves the picture and the cards (that is what the
-// finger is there to try); the film goes on to the next place when the finger
-// goes this far (px) up or down, or, on lifting, when it was a quick flick: at
-// least FLICK_PX px, at FLICK_SPEED px per ms at the end.
-const PULL_PX = 120;
-const FLICK_PX = 40;
-const FLICK_SPEED = 0.5;
 
-// The pictures of a phone: how many are fetched at once, how many decoded ones
-// are kept (a decoded 810 x 1440 picture takes 4.7 MB), how many frames ahead,
-// the way the film is going, are decoded before they are needed, and how many
-// frames ahead of the film must have arrived before it plays on.
-const FETCH_AT_ONCE = 6;
+// The pictures of a phone: how many are fetched at once (each one waits a good
+// while for the server when the connection is slow, so a few at a time is far
+// slower than many), how many decoded ones are kept (a decoded 810 x 1440 picture
+// takes 4.7 MB), how many frames ahead, the way the film is going, are decoded
+// before they are needed, and how many frames ahead of the film must have arrived
+// before it plays on. How many times the pictures that did not come are tried
+// again before the film gives up.
+const FETCH_AT_ONCE = 20;
 const KEEP_DECODED = 16;
-const DECODE_AHEAD = 5;
+const DECODE_AHEAD = 8;
 const BUFFER_AHEAD = 3;
+const FETCH_ROUNDS = 4;
 
-// At each stop there are cards, and the picture and the cards move a little: with
-// the mouse (a laptop or a desktop, this test, the same as in globals.css), or
-// with a finger dragging on the film (a phone or a tablet).
+// On a laptop or a desktop (this test, the same as in globals.css) the picture moves
+// a little with the mouse while the film rests on a stop. (A phone and a tablet do
+// not have the moving.)
 const DESKTOP_POINTER =
   "(min-width: 1024px) and (min-height: 500px) and (hover: hover) and (pointer: fine)";
 
-type StopCard = {
-  title: string;
-  text: string;
-  button: string;
-  // Where the card is on the wide picture (a laptop, a desktop, a tablet on its
-  // side): its edges, in % of the picture. On a tall picture (a phone) the first
-  // card is at the top left and the second at the bottom right (globals.css).
-  place: { left?: string; right?: string; top?: string; bottom?: string };
-  // How much the card moves with the mouse: 1 is a little, 1.6 is more (so the
-  // cards seem to be at different distances from the picture).
-  depth: number;
+// The text of each place the film rests on, in order: the four stops (the knight,
+// the empty frame, the case, the shields) and the last frame. Each is one or two
+// big lines in italic, a heading and a paragraph. A place that has none is null.
+// On a laptop or a desktop the block is placed by `left` (its left edge) and `top`
+// (its middle), in % of the picture; if `note` is given, the heading and the
+// paragraph are a block of their own there, and the big lines are alone at `left`
+// and `top`. On a phone every block is at the top left (the note, at the bottom
+// left), see globals.css. Each line has its size in px on the design for a window
+// 1920px wide: the heading is 40px and the paragraph 16px there. All are smaller on
+// a smaller window. On a laptop or a desktop the blocks also move a little with the
+// mouse (`DEPTH`).
+type StopText = {
+  lines: [text: string, size: number][];
+  heading: string;
+  body: string;
+  left: string;
+  top: string;
+  note?: { left: string; top: string };
 };
 
-// The cards of each stop, in the order of the stops (the knight, the frame, the
-// case, the shields). The texts are only to be going on with, and the buttons do
-// not go anywhere yet. The places are in the empty parts of each picture.
-const STOP_CARDS: StopCard[][] = [
-  [
-    {
-      title: "Your sign",
-      text: "Every Smoky piece begins with a mark. Choose yours and we build around it.",
-      button: "Start designing",
-      place: { left: "6%", top: "24%" },
-      depth: 1,
-    },
-    {
-      title: "Made to order",
-      text: "Hand-finished leather, cut to the exact size of your pack.",
-      button: "How it works",
-      place: { right: "6%", top: "54%" },
-      depth: 1.6,
-    },
-  ],
-  [
-    {
-      title: "Pick the size",
-      text: "From ultra slims to king size: tell us the pack, we draw the frame.",
-      button: "Select size",
-      place: { left: "5%", bottom: "9%" },
-      depth: 1,
-    },
-    {
-      title: "A precise fit",
-      text: "Pack names are standard. Dimensions aren\u2019t. We match yours.",
-      button: "See all sizes",
-      place: { right: "5%", top: "12%" },
-      depth: 1.6,
-    },
-  ],
-  [
-    {
-      title: "Choose the leather",
-      text: "Classic, Premium or Atelier. Every colour is finished by hand.",
-      button: "Explore leathers",
-      place: { left: "6%", top: "30%" },
-      depth: 1,
-    },
-    {
-      title: "Feels right",
-      text: "Soft grain, firm edges: a case that keeps its place in your hand.",
-      button: "View collection",
-      place: { right: "6%", bottom: "8%" },
-      depth: 1.6,
-    },
-  ],
-  [
-    {
-      title: "Add your emblem",
-      text: "Gold foil, engraved initials or a crest of your own.",
-      button: "Personalize",
-      place: { left: "4%", top: "8%" },
-      depth: 1,
-    },
-    {
-      title: "Placed by hand",
-      text: "Each emblem is set and checked by hand before it leaves the atelier.",
-      button: "Order now",
-      place: { right: "4%", top: "8%" },
-      depth: 1.6,
-    },
-  ],
+// How much a block moves with the mouse (a laptop, a desktop): 1 is a little, more
+// is more (so the blocks seem to be at different distances from the picture, as the
+// cards were). The big lines (and the heading and paragraph under them) are 1; a
+// note, apart from them, is further.
+const DEPTH = 1;
+const NOTE_DEPTH = 1.6;
+
+// The heading and the paragraph of every text, only to be going on with.
+const PLACEHOLDER_HEADING = "Contrary";
+const PLACEHOLDER_BODY =
+  "The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from";
+
+const STOP_TEXTS: (StopText | null)[] = [
+  // stop 1, the knight
+  {
+    lines: [
+      ["START", 110],
+      ["DESIGNING", 78],
+    ],
+    heading: PLACEHOLDER_HEADING,
+    body: PLACEHOLDER_BODY,
+    left: "18.9%",
+    top: "56%",
+  },
+  // stop 2, the empty frame
+  {
+    lines: [
+      ["High class", 91],
+      ["Leather", 110],
+    ],
+    heading: PLACEHOLDER_HEADING,
+    body: PLACEHOLDER_BODY,
+    left: "64.2%",
+    top: "63%",
+  },
+  // stop 3, the blue case
+  {
+    lines: [["Body Color", 98]],
+    heading: PLACEHOLDER_HEADING,
+    body: PLACEHOLDER_BODY,
+    left: "11.8%",
+    top: "37.9%",
+  },
+  // stop 4, the three shields
+  {
+    lines: [["Gold Silver Titan", 98]],
+    heading: PLACEHOLDER_HEADING,
+    body: PLACEHOLDER_BODY,
+    left: "10.9%",
+    top: "19.5%",
+  },
+  // the last frame, "Your Sign": the big lines top left, the note bottom right
+  {
+    lines: [
+      ["More", 113],
+      ["Free Zones", 72],
+    ],
+    heading: PLACEHOLDER_HEADING,
+    body: PLACEHOLDER_BODY,
+    left: "18.2%",
+    top: "14.8%",
+    note: { left: "61.8%", top: "78%" },
+  },
 ];
 
 export default function PersonalizationScrollVideo() {
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  // Which stop the film is resting on (0 to 3), or none while it plays.
-  const [active, setActive] = useState<number | null>(null);
+  // The film is at its first frame and at rest: the title is shown over it.
+  const [atStart, setAtStart] = useState(true);
+  // Which text is shown over the film: the one of the place it is resting on (the
+  // stops 0 to 3, the last frame 4), or none while it plays.
+  const [restText, setRestText] = useState<number | null>(null);
+  // How much of the film has come (0 to 100), and whether it is still coming, has
+  // all come (the bar goes away and the film can be played), or could not come.
+  const [percent, setPercent] = useState(0);
+  const [phase, setPhase] = useState<"loading" | "done" | "failed">("loading");
+  const retryRef = useRef<() => void>(() => undefined);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -201,11 +261,40 @@ export default function PersonalizationScrollVideo() {
     const large = () => media.matches;
     const places = () => (large() ? PLACES_LARGE : PLACES_PHONE);
 
+    let disposed = false; // the page has been left
+
+    // ---- Getting the film: what has come, for the bar ----
+
+    // Each shape has its own: how much has come (0 to 1), whether all of it has
+    // come and can be played, and whether it could not be had.
+    let largeProgress = 0;
+    let phoneProgress = 0;
+    let largeReady = false;
+    let phoneReady = false;
+    let largeFailed = false;
+    let phoneFailed = false;
+
+    // Whether the film of this window can be played (all of it has come).
+    const ready = () => (large() ? largeReady : phoneReady);
+    const failed = () => (large() ? largeFailed : phoneFailed);
+
+    // Show the bar where the film of this window is.
+    const report = () => {
+      if (disposed) return;
+      const done = ready();
+      const progress = large() ? largeProgress : phoneProgress;
+      setPercent(done ? 100 : Math.min(99, Math.floor(progress * 100)));
+      setPhase(done ? "done" : failed() ? "failed" : "loading");
+      syncLock();
+    };
+
     // ---- A tablet, a laptop, a desktop: the video ----
 
-    let loaded = false; // the video has been given its file
-    let firstFrame = false; // and has its first frame (it stays so: `readyState`
-    // goes down for a moment each time the browser jumps to another frame)
+    let videoStarted = false; // its file is being fetched, or has been
+    let videoUrl: string | null = null; // the file, in memory
+    let firstFrame = false; // the video has its first frame (it stays so:
+    // `readyState` goes down for a moment each time the browser jumps to another
+    // frame)
 
     const duration = () =>
       Number.isFinite(video.duration) && video.duration > 0
@@ -223,9 +312,14 @@ export default function PersonalizationScrollVideo() {
       }
     };
 
+    // The video, all of it (it was fetched whole, see `loadVideo`), has its first
+    // frame: the film can be played.
     const onFirstFrame = () => {
       firstFrame = true;
+      largeReady = true;
+      largeProgress = 1;
       showAt(time);
+      report();
     };
     // Some browsers (iPad) only draw the frames of a video that has been played
     // once: play it for a moment, then stop it and put it back where it was.
@@ -238,6 +332,75 @@ export default function PersonalizationScrollVideo() {
         })
         .catch(() => undefined);
     };
+    const onVideoError = () => {
+      if (!videoUrl) return;
+      largeFailed = true;
+      videoStarted = false;
+      report();
+    };
+
+    // Fetch the whole video, with the bar following, and give it to the video
+    // from memory: then jumping to a frame never has to wait for the network. (A
+    // video given its address instead is fetched by the browser a piece at a
+    // time, as it goes, and a jump to a piece that has not come waits for it.)
+    const loadVideo = async () => {
+      if (videoStarted || largeReady) return;
+      videoStarted = true;
+      largeFailed = false;
+      largeProgress = 0;
+      report();
+      try {
+        // From an earlier visit, if the browser has kept it.
+        const cache = await openFilmCache();
+        const kept = cache ? await cache.match(SRC_LARGE).catch(() => undefined) : undefined;
+        const response = kept ?? (await fetch(SRC_LARGE));
+        if (!response.ok) throw new Error(`video: ${response.status}`);
+        let file: Blob;
+        if (response.body) {
+          const total = Number(response.headers.get("Content-Length")) || FALLBACK_LARGE_BYTES;
+          const reader = response.body.getReader();
+          const parts: BlobPart[] = [];
+          let got = 0;
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            if (disposed) {
+              void reader.cancel();
+              return;
+            }
+            parts.push(value);
+            got += value.length;
+            largeProgress = Math.min(0.99, got / total);
+            report();
+          }
+          file = new Blob(parts, { type: "video/mp4" });
+        } else {
+          file = await response.blob();
+        }
+        if (disposed) return;
+        // Keep it for the next visit (only a whole file, as it came).
+        if (cache && !kept) {
+          void cache
+            .put(
+              SRC_LARGE,
+              new Response(file, {
+                headers: { "Content-Type": "video/mp4", "Content-Length": String(file.size) },
+              }),
+            )
+            .catch(() => undefined);
+        }
+        videoUrl = URL.createObjectURL(file);
+        video.preload = "auto";
+        video.src = videoUrl;
+        video.addEventListener("loadeddata", onLoadedData, { once: true });
+        video.load();
+      } catch {
+        if (disposed) return;
+        videoStarted = false;
+        largeFailed = true;
+        report();
+      }
+    };
 
     // ---- A phone: the pictures on a canvas ----
 
@@ -245,7 +408,7 @@ export default function PersonalizationScrollVideo() {
     const arrived = new Set<number>(); // the ones that have come
     const decoded = new Map<number, ImageBitmap>(); // oldest used first
     const decoding = new Map<number, Promise<ImageBitmap | null>>();
-    let fetching = false; // the pictures are being fetched, in order
+    let phoneStarted = false; // the pictures are being fetched, or have been
     let wantedIndex = 0; // the frame the film is at
     let drawnIndex = -1; // the frame on the canvas
     let direction = 1; // which way the film is going
@@ -266,23 +429,46 @@ export default function PersonalizationScrollVideo() {
       return file;
     };
 
-    // All the pictures, in order, a few at a time (one that the film needs
-    // sooner is fetched at once, by `decodeFrame`).
-    const fetchAll = () => {
-      if (fetching) return;
-      fetching = true;
-      let next = 0;
-      const worker = async () => {
-        while (next < FRAMES_PHONE) {
-          const index = next++;
-          try {
-            await fetchFrame(index);
-          } catch {
-            // It is tried again when the film gets to it.
-          }
+    // All the pictures, in order, many at a time, with the bar following. The ones
+    // that did not come are asked for again, a few times, a little later each time;
+    // after that the film gives up (and the bar offers to try again).
+    const loadPhone = async () => {
+      if (phoneStarted || phoneReady) return;
+      phoneStarted = true;
+      phoneFailed = false;
+      report();
+      for (let round = 0; round < FETCH_ROUNDS && !disposed; round++) {
+        const missing: number[] = [];
+        for (let index = 0; index < FRAMES_PHONE; index++) {
+          if (!arrived.has(index)) missing.push(index);
         }
-      };
-      for (let i = 0; i < FETCH_AT_ONCE; i++) void worker();
+        if (missing.length === 0) break;
+        let next = 0;
+        const worker = async () => {
+          while (next < missing.length && !disposed) {
+            try {
+              await fetchFrame(missing[next++]);
+            } catch {
+              // The next round asks again.
+            }
+            phoneProgress = arrived.size / FRAMES_PHONE;
+            report();
+          }
+        };
+        await Promise.all(Array.from({ length: FETCH_AT_ONCE }, worker));
+        if (arrived.size >= FRAMES_PHONE) break;
+        await new Promise((resolve) => setTimeout(resolve, 800 * (round + 1)));
+      }
+      if (disposed) return;
+      if (arrived.size >= FRAMES_PHONE) {
+        phoneProgress = 1;
+        phoneReady = true;
+        showAt(time);
+      } else {
+        phoneFailed = true;
+        phoneStarted = false;
+      }
+      report();
     };
 
     const decodeFrame = (index: number): Promise<ImageBitmap | null> => {
@@ -386,7 +572,7 @@ export default function PersonalizationScrollVideo() {
 
     const showAt = (at: number) => {
       if (large()) {
-        if (loaded && firstFrame && !video.seeking) showVideoFrame(at);
+        if (firstFrame && !video.seeking) showVideoFrame(at);
         return;
       }
       const index = Math.min(FRAMES_PHONE - 1, Math.max(0, Math.floor(at * FPS)));
@@ -396,10 +582,18 @@ export default function PersonalizationScrollVideo() {
       }
     };
 
-    // Whether the film can be played: its first frame is there.
-    const ready = () => (large() ? loaded && firstFrame : arrived.has(0));
-
     // ---- The film plays towards the place it is sent to ----
+
+    // How fast the film plays at this time, going this way: the speed of the stretch
+    // between two places it is in (at a place itself, the stretch it is leaving).
+    const speedAt = (at: number, way: number) => {
+      const list = places();
+      for (let i = 0; i < list.length - 1; i++) {
+        const inside = way > 0 ? at >= list[i] && at < list[i + 1] : at > list[i] && at <= list[i + 1];
+        if (inside) return STRETCH_SPEEDS[i] ?? PLAY_SPEED;
+      }
+      return PLAY_SPEED;
+    };
 
     let moving = 0; // 1 playing forwards, -1 backwards, 0 at rest
     let moveAt = 0; // when the film last moved
@@ -423,7 +617,7 @@ export default function PersonalizationScrollVideo() {
           if (!arrived.has(ahead)) passed = 0;
         }
         const goal = places()[place];
-        time += moving * PLAY_SPEED * passed;
+        time += moving * speedAt(time, moving) * passed;
         if ((moving > 0 && time >= goal) || (moving < 0 && time <= goal)) {
           time = goal;
           moving = 0;
@@ -439,10 +633,10 @@ export default function PersonalizationScrollVideo() {
       }
     };
 
-    // A scroll in this direction. At rest: to the next place that way. While the
-    // film is playing: another scroll the same way sends it on past the place it
-    // was heading for (so scrolling three times goes three places), and one the
-    // other way turns it round to the nearest place behind it.
+    // A scroll in this direction. At rest: to the next place that way, and no
+    // further. While the film is playing: another scroll the same way does nothing
+    // (the film stops at the place it was heading for), and one the other way turns
+    // it round to the nearest place behind it.
     const go = (way: 1 | -1) => {
       const list = places();
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -461,7 +655,8 @@ export default function PersonalizationScrollVideo() {
         setStop(null);
         if (moveFrame === null) moveFrame = requestAnimationFrame(playTick);
       } else if (way === moving) {
-        place = Math.min(list.length - 1, Math.max(0, place + way));
+        // Already on its way that way: it stops at the next place.
+        return;
       } else {
         let next = -1;
         if (way > 0) {
@@ -489,7 +684,8 @@ export default function PersonalizationScrollVideo() {
 
     // Whether a scroll in this direction is the film's (and not the page's): the
     // page is at its top, the film can be played, and there is a place to go to
-    // that way; after the last place the page scrolls on to the footer.
+    // that way; after the last place the page scrolls on: the contact form rises
+    // over the film, and that is the end of the page.
     const takesInput = (way: 1 | -1) => {
       if (!ready() || window.scrollY >= 2) return false;
       if (moving !== 0) return true;
@@ -497,24 +693,95 @@ export default function PersonalizationScrollVideo() {
       return next >= 0 && next < places().length;
     };
 
-    // The page is down in the footer (or on its way there).
-    const inFooter = () => ready() && window.scrollY >= 2;
+    // The film is at rest on its last frame and the page is at the top: the next
+    // scroll down raises the contact form over it by itself (see `revealContact`).
+    const atEnd = () =>
+      ready() && moving === 0 && place >= places().length - 1 && window.scrollY < 2;
 
-    // Down in the footer, one scroll up takes the page straight back up to the
-    // film (not a few lines at a time); the next scroll up plays the film back.
-    const backToFilm = () => {
-      const now = performance.now();
-      if (now < snapUntil) return;
-      snapUntil = now + 700;
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    // The page has been scrolled down from the film: the contact form is rising
+    // over it, or is over it. (Then the browser scrolls
+    // the page, a wheel, a trackpad and the keys as they are; only a finger on the
+    // part of the film still in sight is taken by `swipe` below.)
+    const scrolledDown = () => window.scrollY >= 2;
+
+    // The film is still coming (the bar is on): the page stays at the top, a scroll
+    // does nothing. (If it could not come, the page is let go, so that the contact
+    // form can still be reached.)
+    const holding = () => !ready() && !failed() && !scrolledDown();
+
+    // Whether the page may be scrolled past the film (by a scrollbar, End, the
+    // wheel...): the film is at its last frame and at rest, or could not come, or
+    // the page is down already. (With a mouse, the style in globals.css takes the
+    // scrollbar away while this is not so: `data-film-open` is on the page when it
+    // is.)
+    const syncLock = () => {
+      if (disposed) return;
+      const open =
+        failed() ||
+        scrolledDown() ||
+        (ready() && moving === 0 && place >= places().length - 1);
+      document.documentElement.toggleAttribute("data-film-open", open);
     };
-    // After the last place, a scroll down (a swipe up) takes the page on down to
-    // the footer.
-    const onToFooter = () => {
-      const now = performance.now();
-      if (now < snapUntil) return;
-      snapUntil = now + 700;
-      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+
+    // Take the page to this scroll position by itself, over a time that follows the
+    // distance, easing in and out (the browser's own smooth scrolling is quicker
+    // than the contact form should rise). A finger or a wheel on the page stops it
+    // where it is.
+    let scrollFrame: number | null = null;
+    // Which way the page is being taken by itself (1 down, -1 up), 0 if it is not.
+    let pageScrollWay = 0;
+    // The wheel scroll (or trackpad flick) that raised the contact form is still going
+    // on: what is left of it does nothing, it neither stops the page on its way nor
+    // scrolls it on past the form.
+    let swallowing = false;
+    const stopPageScroll = () => {
+      if (scrollFrame === null) return;
+      cancelAnimationFrame(scrollFrame);
+      scrollFrame = null;
+      pageScrollWay = 0;
+      snapUntil = 0;
+    };
+    const scrollPageTo = (top: number) => {
+      const from = window.scrollY;
+      const distance = top - from;
+      if (Math.abs(distance) < 1) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        window.scrollTo(0, top);
+        return;
+      }
+      const duration = Math.min(
+        SCROLL_MS_MOST,
+        Math.max(SCROLL_MS_LEAST, Math.abs(distance) * SCROLL_MS_PER_PX),
+      );
+      snapUntil = performance.now() + duration + 100;
+      pageScrollWay = distance > 0 ? 1 : -1;
+      const startedAt = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - startedAt) / duration);
+        // A gentle ease in and out (its quickest part is not much quicker than the
+        // average, so the page does not rush through the middle).
+        const eased = (1 - Math.cos(Math.PI * t)) / 2;
+        window.scrollTo(0, from + distance * eased);
+        scrollFrame = t < 1 ? requestAnimationFrame(step) : null;
+        if (t >= 1) pageScrollWay = 0;
+      };
+      scrollFrame = requestAnimationFrame(step);
+    };
+
+    // A swipe on the film, with the page scrolled down, down: the page goes back
+    // up to the film; the next swipe plays the film back.
+    const backToFilm = () => {
+      if (performance.now() < snapUntil) return;
+      scrollPageTo(0);
+    };
+    // After the last place, a swipe up takes the page on, until the contact form
+    // has risen all the way over the film (when its top is at the film's top: the
+    // film's own height, and the black under it, scrolled, see `.personalization-
+    // scrub` in globals.css); from there the finger scrolls the page itself.
+    const revealContact = () => {
+      if (performance.now() < snapUntil) return;
+      const gap = parseFloat(getComputedStyle(section).marginBottom) || 0;
+      scrollPageTo(section.offsetHeight + gap);
     };
 
     // Is this wheel event the start of a new scroll, or still the one before? A
@@ -523,8 +790,9 @@ export default function PersonalizationScrollVideo() {
     //  - the other way than the last event, and not a bounce: new;
     //  - right after the last scroll started: not new;
     //  - a long pause since the last event: new;
-    //  - a short pause (the tail of a flick can have one): new only if it is a
-    //    push (big, or much bigger than the tail was), not the tail going on;
+    //  - a short pause (the tail of a flick can have one, and a wheel turned on
+    //    and on has one between its clicks): new only if it is much bigger than
+    //    the tail was, not the tail going on, nor one more click of the same size;
     //  - no pause (the tail goes on): new only if it is a clear new push on top
     //    of the tail, much bigger than the smallest the tail has been just before.
     const isNewScroll = (way: number, size: number, now: number, idle: number) => {
@@ -537,9 +805,17 @@ export default function PersonalizationScrollVideo() {
       if (now - scrollStartedAt < MIN_BETWEEN) return false;
       if (idle >= LONG_PAUSE) return true;
       if (idle >= GESTURE_GAP) {
-        return size >= PUSH_PX || (size >= 12 && size >= FLICK_RATIO * tail);
+        return size >= 12 && size >= FLICK_RATIO * tail;
       }
       return size >= PUSH_PX && size >= FLICK_RATIO * tail;
+    };
+
+    // Write down a wheel event, for `isNewScroll` to look back on.
+    const remember = (way: number, size: number, now: number) => {
+      lastDirection = way;
+      lastSize = size;
+      recentSizes = recentSizes.filter((entry) => now - entry.at <= TAIL_MS);
+      recentSizes.push({ at: now, size });
     };
 
     const onWheel = (event: WheelEvent) => {
@@ -552,18 +828,50 @@ export default function PersonalizationScrollVideo() {
       const now = performance.now();
       const idle = now - lastWheel;
       lastWheel = now;
-      if (way < 0 && inFooter()) {
+      // The rest of the scroll that raised the contact form (a wheel turned on and on,
+      // a trackpad's tail) does nothing. A new scroll, or one the other way, is the
+      // page's own again (and stops the page if it is still on its way).
+      if (swallowing) {
+        if (way > 0 && !isNewScroll(way, size, now, idle)) {
+          remember(way, size, now);
+          event.preventDefault();
+          return;
+        }
+        swallowing = false;
+      }
+      stopPageScroll();
+      if (holding()) {
         event.preventDefault();
-        backToFilm();
         return;
       }
-      if (!takesInput(way)) return;
+      if (scrolledDown()) {
+        // The browser scrolls the page. It is written down all the same: the
+        // tail of a trackpad's flick that takes the page back up to the film
+        // goes on after the page has got there, and must not play the film.
+        remember(way, size, now);
+        scrollStartedAt = now;
+        return;
+      }
+      if (!takesInput(way)) {
+        // After the last place a scroll down takes the page on by itself, to where the
+        // contact form covers the film, the way a swipe does on a phone (a scroll
+        // that is only the tail of the one that played the film to the end does
+        // nothing).
+        if (way > 0 && atEnd()) {
+          event.preventDefault();
+          const fresh = isNewScroll(way, size, now, idle);
+          remember(way, size, now);
+          if (fresh && now >= lockedUntil) {
+            scrollStartedAt = now;
+            swallowing = true;
+            revealContact();
+          }
+        }
+        return;
+      }
       event.preventDefault();
       const fresh = isNewScroll(way, size, now, idle);
-      lastDirection = way;
-      lastSize = size;
-      recentSizes = recentSizes.filter((entry) => now - entry.at <= TAIL_MS);
-      recentSizes.push({ at: now, size });
+      remember(way, size, now);
       if (!fresh || (moving === 0 && now < lockedUntil)) return;
       scrollStartedAt = now;
       go(way);
@@ -582,14 +890,23 @@ export default function PersonalizationScrollVideo() {
         way = event.shiftKey ? -1 : 1;
       }
       if (!way) return;
-      if (way < 0 && inFooter()) {
+      if (holding()) {
         event.preventDefault();
-        backToFilm();
+        return;
+      }
+      // The contact form is on its way up: a key down waits for it.
+      if (way > 0 && pageScrollWay > 0) {
+        event.preventDefault();
         return;
       }
       if (!takesInput(way as 1 | -1)) {
-        // After the last place the page goes on to the footer by itself (a wheel
-        // does it natively; the arrow keys and Space too).
+        // After the last place a key down takes the page on by itself, to where the
+        // contact form covers the film, as a wheel does; from there, and back up,
+        // the page scrolls as the browser does it.
+        if (way > 0 && atEnd()) {
+          event.preventDefault();
+          if (!event.repeat && performance.now() >= lockedUntil) revealContact();
+        }
         return;
       }
       event.preventDefault();
@@ -600,24 +917,21 @@ export default function PersonalizationScrollVideo() {
     // A swipe on the film: one finger, up or down (a finger going up is a scroll
     // down). The page does not scroll under the finger (the film is
     // `touch-action: none`, see globals.css); where there is no place to go on
-    // to, the page goes to the footer or back, by itself.
-    let touch: {
-      x: number;
-      y: number;
-      fired: boolean;
-      last: { x: number; y: number }; // where the finger is now
-      samples: { at: number; y: number }[]; // the last ~100 ms, for its speed
-    } | null = null;
+    // to, the page goes on, to where the contact form covers the film, or back.
+    // (A finger on the contact form scrolls the page by itself.)
+    let touch: { x: number; y: number; fired: boolean } | null = null;
 
     const swipe = (way: 1 | -1) => {
-      if (!ready()) return;
-      if (inFooter()) {
+      // (While the film is coming a swipe does nothing; if it could not come, the
+      // page goes on, to the contact form.)
+      if (!ready() && !failed()) return;
+      if (scrolledDown()) {
         if (way < 0) backToFilm();
-        else onToFooter();
+        else revealContact();
         return;
       }
       if (!takesInput(way)) {
-        if (way > 0) onToFooter();
+        if (way > 0) revealContact();
         return;
       }
       const now = performance.now();
@@ -628,95 +942,53 @@ export default function PersonalizationScrollVideo() {
     };
 
     const onTouchStart = (event: TouchEvent) => {
+      stopPageScroll(); // a finger on the page stops it going on by itself
       const first = event.touches[0];
       const onFilm = (event.target as Element | null)?.closest?.(".personalization-scrub");
       touch =
         event.touches.length === 1 && first && onFilm
-          ? {
-              x: first.clientX,
-              y: first.clientY,
-              fired: false,
-              last: { x: first.clientX, y: first.clientY },
-              samples: [{ at: event.timeStamp, y: first.clientY }],
-            }
+          ? { x: first.clientX, y: first.clientY, fired: false }
           : null;
     };
     const onTouchMove = (event: TouchEvent) => {
       if (!touch) return;
       if (event.cancelable) event.preventDefault();
       const first = event.touches[0];
-      // At a stop, the picture and the cards follow the finger a little.
-      if (first && atStop) {
-        mouseX = -Math.max(-1, Math.min(1, (first.clientX - touch.x) / DRAG_PX));
-        mouseY = -Math.max(-1, Math.min(1, (first.clientY - touch.y) / DRAG_PX));
-        kickShift();
-      }
-      if (!first) return;
-      touch.last = { x: first.clientX, y: first.clientY };
-      touch.samples.push({ at: event.timeStamp, y: first.clientY });
-      while (touch.samples.length > 2 && event.timeStamp - touch.samples[0].at > 100) {
-        touch.samples.shift();
-      }
-      if (touch.fired) return;
+      if (touch.fired || !first) return;
       const up = touch.y - first.clientY;
       const across = touch.x - first.clientX;
-      // Where the finger can move the picture, a slow drag does only that; where
-      // it cannot (the start, the end, the film playing) a short swipe is enough.
-      const limit = atStop && moving === 0 ? PULL_PX : SWIPE_PX;
-      if (Math.abs(up) < limit || Math.abs(up) < Math.abs(across)) return;
+      if (Math.abs(up) < SWIPE_PX || Math.abs(up) < Math.abs(across)) return;
       touch.fired = true;
       swipe(up > 0 ? 1 : -1);
     };
-    const onTouchEnd = (event: TouchEvent) => {
-      // Lifting the finger after a quick flick (not a slow drag, nor a finger that
-      // stopped before it was lifted) goes on too.
-      if (touch && !touch.fired && atStop && moving === 0 && touch.samples.length > 1) {
-        const up = touch.y - touch.last.y;
-        const across = touch.x - touch.last.x;
-        const first = touch.samples[0];
-        const last = touch.samples[touch.samples.length - 1];
-        const elapsed = last.at - first.at;
-        const speed = elapsed > 0 ? Math.abs(last.y - first.y) / elapsed : 0;
-        const stillMoving = event.timeStamp - last.at <= 80;
-        if (
-          stillMoving &&
-          Math.abs(up) >= FLICK_PX &&
-          Math.abs(up) >= Math.abs(across) &&
-          speed >= FLICK_SPEED
-        ) {
-          touch.fired = true;
-          swipe(up > 0 ? 1 : -1);
-        }
-      }
+    const onTouchEnd = () => {
       touch = null;
-      // The finger is up: the picture and the cards go back to the middle.
-      mouseX = 0;
-      mouseY = 0;
-      kickShift();
     };
 
     const onSeeked = () => showAt(time);
 
-    // ---- The cards, and the picture and cards follow the mouse or a finger ----
+    // ---- The picture follows the mouse ----
 
     const desktop = window.matchMedia(DESKTOP_POINTER);
     const still = window.matchMedia("(prefers-reduced-motion: reduce)");
     let atStop = false; // the film is resting on a stop
     let mouseX = 0; // where the mouse is on the film: -1 (left) to 1 (right)
     let mouseY = 0; // -1 (top) to 1 (bottom)
-    // (A finger sets the same two numbers, the other way round: it drags the
-    // picture along with it, 90 px being the edge.)
     let shiftX = 0; // what is shown, which follows the mouse a little behind it
     let shiftY = 0;
     let depth = 0; // 0 while the film plays, 1 while it rests on a stop
+    let textShown = false; // a text is shown (on a stop, or on the last frame)
+    let textX = 0; // what the texts show of the mouse (they move on the last frame too)
+    let textY = 0;
     let shiftFrame: number | null = null;
 
-    // The picture and the cards are moved by the three numbers set on the stage,
+    // The picture is moved by the three numbers set on the stage,
     // which the styles in globals.css use: --px and --py (where the mouse is, as
     // above, once it has caught up) and --ps (how much of the effect is on).
     const shiftTick = () => {
       shiftFrame = null;
-      const on = atStop && !still.matches;
+      // Only with a mouse (a laptop, a desktop): a phone and a tablet do not move.
+      const on = atStop && desktop.matches && !still.matches;
       const wantX = on ? mouseX : 0;
       const wantY = on ? mouseY : 0;
       const wantDepth = on ? 1 : 0;
@@ -726,10 +998,21 @@ export default function PersonalizationScrollVideo() {
       stage.style.setProperty("--px", shiftX.toFixed(4));
       stage.style.setProperty("--py", shiftY.toFixed(4));
       stage.style.setProperty("--ps", depth.toFixed(4));
+      // The texts follow the mouse the same way (--tx and --ty), on whichever place
+      // they are shown, and settle back to the middle when they go.
+      const onText = textShown && desktop.matches && !still.matches;
+      const wantTX = onText ? mouseX : 0;
+      const wantTY = onText ? mouseY : 0;
+      textX += (wantTX - textX) * 0.08;
+      textY += (wantTY - textY) * 0.08;
+      stage.style.setProperty("--tx", textX.toFixed(4));
+      stage.style.setProperty("--ty", textY.toFixed(4));
       if (
         Math.abs(wantX - shiftX) > 0.002 ||
         Math.abs(wantY - shiftY) > 0.002 ||
-        Math.abs(wantDepth - depth) > 0.002
+        Math.abs(wantDepth - depth) > 0.002 ||
+        Math.abs(wantTX - textX) > 0.002 ||
+        Math.abs(wantTY - textY) > 0.002
       ) {
         shiftFrame = requestAnimationFrame(shiftTick);
       }
@@ -752,42 +1035,48 @@ export default function PersonalizationScrollVideo() {
       kickShift();
     };
 
-    // The cards of a stop are shown while the film rests on it.
-    const setStop = (stop: number | null) => {
-      setActive(stop);
+    // Whether the film is resting on a stop (the picture follows the mouse then).
+    const setStop = (stop: number | null, text: number | null = stop) => {
       atStop = stop !== null;
+      textShown = text !== null;
+      setRestText(text);
+      setAtStart(place === 0 && moving === 0);
       kickShift();
+      syncLock(); // (the film has just started to move, or has come to rest)
     };
     const settle = () => {
-      const stop = place - 1; // places 1 to 4 are the stops
-      setStop(stop >= 0 && stop < STOP_FRAMES.length ? stop : null);
+      const index = place - 1; // places 1 to 4 are the stops, place 5 the last frame
+      setStop(
+        index >= 0 && index < STOP_FRAMES.length ? index : null,
+        index >= 0 && index < STOP_TEXTS.length ? index : null,
+      );
     };
 
     // ---- Getting what the window needs ----
 
-    // Give the video its file (a tablet or larger), or start fetching the
-    // pictures (a phone), and show the film where it is.
+    // Start fetching the video (a tablet or larger) or the pictures (a phone), if
+    // that has not been done, and show the film where it is.
     const attach = () => {
       if (large()) {
-        if (!loaded) {
-          loaded = true;
-          video.preload = "auto";
-          video.src = SRC_LARGE;
-          video.addEventListener("loadeddata", onLoadedData, { once: true });
-          video.load();
-        }
+        void loadVideo();
       } else {
-        fetchAll();
+        void loadPhone();
         sizeCanvas();
-        void fetchFrame(0).then(() => showAt(time));
+        void fetchFrame(0)
+          .then(() => showAt(time))
+          .catch(() => undefined);
       }
       if (moving === 0) {
         time = places()[place];
         showAt(time);
       }
+      report();
     };
+    // The bar's button: ask for what did not come again.
+    retryRef.current = attach;
 
     video.addEventListener("loadeddata", onFirstFrame, { once: true });
+    video.addEventListener("error", onVideoError);
     video.addEventListener("seeked", onSeeked);
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKeyDown);
@@ -796,6 +1085,7 @@ export default function PersonalizationScrollVideo() {
     window.addEventListener("touchend", onTouchEnd);
     window.addEventListener("touchcancel", onTouchEnd);
     window.addEventListener("resize", attach);
+    window.addEventListener("scroll", syncLock, { passive: true });
     window.addEventListener("pointermove", onPointerMove);
     document.documentElement.addEventListener("mouseleave", onMouseLeave);
     media.addEventListener("change", attach);
@@ -805,13 +1095,22 @@ export default function PersonalizationScrollVideo() {
     attach();
 
     return () => {
+      disposed = true;
+      retryRef.current = () => undefined;
       if (moveFrame !== null) cancelAnimationFrame(moveFrame);
       if (shiftFrame !== null) cancelAnimationFrame(shiftFrame);
+      if (scrollFrame !== null) cancelAnimationFrame(scrollFrame);
       window.removeEventListener("pointermove", onPointerMove);
       document.documentElement.removeEventListener("mouseleave", onMouseLeave);
       video.removeEventListener("loadeddata", onFirstFrame);
       video.removeEventListener("loadeddata", onLoadedData);
+      video.removeEventListener("error", onVideoError);
       video.removeEventListener("seeked", onSeeked);
+      if (videoUrl) {
+        video.removeAttribute("src");
+        video.load();
+        URL.revokeObjectURL(videoUrl);
+      }
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("touchstart", onTouchStart);
@@ -819,6 +1118,8 @@ export default function PersonalizationScrollVideo() {
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("touchcancel", onTouchEnd);
       window.removeEventListener("resize", attach);
+      window.removeEventListener("scroll", syncLock);
+      document.documentElement.removeAttribute("data-film-open");
       media.removeEventListener("change", attach);
       sizeWatcher?.disconnect();
       decoded.forEach((bitmap) => bitmap.close());
@@ -846,46 +1147,119 @@ export default function PersonalizationScrollVideo() {
           className="personalization-scrub-video"
         />
 
-        {/* The cards (a laptop or a desktop only, see globals.css): the ones of
-            the stop the film is resting on come in, the others are out of sight. */}
-        <div className="stop-cards">
-          {STOP_CARDS.map((cards, stop) => (
-            <div
-              key={stop}
-              className="stop-group"
-              data-active={active === stop}
-              aria-hidden={active !== stop}
-            >
-              {cards.map((card, index) => (
+        {/* The title on the first frame (see globals.css): it goes when the film
+            starts to play, and comes back when the film is at its start again. */}
+        <h1 className="personalization-intro font-montserrat" data-shown={atStart}>
+          <span className="personalization-intro-small">Build Your</span>
+          <span className="personalization-intro-big">DESIGN</span>
+          <svg
+            className="personalization-intro-arrow"
+            viewBox="0 0 24 32"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 2v27M3 20l9 9 9-9" vectorEffect="non-scaling-stroke" />
+          </svg>
+        </h1>
+
+        {/* The text of each place the film rests on (see globals.css): it comes in
+            when the film comes to rest there, and goes when the film plays on. */}
+        {STOP_TEXTS.map(
+          (text, index) =>
+            text && (
+              <Fragment key={index}>
                 <div
-                  key={card.title}
-                  className="stop-card"
+                  className="stop-text font-montserrat"
+                  data-shown={restText === index}
+                  aria-hidden={restText !== index}
                   style={
                     {
-                      "--dl": card.place.left,
-                      "--dr": card.place.right,
-                      "--dt": card.place.top,
-                      "--db": card.place.bottom,
-                      "--depth": card.depth,
-                      "--delay": `${index * 140}ms`,
+                      "--left": text.left,
+                      "--top": text.top,
+                      "--depth": DEPTH,
                     } as CSSProperties
                   }
                 >
-                  <div className="stop-card-body font-montserrat">
-                    <h3 className="stop-card-title">{card.title}</h3>
-                    <p className="stop-card-text">{card.text}</p>
-                    <button
-                      type="button"
-                      style={BUTTON_EDGE}
-                      className="stop-card-button"
-                    >
-                      {card.button}
-                    </button>
+                  <div className="stop-text-inner">
+                    <h2 className="stop-text-title">
+                      {text.lines.map(([line, size]) => (
+                        <span
+                          key={line}
+                          className="stop-text-line"
+                          style={{ "--n": size } as CSSProperties}
+                        >
+                          {line}
+                        </span>
+                      ))}
+                    </h2>
+                    {!text.note && (
+                      <>
+                        <h3 className="stop-text-heading">{text.heading}</h3>
+                        <p className="stop-text-body">{text.body}</p>
+                      </>
+                    )}
                   </div>
                 </div>
-              ))}
+                {text.note && (
+                  <div
+                    className="stop-text stop-text-note font-montserrat"
+                    data-shown={restText === index}
+                    aria-hidden={restText !== index}
+                    style={
+                      {
+                        "--left": text.note.left,
+                        "--top": text.note.top,
+                        "--depth": NOTE_DEPTH,
+                      } as CSSProperties
+                    }
+                  >
+                    <div className="stop-text-inner">
+                      <h3 className="stop-text-heading">{text.heading}</h3>
+                      <p className="stop-text-body">{text.body}</p>
+                    </div>
+                  </div>
+                )}
+              </Fragment>
+            ),
+        )}
+
+        {/* The bar, on black over the film, until all of the film has come (see
+            globals.css). It is there in the server's page too, so the film is
+            never seen half there. */}
+        <div
+          className="personalization-loading font-montserrat"
+          data-phase={phase}
+          aria-hidden={phase === "done"}
+        >
+          <div className="personalization-loading-box" role="status" aria-live="polite">
+            <p className="personalization-loading-label">
+              {phase === "failed" ? "The film did not load" : "Loading"}
+            </p>
+            <div
+              className="personalization-loading-bar"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={percent}
+            >
+              <span style={{ transform: `scaleX(${percent / 100})` }} />
             </div>
-          ))}
+            {phase === "failed" ? (
+              <button
+                type="button"
+                style={BUTTON_EDGE}
+                className="personalization-loading-retry"
+                onClick={() => retryRef.current()}
+              >
+                Try again
+              </button>
+            ) : (
+              <p className="personalization-loading-percent">{percent}%</p>
+            )}
+          </div>
         </div>
       </div>
     </section>

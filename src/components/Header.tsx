@@ -123,12 +123,14 @@ export default function Header() {
     <>
     <header className="fixed inset-x-0 top-0 z-[999999999999] w-full bg-brand-dark">
       <div className="site-header-inner px-4 py-3 md:px-8 xl:px-[120px]">
-        <div className="flex h-10 items-center justify-between">
+        <div className="relative flex h-10 items-center justify-between">
           <Link href="/" className="shrink-0" onClick={() => setMenuOpen(false)}>
             <img src={logo.src} alt="Smoky Concepts" className="h-10 aspect-[4/1]" />
           </Link>
 
-          <nav className="site-header-nav hidden flex-1 items-center justify-center gap-10 md:flex">
+          {/* The menu is in the exact middle of the header, whatever the widths of the logo and of
+              the buttons on the right (so it is not pushed off the middle by the wider side). */}
+          <nav className="site-header-nav hidden items-center justify-center gap-10 md:absolute md:top-1/2 md:left-1/2 md:flex md:-translate-x-1/2 md:-translate-y-1/2">
             {NAV_LINKS.map(({ href, label }) => {
               const active = pathname === href;
               return (

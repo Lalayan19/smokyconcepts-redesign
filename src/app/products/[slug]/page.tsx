@@ -170,13 +170,16 @@ export default function ProductPage() {
           <button
             type="button"
             onClick={() => setSizeModalOpen(true)}
-            className="flex h-14 w-full items-center justify-between rounded-2xl bg-[#dcc090] px-5 text-left shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-transform active:scale-[0.98]"
+            className="flex h-14 w-full items-center justify-between gap-3 rounded-2xl bg-[#dcc090] px-5 text-left shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-transform active:scale-[0.98]"
           >
             <span className="flex min-w-0 flex-col gap-0.5">
               <span className="text-[10px] font-bold tracking-wider text-[#122a26]/70 uppercase">
                 Size
               </span>
-              <span className="truncate text-[15px] leading-none font-extrabold text-[#122a26]">
+              {/* `truncate` hides what is outside the line's box, and a 15px line
+                  (leading-none) cut the tails of letters like g and y: the line is
+                  taller (the button has the room). */}
+              <span className="truncate text-[15px] leading-[1.35] font-extrabold text-[#122a26]">
                 {cigarette ?? "Select cigarette"}
               </span>
             </span>

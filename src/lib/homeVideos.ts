@@ -57,44 +57,81 @@ const listeners = new Set<() => void>();
 
 const changed = () => listeners.forEach((listener) => listener());
 
+// A download that makes no progress for this long, or takes this long in all, is given up on:
+// the video is then given its own address (the browser fetches it by itself) and the loading
+// screen does not wait for it.
+const IDLE_MS = 10_000;
+const TOTAL_MS = 45_000;
+// A file smaller than this is not a video (an error page, an empty answer).
+const MIN_BYTES = 20_000;
+
 async function fetchVideo(src: string, entry: Entry): Promise<string | null> {
   try {
-    const store = typeof caches !== "undefined" ? await caches.open(CACHE_NAME) : null;
+    // Where there is no Cache Storage (an in-app browser, a private window) or it cannot be
+    // opened, the video is simply fetched each time.
+    let store: Cache | null = null;
+    try {
+      store = typeof caches !== "undefined" ? await caches.open(CACHE_NAME) : null;
+    } catch {
+      store = null;
+    }
 
-    const kept = store ? await store.match(src) : undefined;
-    if (kept) {
+    const kept = store ? await store.match(src).catch(() => undefined) : undefined;
+    if (kept && store) {
       const blob = await kept.blob();
-      entry.loaded = entry.total = blob.size;
-      return URL.createObjectURL(blob);
+      if (blob.size >= MIN_BYTES) {
+        entry.loaded = entry.total = blob.size;
+        return URL.createObjectURL(blob);
+      }
+      await store.delete(src).catch(() => false); // a broken copy: fetched again below
     }
 
-    const response = await fetch(src);
-    if (!response.ok || !response.body) return null;
-    entry.total = Number(response.headers.get("content-length")) || APPROX_BYTES[src] || 0;
+    const controller = new AbortController();
+    let idle = window.setTimeout(() => controller.abort(), IDLE_MS);
+    const overall = window.setTimeout(() => controller.abort(), TOTAL_MS);
+    try {
+      const response = await fetch(src, { signal: controller.signal });
+      if (!response.ok || !response.body) return null;
+      const announced = Number(response.headers.get("content-length")) || 0;
+      entry.total = announced || APPROX_BYTES[src] || 0;
 
-    const reader = response.body.getReader();
-    const chunks: Uint8Array<ArrayBuffer>[] = [];
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value as Uint8Array<ArrayBuffer>);
-      entry.loaded += value.length;
+      const reader = response.body.getReader();
+      const chunks: Uint8Array<ArrayBuffer>[] = [];
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value as Uint8Array<ArrayBuffer>);
+        entry.loaded += value.length;
+        window.clearTimeout(idle);
+        idle = window.setTimeout(() => controller.abort(), IDLE_MS);
+        changed();
+      }
+      const blob = new Blob(chunks, { type: "video/mp4" });
+      // Cut short (the connection dropped), or not a video: not used, and not kept.
+      const encoded = response.headers.get("content-encoding");
+      if (blob.size < MIN_BYTES || (announced && !encoded && blob.size < announced)) return null;
+      entry.total = entry.loaded = blob.size;
       changed();
-    }
-    const blob = new Blob(chunks, { type: "video/mp4" });
-    entry.total = entry.loaded = blob.size;
-    changed();
 
-    if (store) {
-      // Keep it for next time, and drop the same video of an older version.
-      const path = src.split("?")[0];
-      await store.put(src, new Response(blob, { headers: { "Content-Type": "video/mp4" } }));
-      const old = (await store.keys()).filter(
-        (request) => request.url !== new URL(src, location.href).href && new URL(request.url).pathname === path,
-      );
-      await Promise.all(old.map((request) => store.delete(request)));
+      if (store) {
+        // Keep it for next time, and drop the same video of an older version.
+        try {
+          const path = src.split("?")[0];
+          await store.put(src, new Response(blob, { headers: { "Content-Type": "video/mp4" } }));
+          const old = (await store.keys()).filter(
+            (request) =>
+              request.url !== new URL(src, location.href).href && new URL(request.url).pathname === path,
+          );
+          await Promise.all(old.map((request) => store.delete(request)));
+        } catch {
+          // Storage full or not allowed: the video is still used, it is just not kept.
+        }
+      }
+      return URL.createObjectURL(blob);
+    } finally {
+      window.clearTimeout(idle);
+      window.clearTimeout(overall);
     }
-    return URL.createObjectURL(blob);
   } catch {
     return null;
   }
@@ -135,10 +172,17 @@ function measure(): HomeVideoProgress {
     total += entry.total;
     if (entry.settled) settled += 1;
   }
-  const ready = settled === videos.length;
+  const ready = forced || settled === videos.length;
   const fraction = ready ? 1 : total > 0 ? Math.min(0.99, loaded / total) : 0;
   return { fraction, ready };
 }
+
+// The loading screen holds the page still only this long: a slow connection must not keep a
+// visitor from the page (the sections whose video is not here yet show their pictures, see
+// ScrollVideo, and the video takes over when it comes).
+const MAX_HOLD_MS = 12_000;
+let forced = false;
+let holdTimer: number | undefined;
 
 export function getProgress(): HomeVideoProgress {
   const next = measure();
@@ -157,4 +201,16 @@ export function preloadHomeVideos() {
   homeVideos().forEach((src) => {
     void loadVideo(src);
   });
+  if (holdTimer === undefined) {
+    holdTimer = window.setTimeout(() => {
+      forced = true;
+      changed();
+    }, MAX_HOLD_MS);
+  }
+}
+
+// The folder of the pictures that stand in for a video that cannot play (see ScrollVideo): one
+// WebP of every frame the page uses, f000.webp and so on, the same frames as the video.
+export function frameUrl(folder: string, index: number) {
+  return `/videos/home-frames/${folder}/f${String(index).padStart(3, "0")}.webp?v=${HOME_VIDEO_VERSION}`;
 }

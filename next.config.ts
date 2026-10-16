@@ -33,6 +33,9 @@ const nextConfig: NextConfig = {
       { source: "/videos/atelier.mp4", headers: keepForAYear },
       { source: "/videos/atelier-silver.mp4", headers: keepForAYear },
       { source: "/videos/atelier-mobile.mp4", headers: keepForAYear },
+      // The pictures that stand in for a home video that cannot play (they have the same
+      // version in their address, `?v=`, see homeVideos.ts).
+      { source: "/videos/home-frames/:folder/:file", headers: keepForAYear },
       { source: "/videos/personalized.mp4", headers: keepForAYear },
       { source: "/videos/personalization-mobile-frames/:file", headers: keepForAYear },
     ];

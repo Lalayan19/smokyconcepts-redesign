@@ -58,6 +58,7 @@ export default function PersonalizationSection({ buttonHref }: PersonalizationSe
             // The file is the original 24 frames with two more made between each pair
             // (70 frames), so the scroll plays it in finer steps.
             frames={70}
+            fallbackFolder="personalized"
           />
         </div>
 

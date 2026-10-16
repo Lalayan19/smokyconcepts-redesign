@@ -69,6 +69,7 @@ export default function AtelierSection({ buttonHref }: AtelierSectionProps) {
             windows="tabletUp"
             className="atelier-case-video atelier-case-video-left"
             frames={ATELIER_FRAMES}
+            fallbackFolder="atelier"
             firstFrame={ATELIER_FIRST_FRAME}
             glideMs={ATELIER_GLIDE_MS}
             ramp={ATELIER_RAMP}
@@ -82,6 +83,7 @@ export default function AtelierSection({ buttonHref }: AtelierSectionProps) {
             windows="phone"
             className="atelier-case-video atelier-case-video-mobile"
             frames={ATELIER_MOBILE_FRAMES}
+            fallbackFolder="atelier-mobile"
             glideMs={ATELIER_GLIDE_MS}
             ramp={ATELIER_RAMP}
             rampEnd={ATELIER_RAMP_END}
@@ -97,6 +99,7 @@ export default function AtelierSection({ buttonHref }: AtelierSectionProps) {
             windows="tabletUp"
             className="atelier-case-video atelier-case-video-right"
             frames={ATELIER_FRAMES}
+            fallbackFolder="atelier-silver"
             firstFrame={ATELIER_FIRST_FRAME}
             glideMs={ATELIER_GLIDE_MS}
             ramp={ATELIER_RAMP}

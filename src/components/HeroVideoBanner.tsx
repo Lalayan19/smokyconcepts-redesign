@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
 import type { StaticImageData } from "next/image";
 
+import { keepPlaying } from "@/lib/keepPlaying";
+
 type HeroVideoBannerProps = {
   title: ReactNode;
   subtitle?: ReactNode;
@@ -38,34 +40,23 @@ export default function HeroVideoBanner({
   const videoRef = useRef<HTMLVideoElement>(null);
   const wideRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-    el.muted = true;
-    const tryPlay = () => el.play().catch(() => { });
-    tryPlay();
-    el.addEventListener("canplay", tryPlay);
-    el.addEventListener("loadeddata", tryPlay);
-    return () => {
-      el.removeEventListener("canplay", tryPlay);
-      el.removeEventListener("loadeddata", tryPlay);
-    };
-  }, [video]);
-
-  // On a tablet, a laptop or a desktop the horizontal video is played and the portrait
-  // one is let go of (its file is not wanted there); on a phone it is the other way round. (The portrait one has its file from the first paint, so a
-  // phone does not wait for the script.)
+  // Which video is played: on a tablet, a laptop or a desktop the horizontal one (the portrait
+  // one is let go of: its file is not wanted there); on a phone it is the other way round. (The
+  // portrait one has its file from the first paint, so a phone does not wait for the script.)
+  // Whichever is played is kept playing (see keepPlaying): started again when a browser stops
+  // it, and at the visitor's first touch where the browser will not start it by itself. Until it
+  // plays, its first picture (`poster`) is what is shown, so the section is never an empty
+  // black box.
   useEffect(() => {
     const portrait = videoRef.current;
     const wideEl = wideRef.current;
-    if (!portrait || !wideEl || !wideVideo) return;
-    const wide = window.matchMedia(WIDE_WINDOW);
-    const play = (el: HTMLVideoElement) => {
-      el.muted = true;
-      el.play().catch(() => { });
-    };
+    if (!portrait) return;
+    const wide = wideEl && wideVideo ? window.matchMedia(WIDE_WINDOW) : null;
+    let stop: (() => void) | null = null;
     const apply = () => {
-      if (wide.matches) {
+      stop?.();
+      stop = null;
+      if (wide?.matches && wideEl && wideVideo) {
         if (portrait.getAttribute("src")) {
           portrait.pause();
           portrait.removeAttribute("src");
@@ -75,27 +66,24 @@ export default function HeroVideoBanner({
           wideEl.src = wideVideo;
           wideEl.load();
         }
-        play(wideEl);
+        stop = keepPlaying(wideEl, "unlock-wide");
       } else {
-        wideEl.pause();
+        wideEl?.pause();
         if (!portrait.getAttribute("src")) {
           portrait.src = video;
           portrait.load();
         }
-        play(portrait);
+        stop = keepPlaying(portrait, "unlock-phone");
       }
     };
-    const onCanPlay = () => {
-      if (wide.matches) play(wideEl);
-    };
     apply();
-    wideEl.addEventListener("canplay", onCanPlay);
-    wide.addEventListener("change", apply);
+    wide?.addEventListener("change", apply);
     return () => {
-      wideEl.removeEventListener("canplay", onCanPlay);
-      wide.removeEventListener("change", apply);
+      wide?.removeEventListener("change", apply);
+      stop?.();
     };
   }, [video, wideVideo]);
+
 
   return (
     <section className="hero-banner bg-white relative left-1/2 w-screen -mx-[50vw] overflow-hidden bg-black">
@@ -103,6 +91,7 @@ export default function HeroVideoBanner({
         <video
           ref={videoRef}
           src={video}
+          poster="/videos/unlock-poster-phone.webp"
           autoPlay
           muted
           loop
@@ -126,6 +115,7 @@ export default function HeroVideoBanner({
               loop
               playsInline
               preload="none"
+              poster="/videos/unlock-poster-wide.webp"
               aria-hidden="true"
               className="hero-banner-wide"
               style={{ aspectRatio: "16 / 9", backgroundColor: "#000" }}

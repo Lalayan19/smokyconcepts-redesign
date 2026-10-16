@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
-import { loadVideo } from "@/lib/homeVideos";
+import { frameUrl, loadVideo } from "@/lib/homeVideos";
+import { describeVideo, reportVideo, setVideoState } from "@/lib/videoReport";
 
 // A video, one second long, that takes the place of a picture in a section of the home
 // page and is played by the scroll (where there is no video the picture stays, and this
@@ -100,7 +101,19 @@ type ScrollVideoProps = {
   // never shown, and the rest are spread over the whole way (the same as a file that had been
   // cut there).
   firstFrame?: number;
+  // With `frames`: the folder under /videos/home-frames/ that has a WebP of every frame (f000.webp
+  // and so on). If the video cannot play on a device (it does not start, it fails, it gets stuck),
+  // these pictures are drawn in its place, by the same scroll, so the section is never empty.
+  fallbackFolder?: string;
 };
+
+
+// If the video has not started this long after the section came near, or a seek has not
+// finished in SEEK_MS, it is replaced by its pictures (see `fallbackFolder`).
+const READY_MS = 7000;
+const SEEK_MS = 4000;
+// How many pictures are fetched at once.
+const PICTURES_AT_ONCE = 6;
 
 export default function ScrollVideo({
   src,
@@ -113,6 +126,7 @@ export default function ScrollVideo({
   rampEnd = 0,
   frames,
   firstFrame = 0,
+  fallbackFolder,
 }: ScrollVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -120,8 +134,12 @@ export default function ScrollVideo({
     const video = videoRef.current;
     const section = video?.closest(sectionSelector);
     if (!video || !section) return;
+    const name = src.split("?")[0].split("/").pop() ?? src;
     const active = window.matchMedia(WINDOWS[windows]);
     const still = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // `?videofallback=1` plays every video as its pictures, to see what a device that cannot
+    // play the videos gets.
+    const forced = new URLSearchParams(window.location.search).has("videofallback");
 
     let target = 0; // how far along the scroll says it should be (0 to 1)
     let shown = -1; // how far along it is on the screen (-1: not yet)
@@ -131,6 +149,16 @@ export default function ScrollVideo({
     const timers: number[] = [];
     let held = -1; // where the video stands between the two ways (see `progress`); -1: not yet
     let askedFor = -1; // with `frames`: the frame the video was last asked to show; -1: none
+    // "video": the video is played. "pictures": it could not be, and its pictures are drawn on a
+    // canvas that takes its place (same box, same size), by the same scroll, the same frames.
+    let mode: "video" | "pictures" = "video";
+    let canvas: HTMLCanvasElement | null = null;
+    const pictures: (HTMLImageElement | undefined)[] = [];
+    let drawn = -1;
+    let triedOwnAddress = false;
+    let seekWatch: number | undefined;
+    let requested = false;
+    let gone = false;
 
     // Where the scroll has got to: 0 while the section is still below the window; 1
     // (the last frame) once it is a little way short of the middle of the window (under
@@ -161,12 +189,9 @@ export default function ScrollVideo({
       return held;
     };
 
-    const apply = (now: number) => {
-      frame = null;
-      if (!active.matches || video.readyState < 2) {
-        last = 0;
-        return; // `loadeddata` starts it again
-      }
+    // How far along it is on the screen: moves on from `shown` towards where the scroll says
+    // (`target`) over the glide, and returns where the scroll says.
+    const advance = (now: number) => {
       const goal = still.matches ? 1 : target;
       if (shown < 0 || still.matches || glideMs <= 0) {
         shown = goal;
@@ -178,23 +203,72 @@ export default function ScrollVideo({
         if (Math.abs(goal - shown) < 0.002) shown = goal;
       }
       last = now;
+      return goal;
+    };
+
+    // With `frames`: the frames are spread evenly over the way: the first at the start, the
+    // last (frames - 1) at the end, whatever the file's length.
+    const frameIndex = (count: number) => {
+      const first = Math.min(Math.max(0, firstFrame), count - 1);
+      return Math.min(count - 1, first + Math.floor(shown * (count - first) + 1e-6));
+    };
+
+    const drawPicture = (index: number) => {
+      if (!canvas || !frames) return;
+      // The picture of that frame, or the nearest one that has come (they come nearest
+      // first).
+      let use = -1;
+      for (let d = 0; d < frames && use < 0; d++) {
+        if (pictures[index - d]) use = index - d;
+        else if (pictures[index + d]) use = index + d;
+      }
+      const picture = use >= 0 ? pictures[use] : undefined;
+      if (!picture || use === drawn) return;
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      if (canvas.width !== picture.naturalWidth) {
+        canvas.width = picture.naturalWidth;
+        canvas.height = picture.naturalHeight;
+      }
+      context.drawImage(picture, 0, 0);
+      drawn = use;
+    };
+
+    const apply = (now: number) => {
+      frame = null;
+      if (!active.matches) {
+        last = 0;
+        return;
+      }
+      if (mode === "pictures") {
+        const goal = advance(now);
+        drawPicture(frameIndex(frames ?? 1));
+        if (shown !== goal) kick();
+        else last = 0;
+        return;
+      }
+      if (video.readyState < 2) {
+        last = 0;
+        return; // `loadeddata` starts it again
+      }
+      const goal = advance(now);
       // A new jump waits for the one before it (`seeked` starts this again).
       if (video.seeking) return;
       const length = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 1;
       // The last frame is a little before the end of the file.
       const time = shown * Math.max(0, length - 0.02);
       if (frames) {
-        // The frames are spread evenly over the way: the first at the start, the last
-        // (frames - 1) at the end, whatever the file's length.
         const rate = frames / length;
-        const first = Math.min(Math.max(0, firstFrame), frames - 1);
-        const index = Math.min(
-          frames - 1,
-          first + Math.floor(shown * (frames - first) + 1e-6),
-        );
+        const index = frameIndex(frames);
         if (index !== askedFor) {
           askedFor = index;
           video.currentTime = (index + 0.5) / rate;
+          // A seek that never finishes (a decoder that gave up) must not freeze the section.
+          window.clearTimeout(seekWatch);
+          seekWatch = window.setTimeout(() => {
+            if (mode === "video" && video.seeking) useVideoPictures("seek-stuck");
+          }, SEEK_MS);
+          timers.push(seekWatch);
         }
       } else if (Math.abs(video.currentTime - time) > 0.001) {
         video.currentTime = time;
@@ -209,6 +283,50 @@ export default function ScrollVideo({
     const update = () => {
       target = progress();
       kick();
+    };
+
+    // The video cannot play on this device (it does not start, it fails, it is stuck): its
+    // pictures take its place. They are the same frames as the video's (public/videos/
+    // home-frames), fetched nearest the present frame first, and drawn on a canvas that has the
+    // video's class, so it has the video's box.
+    const useVideoPictures = (reason: string) => {
+      if (mode === "pictures" || !fallbackFolder || !frames || gone) return;
+      mode = "pictures";
+      reportVideo(name, `pictures: ${reason}`, video);
+      setVideoState(name, `pictures (${reason})`);
+      try {
+        video.pause();
+      } catch {
+        // Nothing to stop.
+      }
+      video.style.display = "none";
+      canvas = document.createElement("canvas");
+      canvas.className = className;
+      canvas.setAttribute("aria-hidden", "true");
+      video.parentNode?.insertBefore(canvas, video.nextSibling);
+
+      const count = frames;
+      const first = Math.min(Math.max(0, firstFrame), count - 1);
+      const around = still.matches || shown < 0 ? Math.round(target * (count - 1)) : frameIndex(count);
+      const order: number[] = [];
+      for (let i = first; i < count; i++) order.push(i);
+      order.sort((a, b) => Math.abs(a - around) - Math.abs(b - around));
+      let next = 0;
+      const fetchNext = () => {
+        if (gone || next >= order.length) return;
+        const index = order[next++];
+        const picture = new Image();
+        picture.decoding = "async";
+        picture.onload = () => {
+          pictures[index] = picture;
+          kick();
+          fetchNext();
+        };
+        picture.onerror = fetchNext;
+        picture.src = frameUrl(fallbackFolder, index);
+      };
+      for (let i = 0; i < PICTURES_AT_ONCE; i++) fetchNext();
+      update();
     };
 
     // A phone's browser may not fetch the pictures of a video until it is asked to play
@@ -239,18 +357,51 @@ export default function ScrollVideo({
 
     // The file comes from the shared loader (see homeVideos.ts), which has most likely
     // fetched it already (or has it from the last visit); if it could not, the video is
-    // given its own address and loads by itself.
-    let requested = false;
-    let gone = false;
+    // given its own address and loads by itself. If it has not started to play after READY_MS
+    // (the browser will not load it: a power-saving mode, a blocked player), its pictures are
+    // shown instead.
     const load = () => {
       if (!active.matches || !near || requested || video.getAttribute("src")) return;
       requested = true;
+      setVideoState(name, "fetching");
+      if (forced) {
+        useVideoPictures("forced");
+        return;
+      }
+      const readyWatch = window.setTimeout(() => {
+        if (mode === "video" && video.readyState < 2) useVideoPictures("not-ready");
+      }, READY_MS);
+      timers.push(readyWatch);
       loadVideo(src).then((url) => {
-        if (gone) return;
+        if (gone || mode === "pictures") return;
+        triedOwnAddress = url === null;
         video.src = url ?? src;
         video.load();
+        setVideoState(name, `src set (${describeVideo(video)})`);
         prime();
       });
+    };
+
+    // A failed video (a broken file, a player that cannot read it): once more from its own
+    // address if it was the saved copy, then its pictures.
+    const onError = () => {
+      if (!video.getAttribute("src") || mode === "pictures") return;
+      if (!triedOwnAddress && video.getAttribute("src")?.startsWith("blob:")) {
+        triedOwnAddress = true;
+        video.src = src;
+        video.load();
+        return;
+      }
+      useVideoPictures("error");
+    };
+
+    const onLoaded = () => {
+      setVideoState(name, `ready (${describeVideo(video)})`);
+      update();
+    };
+    const onSeeked = () => {
+      window.clearTimeout(seekWatch);
+      kick();
     };
 
     // Fetch the file when the section is about a window's height from the screen.
@@ -267,25 +418,60 @@ export default function ScrollVideo({
       load();
       update();
     };
+    // Coming back to the tab, or to the page from the back button, the scroll may have moved
+    // without an event; and while the section is near, once a second, so a missed event cannot
+    // leave it standing.
+    const onVisible = () => {
+      if (!document.hidden) update();
+    };
+    const heartbeat = window.setInterval(() => {
+      if (!near || !active.matches) return;
+      update();
+      setVideoState(name, `${mode} p=${target.toFixed(2)} (${describeVideo(video)})`);
+    }, 1000);
 
-    video.addEventListener("loadeddata", update);
-    video.addEventListener("seeked", kick);
+    video.addEventListener("loadeddata", onLoaded);
+    video.addEventListener("seeked", onSeeked);
+    video.addEventListener("error", onError);
     window.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", onWindowChange);
+    window.addEventListener("pageshow", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
     active.addEventListener("change", onWindowChange);
+    setVideoState(name, active.matches ? "waiting" : "not for this window");
     update();
     return () => {
       gone = true;
       if (frame !== null) cancelAnimationFrame(frame);
       watcher.disconnect();
-      video.removeEventListener("loadeddata", update);
+      window.clearInterval(heartbeat);
       timers.forEach((id) => window.clearTimeout(id));
-      video.removeEventListener("seeked", kick);
+      video.removeEventListener("loadeddata", onLoaded);
+      video.removeEventListener("seeked", onSeeked);
+      video.removeEventListener("error", onError);
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", onWindowChange);
+      window.removeEventListener("pageshow", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
       active.removeEventListener("change", onWindowChange);
+      if (canvas) {
+        canvas.remove();
+        video.style.display = "";
+      }
     };
-  }, [src, sectionSelector, windows, glideMs, startDelay, ramp, rampEnd, frames, firstFrame]);
+  }, [
+    src,
+    sectionSelector,
+    windows,
+    className,
+    glideMs,
+    startDelay,
+    ramp,
+    rampEnd,
+    frames,
+    firstFrame,
+    fallbackFolder,
+  ]);
 
   return (
     <video

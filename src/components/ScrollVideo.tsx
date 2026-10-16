@@ -112,6 +112,8 @@ type ScrollVideoProps = {
 // finished in SEEK_MS, it is replaced by its pictures (see `fallbackFolder`).
 const READY_MS = 7000;
 const SEEK_MS = 4000;
+// ... or this long after the file was given to the player.
+const SRC_MS = 3000;
 // How many pictures are fetched at once.
 const PICTURES_AT_ONCE = 6;
 
@@ -351,8 +353,18 @@ export default function ScrollVideo({
       const giveUp = window.setTimeout(done, 1500);
       timers.push(giveUp);
       const started = video.play();
-      if (started) started.then(done, done);
-      else done();
+      if (started) {
+        started.then(done, () => {
+          done();
+          // The browser will not play it without a tap (an iPhone in Low Power Mode, or with
+          // video previews off) and so has loaded none of it: its pictures, at once.
+          window.setTimeout(() => {
+            if (mode === "video" && video.readyState < 2) useVideoPictures("play-blocked");
+          }, 800);
+        });
+      } else {
+        done();
+      }
     };
 
     // The file comes from the shared loader (see homeVideos.ts), which has most likely
@@ -378,6 +390,12 @@ export default function ScrollVideo({
         video.src = url ?? src;
         video.load();
         setVideoState(name, `src set (${describeVideo(video)})`);
+        // The file is here (it was fetched whole), so a video that has nothing to show a few
+        // seconds after it was given to the player is not going to.
+        const srcWatch = window.setTimeout(() => {
+          if (mode === "video" && video.readyState < 2) useVideoPictures("not-loading");
+        }, SRC_MS);
+        timers.push(srcWatch);
         prime();
       });
     };

@@ -66,14 +66,14 @@ export default function HeroVideoBanner({
           wideEl.src = wideVideo;
           wideEl.load();
         }
-        stop = keepPlaying(wideEl, "unlock-wide");
+        stop = keepPlaying(wideEl, "unlock-wide", "/videos/unlock-fallback-wide.webp");
       } else {
         wideEl?.pause();
         if (!portrait.getAttribute("src")) {
           portrait.src = video;
           portrait.load();
         }
-        stop = keepPlaying(portrait, "unlock-phone");
+        stop = keepPlaying(portrait, "unlock-phone", "/videos/unlock-fallback-phone.webp");
       }
     };
     apply();

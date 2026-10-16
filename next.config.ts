@@ -32,6 +32,7 @@ const nextConfig: NextConfig = {
       // that is in their addresses).
       { source: "/videos/atelier.mp4", headers: keepForAYear },
       { source: "/videos/atelier-silver.mp4", headers: keepForAYear },
+      { source: "/videos/atelier-mobile.mp4", headers: keepForAYear },
       { source: "/videos/personalized.mp4", headers: keepForAYear },
       { source: "/videos/personalization-mobile-frames/:file", headers: keepForAYear },
     ];

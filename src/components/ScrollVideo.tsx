@@ -35,6 +35,9 @@ import { loadVideo } from "@/lib/homeVideos";
 const WINDOWS = {
   phoneAndLaptop: "(max-width: 743px), (max-height: 499px), (min-width: 1024px)",
   laptop: "(min-width: 1024px) and (min-height: 500px)",
+  // A phone only, and a tablet and larger (the two halves of the tests above).
+  phone: "(max-width: 743px), (max-height: 499px)",
+  tabletUp: "(min-width: 744px) and (min-height: 500px)",
   // Every screen.
   all: "all",
 };

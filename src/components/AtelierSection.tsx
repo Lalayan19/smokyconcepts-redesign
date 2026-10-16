@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import ScrollVideo from "@/components/ScrollVideo";
-import { ATELIER_SILVER_VIDEO, ATELIER_VIDEO } from "@/lib/homeVideos";
+import { ATELIER_MOBILE_VIDEO, ATELIER_SILVER_VIDEO, ATELIER_VIDEO } from "@/lib/homeVideos";
 
 // How long the two videos take to catch up with the scroll (a little, not much: the
 // other video of the home page, in Personalization, takes 120).
@@ -21,6 +21,10 @@ const ATELIER_FRAMES = 48;
 const ATELIER_FIRST_FRAME = 16;
 const ATELIER_RAMP = 0.214;
 const ATELIER_RAMP_END = 0;
+// The phone's own video (see ATELIER_MOBILE_VIDEO): 24 frames, the case small and dark on the
+// first and big and golden on the last, so it plays from its first frame; over the same
+// distance of scroll as the other (0.214 of the window's height), ending in the middle.
+const ATELIER_MOBILE_FRAMES = 24;
 
 type AtelierSectionProps = {
   buttonHref: string;
@@ -62,10 +66,22 @@ export default function AtelierSection({ buttonHref }: AtelierSectionProps) {
           <ScrollVideo
             src={ATELIER_VIDEO}
             sectionSelector=".atelier-section"
-            windows="all"
+            windows="tabletUp"
             className="atelier-case-video atelier-case-video-left"
             frames={ATELIER_FRAMES}
             firstFrame={ATELIER_FIRST_FRAME}
+            glideMs={ATELIER_GLIDE_MS}
+            ramp={ATELIER_RAMP}
+            rampEnd={ATELIER_RAMP_END}
+          />
+          {/* A phone plays its own video, in the same box (the one above is not shown
+              on a phone, see `.atelier-case-video-mobile` in globals.css). */}
+          <ScrollVideo
+            src={ATELIER_MOBILE_VIDEO}
+            sectionSelector=".atelier-section"
+            windows="phone"
+            className="atelier-case-video atelier-case-video-mobile"
+            frames={ATELIER_MOBILE_FRAMES}
             glideMs={ATELIER_GLIDE_MS}
             ramp={ATELIER_RAMP}
             rampEnd={ATELIER_RAMP_END}
@@ -78,7 +94,7 @@ export default function AtelierSection({ buttonHref }: AtelierSectionProps) {
           <ScrollVideo
             src={ATELIER_SILVER_VIDEO}
             sectionSelector=".atelier-section"
-            windows="all"
+            windows="tabletUp"
             className="atelier-case-video atelier-case-video-right"
             frames={ATELIER_FRAMES}
             firstFrame={ATELIER_FIRST_FRAME}

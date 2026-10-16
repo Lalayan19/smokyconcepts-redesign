@@ -13,14 +13,32 @@ const withVersion = (path: string) => `${path}?v=${HOME_VIDEO_VERSION}`;
 export const ATELIER_VIDEO = withVersion("/videos/atelier.mp4");
 export const ATELIER_SILVER_VIDEO = withVersion("/videos/atelier-silver.mp4");
 export const PERSONALIZED_VIDEO = withVersion("/videos/personalized.mp4");
+// The Atelier case on a phone (a square video, 24 frames, the gold case): a phone plays this one
+// where a tablet, a laptop and a desktop play ATELIER_VIDEO.
+export const ATELIER_MOBILE_VIDEO = withVersion("/videos/atelier-mobile.mp4");
 
-export const HOME_VIDEOS = [ATELIER_VIDEO, ATELIER_SILVER_VIDEO, PERSONALIZED_VIDEO];
+// The videos this window plays (a phone does not need the two Atelier cases of the larger
+// screens, nor they the phone's): fetched in the background when the home page opens, and
+// what the loading screen waits for. It is decided once, on the first call in the browser.
+const PHONE_WINDOW = "(max-width: 743px), (max-height: 499px)";
+let chosen: string[] | null = null;
+
+function homeVideos(): string[] {
+  if (chosen) return chosen;
+  const list =
+    typeof window !== "undefined" && window.matchMedia(PHONE_WINDOW).matches
+      ? [ATELIER_MOBILE_VIDEO, PERSONALIZED_VIDEO]
+      : [ATELIER_VIDEO, ATELIER_SILVER_VIDEO, PERSONALIZED_VIDEO];
+  if (typeof window !== "undefined") chosen = list;
+  return list;
+}
 
 // About how big each file is (bytes), for the loading bar when the server does not say.
 const APPROX_BYTES: Record<string, number> = {
   [ATELIER_VIDEO]: 1_420_000,
   [ATELIER_SILVER_VIDEO]: 1_180_000,
   [PERSONALIZED_VIDEO]: 1_400_000,
+  [ATELIER_MOBILE_VIDEO]: 880_000,
 };
 
 const CACHE_NAME = "home-videos";
@@ -109,14 +127,15 @@ function measure(): HomeVideoProgress {
   let loaded = 0;
   let total = 0;
   let settled = 0;
-  for (const src of HOME_VIDEOS) {
+  const videos = homeVideos();
+  for (const src of videos) {
     const entry = entries.get(src);
     if (!entry) continue;
     loaded += entry.loaded;
     total += entry.total;
     if (entry.settled) settled += 1;
   }
-  const ready = settled === HOME_VIDEOS.length;
+  const ready = settled === videos.length;
   const fraction = ready ? 1 : total > 0 ? Math.min(0.99, loaded / total) : 0;
   return { fraction, ready };
 }
@@ -135,7 +154,7 @@ export function subscribe(listener: () => void) {
 }
 
 export function preloadHomeVideos() {
-  HOME_VIDEOS.forEach((src) => {
+  homeVideos().forEach((src) => {
     void loadVideo(src);
   });
 }

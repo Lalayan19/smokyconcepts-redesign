@@ -865,6 +865,17 @@ body:has(.personalization-page) .site-footer {
   transform: translate(-42%, -50%);
 }
 
+/* Home, Atelier, a phone: its own video, a square one (2160 x 2160 made 1080 x 1080, white all
+   round the case). The case in its last frame is 84.4% of the frame's height and 47.4% of
+   its width, with its middle at 48.9% across and 50.7% down: the frame is drawn so that case
+   is --case-h tall (the same as the other video's case) and in the middle of the box. The
+   other video (`-left`) is not shown on a phone, nor this one on a tablet and larger. */
+.atelier-case-video-mobile {
+  height: calc(var(--case-h) / 0.844);
+  width: calc(var(--case-h) / 0.844);
+  transform: translate(-48.9%, -50.7%);
+}
+
 /* Home, Personalization: the picture of the case is a video (see ScrollVideo), played by
    the scroll, on every screen. It is the whole frame (16:9, black all round the case, as
    black as the card, so no edge shows); the case in its last frame is in the middle of it,
@@ -898,6 +909,10 @@ body:has(.personalization-page) .site-footer {
    width, the case being 54%), so the case is not far from the text. The title and the
    text are above the video (its frame is bigger than its box). */
 @media not ((min-width: 744px) and (min-height: 500px)) {
+  .atelier-case-video-left {
+    display: none;
+  }
+
   .atelier-section {
     padding-top: 40px;
     padding-bottom: 40px;
@@ -1049,6 +1064,11 @@ body:has(.personalization-page) .site-footer {
 
   .atelier-section h2 {
     font-size: clamp(66px, 5.6vw, 96px) !important;
+  }
+
+  /* The phone's own video is not shown here. */
+  .atelier-case-video-mobile {
+    display: none;
   }
 
   .atelier-case {

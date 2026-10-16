@@ -31,10 +31,14 @@ export default function ProductGallery({
   images,
   alt,
   title,
+  fill = false,
 }: {
   images: StaticImageData[];
   alt: string;
   title: string;
+  // Photos (not cut-out pictures of the case on white): each fills the whole block, cropped
+  // to fit (a soft shade at the top keeps the name readable).
+  fill?: boolean;
 }) {
   const [active, setActive] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -85,14 +89,27 @@ export default function ProductGallery({
   }, [active, images.length]);
 
   return (
-    <div className="product-gallery flex flex-col">
+    <div className="product-gallery relative flex flex-col">
+      {/* With `fill` the picture goes down behind the row of small ones (which is over it, at
+          the bottom), so the block is as tall as the two were together (24rem + 6rem). */}
       <div
-        className="product-gallery-main relative flex h-[24rem] touch-pan-y items-center justify-center overflow-hidden rounded-t-[1.5rem] bg-white sm:h-[29rem]"
+        className={`product-gallery-main relative flex touch-pan-y items-center justify-center overflow-hidden rounded-t-[1.5rem] bg-white ${
+          fill ? "h-[30rem] sm:h-[35rem]" : "h-[24rem] sm:h-[29rem]"
+        }`}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <h1 className="product-gallery-title absolute top-3 left-3 z-10 max-w-[60%] text-[1.375rem] leading-tight font-extrabold text-[#414141]">
+        {fill && (
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-[5] h-24 bg-gradient-to-b from-black/45 to-transparent" />
+        )}
+        <h1
+          // A tablet and larger hide the name here (`.product-gallery-title`, it is in the card
+          // beside); over a photo it stays, in the top left corner, on every screen.
+          className={`${fill ? "" : "product-gallery-title "}absolute top-3 left-3 z-10 max-w-[60%] text-[1.375rem] leading-tight font-extrabold ${
+            fill ? "text-white" : "text-[#414141]"
+          }`}
+        >
           {title}
         </h1>
 
@@ -117,14 +134,19 @@ export default function ProductGallery({
           type="button"
           onClick={() => setLightboxOpen(true)}
           aria-label="Enlarge image"
-          className="animate-gallery-fade-in relative h-[17rem] w-[13rem] cursor-zoom-in sm:h-[22rem] sm:w-[16.5rem]"
+          className={`animate-gallery-fade-in cursor-zoom-in ${
+            fill
+              ? "absolute inset-0 h-full w-full"
+              : "relative h-[17rem] w-[13rem] sm:h-[22rem] sm:w-[16.5rem]"
+          }`}
         >
           <Image
             src={images[active]}
             alt={alt}
             fill
             priority
-            className="object-contain object-bottom"
+            sizes={fill ? "(min-width: 1024px) 50vw, 100vw" : undefined}
+            className={fill ? "object-cover object-center" : "object-contain object-bottom"}
           />
         </button>
 
@@ -140,7 +162,11 @@ export default function ProductGallery({
 
       <div
         ref={thumbRowRef}
-        className="relative flex items-center justify-center gap-2.5 bg-white px-5 pt-4 pb-5"
+        className={`flex items-center justify-center gap-2.5 px-5 pb-5 ${
+          fill
+            ? "absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/35 to-transparent pt-10"
+            : "relative bg-white pt-4"
+        }`}
       >
         <div
           className="pointer-events-none absolute rounded-2xl border-2 border-[#dcc090] transition-all duration-300 ease-out"
@@ -164,7 +190,12 @@ export default function ProductGallery({
             className="relative flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#f5f4f1] shadow-[0_1px_4px_rgba(0,0,0,0.08)] transition-transform active:scale-95"
           >
             <span className="relative h-[2.75rem] w-[2.25rem]">
-              <Image src={image} alt="" fill className="object-contain object-bottom" />
+              <Image
+                src={image}
+                alt=""
+                fill
+                className={`object-contain ${fill ? "object-center" : "object-bottom"}`}
+              />
             </span>
           </button>
         ))}
@@ -178,6 +209,7 @@ export default function ProductGallery({
           active={active}
           onSelect={setActive}
           onClose={() => setLightboxOpen(false)}
+          centered={fill}
         />
       )}
     </div>

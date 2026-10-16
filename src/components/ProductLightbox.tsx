@@ -17,6 +17,9 @@ type ProductLightboxProps = {
   // The picture in the middle changes only through the small ones underneath.
   onSelect: (index: number) => void;
   onClose: () => void;
+  // Photos (not cut-out pictures of the case, which stand on the bottom edge): each is in the
+  // middle of its box.
+  centered?: boolean;
 };
 
 type Point = { x: number; y: number };
@@ -32,7 +35,9 @@ export default function ProductLightbox({
   active,
   onSelect,
   onClose,
+  centered = false,
 }: ProductLightboxProps) {
+  const position = centered ? "object-center" : "object-bottom";
   const areaRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLSpanElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -298,7 +303,7 @@ export default function ProductLightbox({
               // larger one on a tablet and up, where the picture is larger).
               sizes="(min-width: 768px) 1600px, 900px"
               draggable={false}
-              className="object-contain object-bottom"
+              className={`object-contain ${position}`}
             />
           </span>
         </div>
@@ -319,7 +324,7 @@ export default function ProductLightbox({
               }
             >
               <span className="relative h-[2.75rem] w-[2.25rem]">
-                <Image src={image} alt="" fill sizes="40px" className="object-contain object-bottom" />
+                <Image src={image} alt="" fill sizes="40px" className={`object-contain ${position}`} />
               </span>
             </button>
           ))}

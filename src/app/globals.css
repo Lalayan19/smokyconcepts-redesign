@@ -866,13 +866,13 @@ body:has(.personalization-page) .site-footer {
 }
 
 /* Home, Atelier, a phone: its own video, a square one (2160 x 2160 made 1080 x 1080, white all
-   round the case). The case in its last frame is 84.4% of the frame's height and 47.4% of
+   round the case). The case in its last frame is 84.1% of the frame's height and 47.4% of
    its width, with its middle at 48.9% across and 50.7% down: the frame is drawn so that case
    is --case-h tall (the same as the other video's case) and in the middle of the box. The
    other video (`-left`) is not shown on a phone, nor this one on a tablet and larger. */
 .atelier-case-video-mobile {
-  height: calc(var(--case-h) / 0.844);
-  width: calc(var(--case-h) / 0.844);
+  height: calc(var(--case-h) / 0.841);
+  width: calc(var(--case-h) / 0.841);
   transform: translate(-48.9%, -50.7%);
 }
 

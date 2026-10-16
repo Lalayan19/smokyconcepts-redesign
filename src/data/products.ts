@@ -15,6 +15,14 @@ import oldMoney from "@/assets/images/Old-Money.webp";
 import orangerie from "@/assets/images/Orangerine.webp";
 import seaman from "@/assets/images/Seaman.webp";
 
+// Orangerie's pictures for its page, in the order they are shown (the files are numbered
+// 1 to 5 in that order).
+import orangerieGallery1 from "@/assets/images/product gallery/1.jpg";
+import orangerieGallery2 from "@/assets/images/product gallery/2.jpg";
+import orangerieGallery3 from "@/assets/images/product gallery/3.jpg";
+import orangerieGallery4 from "@/assets/images/product gallery/4.jpg";
+import orangerieGallery5 from "@/assets/images/product gallery/5.jpg";
+
 export type Product = {
   name: string;
   slug: string;
@@ -22,6 +30,8 @@ export type Product = {
   collection: string;
   price: number;
   image: StaticImageData;
+  // The pictures on the product's page, in order. Without it the page shows `image` four times.
+  gallery?: StaticImageData[];
   inStock?: boolean;
 };
 
@@ -47,7 +57,7 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
       { name: "Mar Mar", slug: "mar-mar", size: "Ultra Slims", collection: "Premium", price: 24900, image: marMar },
       { name: "Kish Mish 2", slug: "kish-mish-2", size: "Ultra Slims", collection: "Premium", price: 25900, image: kishMish2 },
       { name: "Old Money", slug: "old-money", size: "Ultra Slims", collection: "Premium", price: 25900, image: oldMoney },
-      { name: "Orangerie", slug: "orangerie", size: "Ultra Slims", collection: "Premium", price: 26900, image: orangerie },
+      { name: "Orangerie", slug: "orangerie", size: "Ultra Slims", collection: "Premium", price: 26900, image: orangerie, gallery: [orangerieGallery1, orangerieGallery2, orangerieGallery3, orangerieGallery4, orangerieGallery5] },
       { name: "Blackbone", slug: "blackbone", size: "Ultra Slims", collection: "Premium", price: 25900, image: blackbone },
       { name: "Forest", slug: "forest", size: "Ultra Slims", collection: "Premium", price: 24900, image: forest },
       { name: "Seaman", slug: "seaman", size: "Ultra Slims", collection: "Premium", price: 24900, image: seaman },

@@ -6,7 +6,7 @@
 //
 // If a video file is changed, raise HOME_VIDEO_VERSION: the new files then have new
 // addresses, so a visitor does not get the old ones from the cache.
-export const HOME_VIDEO_VERSION = "3";
+export const HOME_VIDEO_VERSION = "4";
 
 const withVersion = (path: string) => `${path}?v=${HOME_VIDEO_VERSION}`;
 

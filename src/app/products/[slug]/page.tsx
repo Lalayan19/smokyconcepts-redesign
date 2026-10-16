@@ -128,9 +128,10 @@ export default function ProductPage() {
         {/* Gallery */}
         <div className="product-gallery-card overflow-hidden rounded-[1.5rem] bg-white shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
           <ProductGallery
-            images={[product.image, product.image, product.image, product.image]}
+            images={product.gallery ?? [product.image, product.image, product.image, product.image]}
             alt={product.name}
             title={product.name}
+            fill={!!product.gallery}
           />
         </div>
         </div>

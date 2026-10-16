@@ -102,12 +102,16 @@ export default function DeliveryInfo() {
 
       {open && (
         <>
-          {/* The rest of the page, dimmed; a tap on it closes the popup. */}
+          {/* The rest of the page, dimmed; a tap on it closes the popup. It goes 10rem
+              below the window and is at least as tall as the window with a phone's toolbars
+              away (lvh): on an iPhone the toolbar at the bottom slides away while the page
+              is moving, and a backdrop only as tall as the window with the toolbar showing
+              left a light strip of the page at the bottom for a moment. */}
           <button
             type="button"
             aria-label="Close"
             onClick={hide}
-            className={`fixed inset-0 z-40 cursor-default bg-black/40 ${
+            className={`fixed inset-x-0 top-0 -bottom-40 z-40 min-h-[100lvh] cursor-default bg-black/40 ${
               closing ? "animate-size-modal-backdrop-out" : "animate-size-modal-backdrop-in"
             }`}
           />

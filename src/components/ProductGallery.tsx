@@ -123,7 +123,7 @@ export default function ProductGallery({
           type="button"
           onClick={() => goTo(active - 1)}
           aria-label="Previous image"
-          className="absolute top-1/2 left-3 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#414141] shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all active:scale-90"
+          className="absolute top-[68%] left-3 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#414141] shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all active:scale-90"
         >
           <ChevronIcon direction="left" className="h-5 w-5" />
         </button>
@@ -154,7 +154,7 @@ export default function ProductGallery({
           type="button"
           onClick={() => goTo(active + 1)}
           aria-label="Next image"
-          className="absolute top-1/2 right-3 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#414141] shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all active:scale-90"
+          className="absolute top-[68%] right-3 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#414141] shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all active:scale-90"
         >
           <ChevronIcon direction="right" className="h-5 w-5" />
         </button>

@@ -1447,19 +1447,22 @@ body:has(.personalization-page) .site-footer {
     box-shadow: 0 4px 22.5px rgba(0, 0, 0, 0.08);
   }
 
+  /* The word "Details" is not shown here (it stays for screen readers); the line "Product
+     specifications" is at the top of the card, where the heading was. */
   .product-details-title {
-    text-align: left;
-    font-size: 1.875rem;
-    line-height: 2.25rem;
-    font-weight: 800;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #000;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .product-details-sub {
     display: block;
-    margin-top: 0.25rem;
+    margin-top: 0;
     text-align: left;
     font-size: 0.75rem;
     line-height: 1rem;

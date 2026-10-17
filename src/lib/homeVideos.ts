@@ -6,14 +6,14 @@
 //
 // If a video file is changed, raise HOME_VIDEO_VERSION: the new files then have new
 // addresses, so a visitor does not get the old ones from the cache.
-export const HOME_VIDEO_VERSION = "4";
+export const HOME_VIDEO_VERSION = "5";
 
 const withVersion = (path: string) => `${path}?v=${HOME_VIDEO_VERSION}`;
 
 export const ATELIER_VIDEO = withVersion("/videos/atelier.mp4");
 export const ATELIER_SILVER_VIDEO = withVersion("/videos/atelier-silver.mp4");
 export const PERSONALIZED_VIDEO = withVersion("/videos/personalized.mp4");
-// The Atelier case on a phone (a square video, 24 frames, the gold case): a phone plays this one
+// The Atelier case on a phone (a square video, 48 frames, the gold case): a phone plays this one
 // where a tablet, a laptop and a desktop play ATELIER_VIDEO.
 export const ATELIER_MOBILE_VIDEO = withVersion("/videos/atelier-mobile.mp4");
 
@@ -38,7 +38,7 @@ const APPROX_BYTES: Record<string, number> = {
   [ATELIER_VIDEO]: 1_420_000,
   [ATELIER_SILVER_VIDEO]: 1_180_000,
   [PERSONALIZED_VIDEO]: 1_400_000,
-  [ATELIER_MOBILE_VIDEO]: 880_000,
+  [ATELIER_MOBILE_VIDEO]: 1_500_000,
 };
 
 const CACHE_NAME = "home-videos";

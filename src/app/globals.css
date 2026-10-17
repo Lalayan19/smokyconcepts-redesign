@@ -884,19 +884,19 @@ body:has(.personalization-page) .site-footer {
    pictures that take the place of a video (HOME_VIDEO_VERSION in src/lib/homeVideos.ts: change
    it here too). */
 .atelier-case-video-left {
-  background: url("/videos/home-frames/atelier/f047.webp?v=4") center / 100% 100% no-repeat;
+  background: url("/videos/home-frames/atelier/f047.webp?v=5") center / 100% 100% no-repeat;
 }
 
 .atelier-case-video-right {
-  background: url("/videos/home-frames/atelier-silver/f047.webp?v=4") center / 100% 100% no-repeat;
+  background: url("/videos/home-frames/atelier-silver/f047.webp?v=5") center / 100% 100% no-repeat;
 }
 
 .atelier-case-video-mobile {
-  background: url("/videos/home-frames/atelier-mobile/f023.webp?v=4") center / 100% 100% no-repeat;
+  background: url("/videos/home-frames/atelier-mobile/f047.webp?v=5") center / 100% 100% no-repeat;
 }
 
 .personalization-art-video {
-  background: url("/videos/home-frames/personalized/f069.webp?v=4") center / 100% 100% no-repeat;
+  background: url("/videos/home-frames/personalized/f069.webp?v=5") center / 100% 100% no-repeat;
 }
 
 /* Home, Personalization: the picture of the case is a video (see ScrollVideo), played by

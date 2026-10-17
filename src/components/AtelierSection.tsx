@@ -22,11 +22,15 @@ const ATELIER_FIRST_FRAME = 16;
 const ATELIER_RAMP = 0.214;
 const ATELIER_RAMP_END = 0;
 // The phone's own video (see ATELIER_MOBILE_VIDEO): 48 frames (2 seconds at 24 a second), the
-// case small and dark on the first and big and golden on the last. It starts from frame 20 (the
-// first 20 frames are never shown, like the other videos' first frames), and plays over the
-// same distance of scroll as before (0.214 of the window's height), ending in the middle.
+// case small and dark on the first and big and golden on the last, and all of them are played
+// (from frame 0 to 47). It plays at the speed of the other Atelier videos (0.321 of the window's
+// height of scroll for the 48 frames, 0.00669 a frame) and starts when the top of the section is
+// 0.348 of the window's height further down than in the middle of the window: 20 frames of scroll
+// earlier than it did (0.214, and before that 0.0802: each step 20 * 0.00669 = 0.134). It has
+// played to its last frame 0.321 further on, 0.027 of the window's height before the middle.
 const ATELIER_MOBILE_FRAMES = 48;
-const ATELIER_MOBILE_FIRST_FRAME = 20;
+const ATELIER_MOBILE_RAMP = 0.348;
+const ATELIER_MOBILE_RAMP_END = 0.027;
 
 type AtelierSectionProps = {
   buttonHref: string;
@@ -85,11 +89,10 @@ export default function AtelierSection({ buttonHref }: AtelierSectionProps) {
             windows="phone"
             className="atelier-case-video atelier-case-video-mobile"
             frames={ATELIER_MOBILE_FRAMES}
-            firstFrame={ATELIER_MOBILE_FIRST_FRAME}
             fallbackFolder="atelier-mobile"
             glideMs={ATELIER_GLIDE_MS}
-            ramp={ATELIER_RAMP}
-            rampEnd={ATELIER_RAMP_END}
+            ramp={ATELIER_MOBILE_RAMP}
+            rampEnd={ATELIER_MOBILE_RAMP_END}
           />
         </div>
 

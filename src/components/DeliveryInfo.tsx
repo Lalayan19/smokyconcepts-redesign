@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 function TruckIcon({ className }: { className?: string }) {
   return (
@@ -40,6 +41,8 @@ export default function DeliveryInfo() {
   const moreRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const closeTimer = useRef<number | undefined>(undefined);
+  // The height of the whole page, for the dim layer (see below).
+  const [pageHeight, setPageHeight] = useState(0);
 
   const show = () => {
     window.clearTimeout(closeTimer.current);
@@ -67,6 +70,19 @@ export default function DeliveryInfo() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [open, hide]);
+
+  // While the popup is open the dim layer is as tall as the whole page: it is not a layer fixed
+  // to the window, which on an iPhone (Safari) was only as tall as the window while the toolbar at
+  // the bottom was still sliding away, and left a light strip of the page undimmed at the bottom
+  // for a moment. (The page behind can still be scrolled.)
+  useEffect(() => {
+    if (!open) return;
+    const html = document.documentElement;
+    const measure = () => setPageHeight(Math.max(html.scrollHeight, window.innerHeight));
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [open]);
 
   useEffect(() => () => window.clearTimeout(closeTimer.current), []);
 
@@ -102,19 +118,21 @@ export default function DeliveryInfo() {
 
       {open && (
         <>
-          {/* The rest of the page, dimmed; a tap on it closes the popup. It goes 10rem
-              below the window and is at least as tall as the window with a phone's toolbars
-              away (lvh): on an iPhone the toolbar at the bottom slides away while the page
-              is moving, and a backdrop only as tall as the window with the toolbar showing
-              left a light strip of the page at the bottom for a moment. */}
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={hide}
-            className={`fixed inset-x-0 top-0 -bottom-40 z-40 min-h-[100lvh] cursor-default bg-black/40 ${
-              closing ? "animate-size-modal-backdrop-out" : "animate-size-modal-backdrop-in"
-            }`}
-          />
+          {/* The rest of the page, dimmed; a tap on it closes the popup. It is on the page itself,
+              as tall as the whole page (not fixed to the window, see above), under the header
+              and the popup. */}
+          {createPortal(
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={hide}
+              style={{ height: pageHeight || "100%" }}
+              className={`absolute inset-x-0 top-0 z-40 cursor-default bg-black/40 ${
+                closing ? "animate-size-modal-backdrop-out" : "animate-size-modal-backdrop-in"
+              }`}
+            />,
+            document.body,
+          )}
 
           {/* The popup: the card's own place, the card's own look, with the whole
               text. */}

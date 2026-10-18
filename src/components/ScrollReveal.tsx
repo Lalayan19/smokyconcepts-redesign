@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 // The home page's texts come in as the page is scrolled: a title and the text under it, one after
-// the other, each rising a little and fading in slowly (the rules are in globals.css,
+// the other, each coming down from 60px above and fading in (the rules are in globals.css,
 // `[data-reveal]`). The elements to move are the ones with `data-reveal` ("title" or "text") in the
 // sections of the home page, and only there (the buttons stay still).
 //
@@ -13,7 +13,7 @@ import { useEffect } from "react";
 // window when the page opens is never hidden, so nothing flashes. An element is let go of
 // (back to its own styles, so its hover and the like work as before) once it has come in.
 const SHOW_AT = 0.88; // the top of the element is in the top 88% of the window
-const LET_GO_MS = 2800;
+const LET_GO_MS = 2000;
 
 export default function ScrollReveal() {
   useEffect(() => {

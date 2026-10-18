@@ -2603,8 +2603,8 @@ body:has(.passport-page) .site-footer {
 
    A title or a text with `data-reveal` that is below the window gets `reveal-hidden` (the script
    adds it, so without the script nothing is hidden); when it comes into the window it gets
-   `is-in` and rises slowly to its place while it fades in: the title first (it also loses a little
-   blur), the text under it a little later. The class is taken off again after, so the element
+   `is-in` and comes down to its place from 60px above it while it fades in (1.2s): the title first,
+   the text under it 0.2s later. The class is taken off again after, so the element
    goes back to its own styles. The buttons do not move. Only the home page has `data-reveal`.
    ========================================================================== */
 /* Hidden: at once (no transition when the script hides it). */
@@ -2614,25 +2614,22 @@ body:has(.passport-page) .site-footer {
 }
 
 [data-reveal="title"].reveal-hidden {
-  transform: translate3d(0, 34px, 0);
-  filter: blur(8px);
+  transform: translate3d(0, -60px, 0);
 }
 
 [data-reveal="text"].reveal-hidden {
-  transform: translate3d(0, 26px, 0);
+  transform: translate3d(0, -60px, 0);
 }
 
-/* Coming in: slowly (the transition is on this state, so it only runs on the way in). */
+/* Coming in (the transition is on this state, so it only runs on the way in). */
 [data-reveal].reveal-hidden.is-in {
   opacity: 1;
   transform: none;
-  filter: none;
   transition:
-    opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 1.8s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 1.8s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 [data-reveal="text"].reveal-hidden.is-in {
-  transition-delay: 0.35s;
+  transition-delay: 0.2s;
 }

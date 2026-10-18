@@ -40,13 +40,13 @@ export default function AtelierSection({ buttonHref }: AtelierSectionProps) {
   return (
     <section className="atelier-section bg-white relative left-1/2 flex h-[105vh] w-screen -mx-[50vw] flex-col bg-[#efefef] px-6 pt-[126px] pb-10 text-center">
       <Link href={buttonHref} className="atelier-link">
-        <h2
+        <h2 data-reveal="title"
           className="font-montserrat italic text-[#130F0F]"
           style={{ fontWeight: 800, fontSize: "66px", lineHeight: 1.1 }}
         >
           Atelier
         </h2>
-        <p
+        <p data-reveal="text"
           className="mx-auto max-w-md font-montserrat text-[#120F0F]"
           style={{ fontSize: "14px", fontWeight: "600" }}
         >

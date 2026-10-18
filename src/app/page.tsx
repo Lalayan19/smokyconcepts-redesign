@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import HeroVideoBanner from "@/components/HeroVideoBanner";
 import HomeVideoLoader from "@/components/HomeVideoLoader";
 import VideoDebug from "@/components/VideoDebug";
+import ScrollReveal from "@/components/ScrollReveal";
 import AtelierSection from "@/components/AtelierSection";
 import CoverCollectionsSection from "@/components/CoverCollectionsSection";
 import UltraSlimsSection from "@/components/UltraSlimsSection";
@@ -26,6 +27,7 @@ export default function Home() {
     <main className="flex flex-col">
         <HomeVideoLoader />
         <VideoDebug />
+        <ScrollReveal />
         <HeroVideoBanner
           title={
             <>

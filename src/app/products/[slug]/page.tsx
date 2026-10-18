@@ -283,13 +283,13 @@ export default function ProductPage() {
         </div>
 
         <div className="product-rest contents">
+        {/* On a tablet and larger this line is the heading of the card, above it and outside it
+            like "Product Story" (the word "Details" in the card is not shown there). */}
+        <p className="product-details-sub hidden">Product specifications</p>
         <section className="product-details mt-10">
           <h2 className="product-details-title text-[1.375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
             Details
           </h2>
-          {/* Shown with the heading in the middle of the card, like How to Use,
-              on a tablet and larger. */}
-          <p className="product-details-sub hidden">Product specifications</p>
           <dl className="product-details-list mt-4 overflow-hidden rounded-[1.5rem] bg-white shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
             {DETAILS.map((d, index) => (
               <div

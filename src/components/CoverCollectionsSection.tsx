@@ -368,7 +368,7 @@ export default function CoverCollectionsSection() {
         className="collections-card relative isolate min-h-[105vh] overflow-hidden rounded-[1.5rem] bg-black px-6 text-center"
         style={{ paddingTop: 144, paddingBottom: 37 }}
       >
-        <h2
+        <h2 data-reveal="title"
           className="font-montserrat text-center italic text-white"
           style={{ fontSize: "44px", fontWeight: 600 }}
         >
@@ -518,6 +518,7 @@ export default function CoverCollectionsSection() {
             and nothing moves when the text changes; the one for the coin in the
             middle fades in as the others fade out. */}
         <div
+          data-reveal="text"
           className="collections-desc mx-auto grid"
           style={{ marginTop: 28, maxWidth: 320, gridTemplateColumns: "minmax(0, 1fr)" }}
         >

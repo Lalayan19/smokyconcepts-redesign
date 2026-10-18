@@ -381,13 +381,13 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
   return (
     <section className="ultra-slims-section relative left-1/2 mb-3 w-screen -mx-[50vw] rounded-b-[1.5rem] min-h-[80vh] supports-[-webkit-touch-callout:none]:max-md:min-h-[100vh] overflow-hidden bg-white px-6 pt-12 pb-10 text-center">
       <Link href={buttonHref}>
-      <h2
+      <h2 data-reveal="title"
         className="font-montserrat italic text-[#000000]"
         style={{marginTop: "36px", fontWeight: 680, fontSize: "44px", lineHeight: 1.1 }}
       >
         Ultra Slims
       </h2>
-      <p
+      <p data-reveal="text"
         className="mx-auto  max-w-md font-montserrat text-[#000000]"
         style={{ fontSize: "14px" }}
       >

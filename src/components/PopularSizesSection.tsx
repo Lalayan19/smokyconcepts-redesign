@@ -21,13 +21,13 @@ export default function PopularSizesSection({ onButtonClick }: PopularSizesSecti
       onClick={onButtonClick}
       className="popular-sizes-section relative left-1/2 cursor-pointer rounded-t-[1.5rem] w-screen -mx-[50vw] h-[max(80vh,686px)] supports-[-webkit-touch-callout:none]:max-md:h-[max(100vh,686px)] overflow-hidden bg-white px-6 pt-[76px] pb-10 text-center [-webkit-tap-highlight-color:transparent]"
     >
-      <h2
+      <h2 data-reveal="title"
         className="font-montserrat italic text-[#000000] "
         style={{ fontWeight: 690, fontSize: "32px", lineHeight: 1.1 }}
       >
         Popular Sizes
       </h2>
-      <p
+      <p data-reveal="text"
         className="mx-auto max-w-md font-montserrat text-[#000000]"
         style={{ fontWeight: 500, fontSize: "13px" }}
       >

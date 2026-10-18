@@ -1448,7 +1448,7 @@ body:has(.personalization-page) .site-footer {
   }
 
   /* The word "Details" is not shown here (it stays for screen readers); the line "Product
-     specifications" is at the top of the card, where the heading was. */
+     specifications" is the card's heading, above the card (see below). */
   .product-details-title {
     position: absolute;
     width: 1px;
@@ -1460,16 +1460,21 @@ body:has(.personalization-page) .site-footer {
     white-space: nowrap;
   }
 
+  /* The line "Product specifications" is the card's heading, above the card and outside it, the
+     same as "Product Story": the same size, weight and colour, 2.5rem above it (mt-10) and the
+     card 1.25rem under it (mt-5). */
   .product-details-sub {
     display: block;
-    margin-top: 0;
+    margin-top: 2.5rem;
     text-align: left;
-    font-size: 0.75rem;
-    line-height: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #000;
+    font-size: 1.375rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #414141;
+  }
+
+  .product-details {
+    margin-top: 1.25rem;
   }
 
   .product-details-list {
@@ -2591,4 +2596,43 @@ body:has(.passport-page) .site-footer {
     width: 10.5rem;
     font-size: 16px;
   }
+}
+
+/* ==========================================================================
+   HOME: THE TEXTS COME IN AS THE PAGE IS SCROLLED (see ScrollReveal.tsx)
+
+   A title or a text with `data-reveal` that is below the window gets `reveal-hidden` (the script
+   adds it, so without the script nothing is hidden); when it comes into the window it gets
+   `is-in` and rises slowly to its place while it fades in: the title first (it also loses a little
+   blur), the text under it a little later. The class is taken off again after, so the element
+   goes back to its own styles. The buttons do not move. Only the home page has `data-reveal`.
+   ========================================================================== */
+/* Hidden: at once (no transition when the script hides it). */
+[data-reveal].reveal-hidden {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+[data-reveal="title"].reveal-hidden {
+  transform: translate3d(0, 34px, 0);
+  filter: blur(8px);
+}
+
+[data-reveal="text"].reveal-hidden {
+  transform: translate3d(0, 26px, 0);
+}
+
+/* Coming in: slowly (the transition is on this state, so it only runs on the way in). */
+[data-reveal].reveal-hidden.is-in {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition:
+    opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.8s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 1.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-reveal="text"].reveal-hidden.is-in {
+  transition-delay: 0.35s;
 }

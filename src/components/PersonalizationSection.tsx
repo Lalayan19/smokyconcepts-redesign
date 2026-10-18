@@ -29,13 +29,13 @@ export default function PersonalizationSection({ buttonHref }: PersonalizationSe
       style={{ background: "linear-gradient(to bottom, #ffffff calc(100% - 1.5rem), transparent 0)" }}
     >
       <div className="personalization-card flex h-[105vh] flex-col overflow-hidden rounded-[1.5rem] bg-black px-6 pt-12 text-center">
-        <h2
+        <h2 data-reveal="title"
           className="font-montserrat mt-[10px] italic text-white"
           style={{ fontWeight: 700, fontSize: "36px", lineHeight: 1.1 }}
         >
           Personalization
         </h2>
-        <p
+        <p data-reveal="text"
           className="mx-auto max-w-md font-montserrat text-white/80"
           style={{ fontSize: "13px", fontWeight: 500, }}
         >
@@ -63,6 +63,7 @@ export default function PersonalizationSection({ buttonHref }: PersonalizationSe
         </div>
 
         <Link
+         
           href={buttonHref}
           style={{ letterSpacing: "0.1em", textTransform: "uppercase", ...BUTTON_EDGE }}
           className="relative -mt-[72px] mb-10 inline-flex h-[42px] w-[220px] shrink-0 items-center justify-center self-center rounded-[8px] bg-[#dcc090] text-[20px] font-montserrat text-[#122a26] transition-colors group-hover:bg-[#d3b57c]"

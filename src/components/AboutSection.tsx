@@ -41,13 +41,13 @@ export default function AboutSection({ image, buttonHref }: AboutSectionProps) {
           />
 
           <div className="about-text absolute inset-x-0 px-6" style={{ top: TEXT_TOP }}>
-            <h2
+            <h2 data-reveal="title"
               className="font-montserrat italic text-[#130F0F]"
               style={{ fontWeight: 800, fontSize: "35px", lineHeight: 1.1 }}
             >
               Present
             </h2>
-            <p
+            <p data-reveal="text"
               className="mt-[10px] mx-auto font-montserrat text-left text-[#414141]"
               style={{ maxWidth: 300, fontSize: "12px", fontWeight: 580 }}
             >
@@ -58,6 +58,7 @@ export default function AboutSection({ image, buttonHref }: AboutSectionProps) {
           </div>
 
           <Link
+             
             href={buttonHref}
             style={{
               position: "absolute",

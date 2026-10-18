@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 // The home page's texts come in as the page is scrolled: a title and the text under it, one after
-// the other, each coming down from 60px above and fading in (the rules are in globals.css,
+// the other, each coming down from above and fading in (the rules are in globals.css,
 // `[data-reveal]`). The elements to move are the ones with `data-reveal` ("title" or "text") in the
 // sections of the home page, and only there (the buttons stay still).
 //

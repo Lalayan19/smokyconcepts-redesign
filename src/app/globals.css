@@ -2603,8 +2603,8 @@ body:has(.passport-page) .site-footer {
 
    A title or a text with `data-reveal` that is below the window gets `reveal-hidden` (the script
    adds it, so without the script nothing is hidden); when it comes into the window it gets
-   `is-in` and comes down to its place from 60px above it while it fades in (1.2s): the title first,
-   the text under it 0.2s later. The class is taken off again after, so the element
+   `is-in` and comes down to its place while it fades in (1.2s): a title from 60px above, the text
+   under it (0.2s later) from 8px above, so it does not pass over its title. The class is taken off again after, so the element
    goes back to its own styles. The buttons do not move. Only the home page has `data-reveal`.
    ========================================================================== */
 /* Hidden: at once (no transition when the script hides it). */
@@ -2617,8 +2617,10 @@ body:has(.passport-page) .site-footer {
   transform: translate3d(0, -60px, 0);
 }
 
+/* The text under a heading starts only a little above its place (8px): the heading is right above
+   it (0 to 12px of space), and a longer way would pass over the heading. */
 [data-reveal="text"].reveal-hidden {
-  transform: translate3d(0, -60px, 0);
+  transform: translate3d(0, -8px, 0);
 }
 
 /* Coming in (the transition is on this state, so it only runs on the way in). */

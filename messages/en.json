@@ -1,0 +1,59 @@
+{
+  "Home": {
+    "unlock": {
+      "titleRow1": "New Accessory",
+      "titleRow2": "Unlocked",
+      "subtitle": "Unique <b>Accessories</b> for Your <b>Rituals</b>.",
+      "heading": "Smoky Covers",
+      "text": "Premium leather, carbon-fused structure, precision engineering and a craftsman’s hand, all in one place.",
+      "button": "SHOP"
+    },
+    "atelier": {
+      "heading": "Atelier",
+      "text": "Exotic leathers, gold and more.\nCharacter and status, without a word.",
+      "button": "SEE DETAILS"
+    },
+    "ultraSlims": {
+      "heading": "Ultra Slims",
+      "text": "Slims, Super Slims, Compact, and more. All popular sizes are available."
+    },
+    "popularSizes": {
+      "heading": "Popular Sizes",
+      "text": "Pack names are standard. Dimensions aren’t.\nWe create precise versions to fit your cigarette pack.",
+      "button": "Select Cigarette"
+    },
+    "personalization": {
+      "heading": "Personalization",
+      "text": "Create yours. Make it exceptional.",
+      "button": "Personalize"
+    },
+    "about": {
+      "heading": "Present",
+      "text": "A Small Gift. A Lasting Impression.\nIt’s not about what you give. It’s about the care and the feelings you bring."
+    },
+    "sayHi": {
+      "heading": "Say Hi!",
+      "text": "Have a question, an idea, or a collaboration in mind?",
+      "button": "REACH OUT"
+    },
+    "collections": {
+      "heading": "Collections",
+      "classic": {
+        "name": "Classic",
+        "text": "No noise, no trends.\nHigh-quality leather, classic structure, nothing extra.\nA classic never needs attention."
+      },
+      "premium": {
+        "name": "Premium",
+        "text": "For those who notice the colors, the grain of natural leather, and the exceptional beauty that forms with time.\nPremium leathers, free personalization.\nYour ritual, your signature."
+      },
+      "atelier": {
+        "name": "Atelier",
+        "text": "Status. Character. Style.\nExotic leathers. Gold. And beyond.\nYour Identity without words."
+      },
+      "specialEdition": {
+        "name": "Special Edition",
+        "text": "Standards were never your thing.\nExceptional creations. Bold ideas. No limits.\nStand out."
+      }
+    }
+  }
+}

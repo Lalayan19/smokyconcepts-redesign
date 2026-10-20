@@ -1,8 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import type { StaticImageData } from "next/image";
 
 import { BUTTON_EDGE } from "@/components/buttonEdge";
+import { useLocale, useTranslations } from "next-intl";
 
 type AboutSectionProps = {
   image: StaticImageData;
@@ -19,6 +22,9 @@ const TEXT_TOP = "10.3%";
 const BUTTON_MIDDLE = "81.8%";
 
 export default function AboutSection({ image, buttonHref }: AboutSectionProps) {
+  // The texts follow the language chosen in the header (messages/*.json).
+  const t = useTranslations("Home");
+  const language = useLocale().toUpperCase();
   return (
     // The top 1.5rem of the section is behind the Personalization section above
     // it (whose rounded bottom corners show the photo). The white is on the div
@@ -45,15 +51,13 @@ export default function AboutSection({ image, buttonHref }: AboutSectionProps) {
               className="font-montserrat italic text-[#130F0F]"
               style={{ fontWeight: 800, fontSize: "35px", lineHeight: 1.1 }}
             >
-              Present
+              {t("about.heading")}
             </h2>
             <p data-reveal="text"
               className="mt-[10px] mx-auto font-montserrat text-left text-[#414141]"
-              style={{ maxWidth: 300, fontSize: "12px", fontWeight: 580 }}
+              style={{ maxWidth: 300, fontSize: "12px", fontWeight: 580, whiteSpace: "pre-line" }}
             >
-              Smoky Concepts brings fresh ideas into real life. We study everyday
-              rituals, find what&rsquo;s missing, and design the piece that feels
-              right—more beautiful, more personal, more you.
+              {t("about.text")}
             </p>
           </div>
 
@@ -69,9 +73,9 @@ export default function AboutSection({ image, buttonHref }: AboutSectionProps) {
               fontWeight: 500,
               ...BUTTON_EDGE,
             }}
-            className="about-button inline-flex h-[42px] w-[200px] items-center justify-center rounded-[8px] bg-[#dcc090] text-[14px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
+            className="about-button inline-flex h-[42px] min-w-[200px] items-center justify-center whitespace-nowrap px-4 uppercase rounded-[8px] bg-[#dcc090] text-[14px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
           >
-            SHOP
+            {t("unlock.button")}
           </Link>
         </div>
       </div>

@@ -10,6 +10,8 @@ import bagIcon from "@/assets/icons/bag.svg";
 import currencyIcon from "@/assets/icons/currency-banknote.svg";
 import globeIcon from "@/assets/icons/globe.svg";
 import MobileMenuSheet from "@/components/MobileMenuSheet";
+import { useLocale } from "next-intl";
+import { setLanguage as saveLanguage } from "@/i18n/actions";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -96,7 +98,13 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [currency, setCurrency] = useState(CURRENCIES[1]);
-  const [language, setLanguage] = useState(LANGUAGES[0]);
+  // The language is the site's (src/i18n): it is kept in a cookie, and the server draws the page again
+  // in it (the home page's texts follow it); an action that sets a cookie makes Next draw it again.
+  const locale = useLocale();
+  const language = LANGUAGES.find((l) => l.code.toLowerCase() === locale) ?? LANGUAGES[0];
+  const setLanguage = (l: { code: string }) => {
+    void saveLanguage(l.code.toLowerCase());
+  };
 
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);

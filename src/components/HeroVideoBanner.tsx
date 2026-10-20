@@ -20,6 +20,9 @@ type HeroVideoBannerProps = {
   wideVideo?: string;
   buttonLabel: string;
   buttonHref: string;
+  // How wide the longer row of the title is, in times its font size (see `--hero-block` in
+  // globals.css): 7.52 for "New Accessory"; other languages have other widths.
+  titleWidth?: number;
 };
 
 // The windows that get the horizontal video (the same test as in globals.css: a tablet
@@ -36,6 +39,7 @@ export default function HeroVideoBanner({
   wideVideo,
   buttonLabel,
   buttonHref,
+  titleWidth,
 }: HeroVideoBannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const wideRef = useRef<HTMLVideoElement>(null);
@@ -86,7 +90,10 @@ export default function HeroVideoBanner({
 
 
   return (
-    <section className="hero-banner bg-white relative left-1/2 w-screen -mx-[50vw] overflow-hidden bg-black">
+    <section
+      className="hero-banner bg-white relative left-1/2 w-screen -mx-[50vw] overflow-hidden bg-black"
+      style={titleWidth ? ({ "--hero-title-em": titleWidth } as React.CSSProperties) : undefined}
+    >
       <Link href={buttonHref} className="hero-banner-link">
         <video
           ref={videoRef}
@@ -169,7 +176,10 @@ export default function HeroVideoBanner({
           <Link
             href={buttonHref}
             style={{
-              width: "80px",
+              // 80px wide for "SHOP"; a longer word in another language makes it wider.
+              minWidth: "80px",
+              paddingInline: "12px",
+              whiteSpace: "nowrap",
               height: "42px",
               border: "1px solid #ffffff",
               fontWeight: 500,

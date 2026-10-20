@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { BUTTON_EDGE } from "@/components/buttonEdge";
+import { useLocale, useTranslations } from "next-intl";
 import ShopProductCard from "@/components/ShopProductCard";
 import { findProductBySlug, type Product } from "@/data/products";
 
@@ -126,6 +127,9 @@ type UltraSlimsSectionProps = {
 };
 
 export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps) {
+  // The texts follow the language chosen in the header (messages/*.json).
+  const t = useTranslations("Home");
+  const language = useLocale().toUpperCase();
   const pageWidth = useSyncExternalStore(subscribeToResize, getPageWidth, getServerPageWidth);
   const cardWidth = shopCardWidth(pageWidth);
   const slot = slotFor(cardWidth);
@@ -383,15 +387,27 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
       <Link href={buttonHref}>
       <h2 data-reveal="title"
         className="font-montserrat italic text-[#000000]"
-        style={{marginTop: "36px", fontWeight: 680, fontSize: "44px", lineHeight: 1.1 }}
+        // 44px; the Russian and Armenian words are wider (7.1 and 7.3 times their size) and are made
+        // smaller on a narrow phone, so they stay in one row.
+        style={{
+          marginTop: "36px",
+          fontWeight: 680,
+          fontSize:
+            language === "RU"
+              ? "min(44px, calc((100vw - 3rem) / 7.2))"
+              : language === "HY"
+                ? "min(44px, calc((100vw - 3rem) / 7.4))"
+                : "44px",
+          lineHeight: 1.1,
+        }}
       >
-        Ultra Slims
+        {t("ultraSlims.heading")}
       </h2>
       <p data-reveal="text"
         className="mx-auto  max-w-md font-montserrat text-[#000000]"
         style={{ fontSize: "14px" }}
       >
-        <strong className="font-bold">Compatible</strong> Most of Ultra Slims sizes
+        {t("ultraSlims.text")}
       </p>
 
       <button
@@ -400,9 +416,9 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
           fontWeight: 500,
           ...BUTTON_EDGE,
         }}
-        className="mt-[20px] font-montserrat inline-flex h-[42px] w-[140px] items-center justify-center self-center rounded-[8px] bg-[#dcc090] text-[17px] text-[#122a26] transition-colors hover:bg-[#d3b57c]"
+        className="mt-[20px] font-montserrat inline-flex h-[42px] min-w-[140px] items-center justify-center self-center whitespace-nowrap px-3 uppercase rounded-[8px] bg-[#dcc090] text-[17px] text-[#122a26] transition-colors hover:bg-[#d3b57c]"
       >
-        SHOP
+        {t("unlock.button")}
       </button>
       </Link>
 

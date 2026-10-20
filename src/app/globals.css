@@ -5,7 +5,7 @@
   --color-brand-gold: #dcc090;
   --color-brand-muted: #b8b39c;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-montserrat: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-montserrat: "Montserrat", "Noto Sans Armenian", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -2004,7 +2004,7 @@ body:has(.personalization-page) .site-footer {
        Accessory", the longer row of the title (7.52 times its size), so the text under
        "Contrary" is as wide as the title. */
     --hero-title: clamp(1.4rem, 2.2vw, 2.9rem);
-    --hero-block: calc(var(--hero-title) * 7.52);
+    --hero-block: calc(var(--hero-title) * var(--hero-title-em, 7.52));
     /* How far the video is moved out of the screen to the left, which is the width of the
        empty place on the right where the texts are (they fit in it, with room at the sides). */
     --hero-shift: 14vw;
@@ -2634,4 +2634,37 @@ body:has(.passport-page) .site-footer {
 
 [data-reveal="text"].reveal-hidden.is-in {
   transition-delay: 0.2s;
+}
+
+/* Armenian only: two texts a little smaller than in the other languages (the Armenian letters
+   are wider). The Atelier heading is 66px on a phone and clamp(66px, 5.6vw, 96px) from a tablet;
+   the text under the Popular Sizes heading is 13px, and 15px from a laptop. */
+html[lang="hy"] .atelier-section h2 {
+  font-size: 58px !important;
+}
+
+html[lang="hy"] .popular-sizes-section > p {
+  font-size: 12px !important;
+}
+
+@media (min-width: 744px) and (min-height: 500px) {
+  html[lang="hy"] .atelier-section h2 {
+    font-size: clamp(58px, 4.9vw, 84px) !important;
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 500px) {
+  html[lang="hy"] .popular-sizes-section > p {
+    font-size: 14px !important;
+  }
+}
+
+/* Armenian only: the headings of Atelier, Ultra Slims and Popular Sizes are 5px higher. The
+   `translate` property is used (not `top` or `transform`), so it does not touch the scroll
+   reveal (which moves with `transform`) or the 20px that Popular Sizes already has with `top`.
+   Only the heading moves; the text under it stays. */
+html[lang="hy"] .atelier-section h2,
+html[lang="hy"] .ultra-slims-section h2,
+html[lang="hy"] .popular-sizes-section h2 {
+  translate: 0 -5px;
 }

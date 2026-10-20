@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { BUTTON_EDGE } from "@/components/buttonEdge";
+import { useLocale, useTranslations } from "next-intl";
 import atelierCoin from "@/assets/images/covered_collections_section/atelier.png";
 import classicCoin from "@/assets/images/covered_collections_section/classic.png";
 import premiumCoin from "@/assets/images/covered_collections_section/premium.png";
@@ -132,8 +133,16 @@ type LabelState = {
   changes: number;
 };
 
+// The keys of the four collections' texts in messages/*.json, in the order of COLLECTIONS.
+const COLLECTION_KEYS = ["classic", "premium", "atelier", "specialEdition"] as const;
+
 export default function CoverCollectionsSection() {
   const router = useRouter();
+  // The texts follow the language chosen in the header (messages/*.json); the collections are
+  // in the same order as COLLECTIONS above.
+  const t = useTranslations("Home");
+  const language = useLocale().toUpperCase();
+  const nameOf = (index: number) => t(`collections.${COLLECTION_KEYS[index]}.name`);
   const trackRef = useRef<HTMLDivElement>(null);
   const coinRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [label, setLabel] = useState<LabelState>({
@@ -370,9 +379,14 @@ export default function CoverCollectionsSection() {
       >
         <h2 data-reveal="title"
           className="font-montserrat text-center italic text-white"
-          style={{ fontSize: "44px", fontWeight: 600 }}
+          // 44px; the Armenian word is the widest (8.1 times its size) and is made smaller on a
+          // narrow phone, so it stays inside the card.
+          style={{
+            fontSize: language === "HY" ? "min(44px, calc((100vw - 3rem) / 8.2))" : "44px",
+            fontWeight: 600,
+          }}
         >
-          Collections
+          {t("collections.heading")}
         </h2>
 
         {/* Name of the coin in the middle: the old name drops out downwards while
@@ -400,7 +414,7 @@ export default function CoverCollectionsSection() {
                 )
               }
             >
-              {COLLECTIONS[label.previous].name}
+              {nameOf(label.previous)}
             </span>
           )}
           <span
@@ -412,7 +426,7 @@ export default function CoverCollectionsSection() {
                 : "absolute inset-0"
             }
           >
-            {current.name}
+            {nameOf(label.current)}
           </span>
         </div>
 
@@ -482,7 +496,7 @@ export default function CoverCollectionsSection() {
               >
                 <Image
                   src={collection.image}
-                  alt={collection.name}
+                  alt={nameOf(index)}
                   fill
                   sizes={`${COIN_PX}px`}
                   // Only four images, fetched as soon as the page loads, so a
@@ -500,7 +514,12 @@ export default function CoverCollectionsSection() {
           <Link
             href={current.href}
             style={{
-              width: 165,
+              // 165px wide for "SHOP"; a longer word in another language makes it wider.
+              minWidth: 165,
+              paddingInline: 12,
+              whiteSpace: "nowrap",
+              // Capitals, as in the Unlock section (the Armenian word too).
+              textTransform: "uppercase",
               height: 42,
               fontSize: 17,
               fontWeight: 500,
@@ -509,7 +528,7 @@ export default function CoverCollectionsSection() {
             }}
             className="inline-flex items-center justify-center rounded-[8px] bg-[#dcc090] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
           >
-            SHOP
+            {t("unlock.button")}
           </Link>
         </div>
 
@@ -536,9 +555,11 @@ export default function CoverCollectionsSection() {
                   lineHeight: 1.55,
                   opacity: shown ? 0.85 : 0,
                   transition: "opacity 350ms ease",
+                  // The three lines of the text stay three lines.
+                  whiteSpace: "pre-line",
                 }}
               >
-                {collection.description}
+                {t(`collections.${COLLECTION_KEYS[index]}.text`)}
               </p>
             );
           })}

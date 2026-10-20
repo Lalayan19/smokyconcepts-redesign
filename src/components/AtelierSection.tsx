@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 
 import ScrollVideo from "@/components/ScrollVideo";
+import { useLocale, useTranslations } from "next-intl";
 import { ATELIER_MOBILE_VIDEO, ATELIER_SILVER_VIDEO, ATELIER_VIDEO } from "@/lib/homeVideos";
 
 // How long the two videos take to catch up with the scroll (a little, not much: the
@@ -37,6 +40,9 @@ type AtelierSectionProps = {
 };
 
 export default function AtelierSection({ buttonHref }: AtelierSectionProps) {
+  // The texts follow the language chosen in the header (messages/*.json).
+  const t = useTranslations("Home");
+  const language = useLocale().toUpperCase();
   return (
     <section className="atelier-section bg-white relative left-1/2 flex h-[105vh] w-screen -mx-[50vw] flex-col bg-[#efefef] px-6 pt-[126px] pb-10 text-center">
       <Link href={buttonHref} className="atelier-link">
@@ -44,14 +50,13 @@ export default function AtelierSection({ buttonHref }: AtelierSectionProps) {
           className="font-montserrat italic text-[#130F0F]"
           style={{ fontWeight: 800, fontSize: "66px", lineHeight: 1.1 }}
         >
-          Atelier
+          {t("atelier.heading")}
         </h2>
         <p data-reveal="text"
           className="mx-auto max-w-md font-montserrat text-[#120F0F]"
-          style={{ fontSize: "14px", fontWeight: "600" }}
+          style={{ fontSize: "14px", fontWeight: "600", whiteSpace: "pre-line" }}
         >
-          Pack names are standard. Dimensions aren&rsquo;t. We make precise
-          versions that match yours
+          {t("atelier.text")}
         </p>
 
         <button
@@ -61,9 +66,9 @@ export default function AtelierSection({ buttonHref }: AtelierSectionProps) {
             border: "1px solid #122A26",
             fontWeight: 500,
           }}
-          className="mt-[48px] inline-flex h-[42px] w-[165px] items-center justify-center self-center rounded-[8px] bg-[#dcc090] text-[17px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
+          className="mt-[48px] inline-flex h-[42px] min-w-[165px] items-center justify-center self-center whitespace-nowrap px-4 rounded-[8px] bg-[#dcc090] text-[17px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
         >
-          SEE DETAILS
+          {t("atelier.button")}
         </button>
 
         {/* The case: a video, played by the scroll (see ScrollVideo and

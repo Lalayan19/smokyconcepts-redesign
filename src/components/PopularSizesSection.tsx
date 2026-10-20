@@ -2,12 +2,16 @@
 
 import { BUTTON_EDGE } from "@/components/buttonEdge";
 import PopularSizesSlider from "@/components/PopularSizesSlider";
+import { useLocale, useTranslations } from "next-intl";
 
 type PopularSizesSectionProps = {
   onButtonClick: () => void;
 };
 
 export default function PopularSizesSection({ onButtonClick }: PopularSizesSectionProps) {
+  // The texts follow the language chosen in the header (messages/*.json).
+  const t = useTranslations("Home");
+  const language = useLocale().toUpperCase();
   return (
     // A tap anywhere in the section opens the picker, same as the button
     // (the button's click bubbles up here; it stays a real button for keyboard
@@ -23,16 +27,26 @@ export default function PopularSizesSection({ onButtonClick }: PopularSizesSecti
     >
       <h2 data-reveal="title"
         className="font-montserrat italic text-[#000000] "
-        style={{ fontWeight: 690, fontSize: "32px", lineHeight: 1.1 }}
+        // 32px; the Russian and Armenian titles are wider (12.1 and 11.6 times their size) and are
+        // made smaller on a phone, so they stay in one row.
+        style={{
+          fontWeight: 690,
+          fontSize:
+            language === "RU"
+              ? "min(32px, calc((100vw - 3rem) / 12.3))"
+              : language === "HY"
+                ? "min(32px, calc((100vw - 3rem) / 11.7))"
+                : "32px",
+          lineHeight: 1.1,
+        }}
       >
-        Popular Sizes
+        {t("popularSizes.heading")}
       </h2>
       <p data-reveal="text"
         className="mx-auto max-w-md font-montserrat text-[#000000]"
-        style={{ fontWeight: 500, fontSize: "13px" }}
+        style={{ fontWeight: 500, fontSize: "13px", whiteSpace: "pre-line" }}
       >
-        Pack names are standard. Dimensions aren&rsquo;t. We make precise
-        versions that match yours
+        {t("popularSizes.text")}
       </p>
 
       {/* The button is under the text, above the packs (its distance from the text
@@ -40,9 +54,9 @@ export default function PopularSizesSection({ onButtonClick }: PopularSizesSecti
       <button
         type="button"
         style={{fontWeight: 500, letterSpacing: "0.1em", textTransform: "uppercase", ...BUTTON_EDGE }}
-        className="popular-sizes-button mx-auto flex h-[42px] w-[228px] items-center justify-center rounded-[8px] bg-[#dcc090] text-[15px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
+        className="popular-sizes-button mx-auto flex h-[42px] w-fit min-w-[228px] items-center justify-center whitespace-nowrap px-4 rounded-[8px] bg-[#dcc090] text-[15px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
       >
-        Select Cigarette
+        {t("popularSizes.button")}
       </button>
 
       {/* The row of packs, each with its name under it (its distance from the

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { BUTTON_EDGE } from "@/components/buttonEdge";
 import { useLocale, useTranslations } from "next-intl";
@@ -26,12 +27,13 @@ export default function PersonalizationSection({ buttonHref }: PersonalizationSe
   // The texts follow the language chosen in the header (messages/*.json).
   const t = useTranslations("Home");
   const language = useLocale().toUpperCase();
+  const router = useRouter();
   return (
     // White behind the black section's corners, except for the last 1.5rem: there
     // the About photo, which starts that far up behind this section, shows
     // through the rounded bottom corners. `z-10` keeps this section in front of it.
     <section
-      className="group relative left-1/2 z-10 w-screen -mx-[50vw]"
+      className="relative left-1/2 z-10 w-screen -mx-[50vw]"
       style={{ background: "linear-gradient(to bottom, #ffffff calc(100% - 1.5rem), transparent 0)" }}
     >
       <div className="personalization-card flex h-[105vh] flex-col overflow-hidden rounded-[1.5rem] bg-black px-6 pt-12 text-center">
@@ -63,7 +65,12 @@ export default function PersonalizationSection({ buttonHref }: PersonalizationSe
             larger have them the other way round (see `.personalization-card` in
             globals.css). The video is played by the scroll (see ScrollVideo and
             `.personalization-art-video` in globals.css), on every screen. */}
-        <div className="personalization-art relative mt-8 min-h-0">
+        {/* Only the video and the button open the Personalization page (not the rest of the
+            section): a tap on the video goes there like the button does. */}
+        <div
+          onClick={() => router.push(buttonHref)}
+          className="personalization-art relative mt-8 min-h-0 cursor-pointer [-webkit-tap-highlight-color:transparent]"
+        >
           <ScrollVideo
             src={PERSONALIZED_VIDEO}
             sectionSelector=".personalization-card"
@@ -82,21 +89,11 @@ export default function PersonalizationSection({ buttonHref }: PersonalizationSe
          
           href={buttonHref}
           style={{ letterSpacing: "0.1em", textTransform: "uppercase", ...BUTTON_EDGE }}
-          className="relative -mt-[72px] mb-10 inline-flex h-[42px] min-w-[220px] shrink-0 items-center justify-center self-center whitespace-nowrap px-4 rounded-[8px] bg-[#dcc090] text-[20px] font-montserrat text-[#122a26] transition-colors group-hover:bg-[#d3b57c]"
+          className="relative -mt-[72px] mb-10 inline-flex h-[42px] min-w-[220px] shrink-0 items-center justify-center self-center whitespace-nowrap px-4 rounded-[8px] bg-[#dcc090] text-[20px] font-montserrat text-[#122a26] transition-colors hover:bg-[#d3b57c]"
         >
           {t("personalization.button")}
         </Link>
       </div>
-
-      {/* The whole section is a link to the Personalization page: this covers it (it is
-          not inside the card, so the card's rules for its own links do not touch it). The
-          button above is the same link, which shows the button's hover colour (`group`). */}
-      <Link
-        href={buttonHref}
-        aria-label="Personalization"
-        tabIndex={-1}
-        className="absolute inset-0 z-20"
-      />
     </section>
   );
 }

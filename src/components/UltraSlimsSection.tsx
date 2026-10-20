@@ -390,7 +390,7 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
         // 44px; the Russian and Armenian words are wider (7.1 and 7.3 times their size) and are made
         // smaller on a narrow phone, so they stay in one row.
         style={{
-          marginTop: "36px",
+          marginTop: "40px",
           fontWeight: 680,
           fontSize:
             language === "RU"
@@ -404,7 +404,7 @@ export default function UltraSlimsSection({ buttonHref }: UltraSlimsSectionProps
         {t("ultraSlims.heading")}
       </h2>
       <p data-reveal="text"
-        className="mx-auto  max-w-md font-montserrat text-[#000000]"
+        className="mx-auto mt-[10px]  max-w-md font-montserrat text-[#000000]"
         style={{ fontSize: "14px" }}
       >
         {t("ultraSlims.text")}

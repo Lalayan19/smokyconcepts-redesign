@@ -2668,3 +2668,166 @@ html[lang="hy"] .ultra-slims-section h2,
 html[lang="hy"] .popular-sizes-section h2 {
   translate: 0 -5px;
 }
+
+/* The text under "Smoky Covers" has line breaks (`<br/>` in messages/*.json) on a phone only;
+   from a tablet its column is narrower and the text wraps by itself. */
+@media (min-width: 744px) and (min-height: 500px) {
+  .hero-phone-break {
+    display: none;
+  }
+}
+
+/* Armenian only, phone only: the Atelier heading is 10px higher still (15px up in all; the
+   5px above stays for a tablet and larger). */
+html[lang="hy"] .atelier-section h2 {
+  translate: 0 -15px;
+}
+
+@media (min-width: 744px) and (min-height: 500px) {
+  html[lang="hy"] .atelier-section h2 {
+    translate: 0 -5px;
+  }
+}
+
+/* Say Hi, a big phone or a small tablet (640 to 743px): the bottom padding is 6.5rem there, so 10px
+   more is added to that (see the phone rule below). */
+@media (min-width: 640px) and (max-width: 743px) {
+  html .say-hi-section > div {
+    padding-bottom: calc(6.5rem + 30px);
+  }
+}
+
+/* Popular Sizes: the text under the heading is 14px on every screen and in every language (the
+   Armenian one too). `html[lang]` and `!important` make it win over the sizes above (13px inline,
+   15px from a laptop, and the Armenian 12px and 14px). */
+html[lang] .popular-sizes-section > p {
+  font-size: 14px !important;
+}
+
+/* Popular Sizes, phone: the section is smaller from the top and the bottom equally: 60px less on
+   each side (its height 120px less, and what is in it starts 60px higher: the top padding is 16px,
+   not 76; it was 20px less on each side, then 20px more, then 20px more). The gaps inside it are
+   as they were. A tablet and larger are not changed. */
+@media not all and (min-width: 744px) and (min-height: 500px) {
+  .popular-sizes-section {
+    height: max(calc(80vh - 90px), 596px);
+    padding-top: 62px;
+  }
+
+  /* The heading is the same distance from the top of the section as the row of cards in Ultra
+     Slims is from the bottom of its section (52px, the same on every phone): its place does not
+     depend on the height of the content (the auto margin made it different in each language),
+     and the 62px of padding is 52 + the 20px that the heading is drawn higher (see above) - the
+     10px it is pushed lower (the Armenian heading has 5px more of lift, so it is 5px lower
+     in the rule below). */
+  .popular-sizes-section > h2 {
+    margin-top: 0 !important;
+  }
+
+  html[lang="hy"] .popular-sizes-section {
+    padding-top: 67px;
+  }
+
+  /* About, phone: the section is 100px taller at the top (white, above the photo; it was 60px,
+     then 40px more): the photo and the button, which is on the pedestal (81.8% of the photo's
+     height), are 100px lower, and the text stays where it was (10.3% of the photo's height from
+     the top of the section), so it has 100px more room above the bag's handles. A tablet and
+     larger are not changed. */
+  .about-split {
+    --about-extra: 100px;
+    padding-top: var(--about-extra);
+    /* The space above the photo is the colour of the photo's top edge (it is a little grey and
+       darker on the right: 252, 248 and 240 of 255 at the left, the middle and the right), so
+       there is no band where the photo starts. */
+    background: linear-gradient(to right, #fcfbfc, #f8f8f8 50%, #f0f0f0);
+  }
+
+  /* The heading and the text under it are 55px lower than 10.3% of the photo's height (the
+     button and the photo did not move; it was 30px, then 10px more, then 15px more). */
+  .about-split .about-text {
+    top: calc((100% - var(--about-extra)) * 0.103 + 55px) !important;
+  }
+
+  /* Armenian only: the second row of the heading ("Մնայուն տպավորություն։") is drawn 5px lower
+     (`translate` moves only that row; the text under the heading stays). */
+  html[lang="hy"] .about-text h2 > span:nth-child(2) {
+    translate: 0 5px;
+  }
+
+  .about-split .about-button {
+    top: calc(var(--about-extra) + (100% - var(--about-extra)) * 0.818) !important;
+  }
+
+  /* Say Hi, phone: the section is 10px taller at the bottom (the padding under the button is 10px
+     more: 5.5rem + 10px, as it is 6.5rem + 10px from 640px, below); what is in it stays where it
+     was, because it is placed from the top. A tablet and larger are not changed. */
+  .say-hi-section > div {
+    padding-bottom: calc(5.5rem + 30px);
+  }
+
+  /* About, phone: the text under the heading is 14px (12px inline); a larger screen has its own. */
+  .about-text p {
+    font-size: 14px !important;
+    /* Centered, and further from the heading: 26px (it was 10px, then 18px). */
+    text-align: center;
+    margin-top: 26px;
+  }
+
+  /* Personalization, phone: the text under the heading is 14px (13px inline). */
+  .personalization-card p {
+    font-size: 14px !important;
+  }
+
+  /* The button is 42px high on every phone: the section is a column with a fixed height, and
+     where the content is taller than it the button could be squeezed. */
+  .popular-sizes-section .popular-sizes-button {
+    height: 42px !important;
+    min-height: 42px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* The text under the heading, phone: 14px in every language (the Armenian one too, which is
+     smaller on a larger screen, see above), and drawn 10px lower (`translate` does not move the
+     button or the packs, and does not touch the scroll reveal, which moves with `transform`). */
+  html[lang] .popular-sizes-section > p {
+    translate: 0 20px;
+  }
+
+  /* Then the heading and the text were pushed 10px lower again: the heading is 10px lower (the
+     Armenian one keeps its 5px lift, so it is 5px lower in all) and the text 20px lower. */
+  html[lang] .popular-sizes-section > h2 {
+    translate: 0 10px;
+  }
+
+  html[lang="hy"] .popular-sizes-section > h2 {
+    translate: 0 5px;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 743px) {
+    .popular-sizes-section {
+      height: max(calc(100vh - 90px), 596px);
+    }
+  }
+}
+
+/* Russian only, phone only: the text of the Special Edition collection has the font size of the
+   other texts (14px); it is as wide as the screen allows (not the 320px of the other texts), so
+   its first line ("Стандарты никогда не были твоим выбором.") is one row. A tablet and larger
+   have it as it was. */
+@media not all and (min-width: 744px) and (min-height: 500px) {
+  .collections-desc p.collections-ru-special {
+    /* The first line is 333px wide at 14px, so it needs 340px (a phone 360px wide has 20px of room on
+       each side, 10px with this) to be one row; a phone 320px wide is too narrow for it. */
+    width: max(100%, min(calc(100vw - 1.25rem), 400px));
+    justify-self: center;
+  }
+
+  /* Unlock, phone: the heading and the text under it ("Smoky Covers"), not the button, are 6px
+     higher (the button is placed by the layout, this only draws the copy higher). */
+  .hero-banner .hero-banner-copy {
+    position: relative;
+    top: -6px;
+  }
+}

@@ -21,10 +21,26 @@ type AboutSectionProps = {
 const TEXT_TOP = "10.3%";
 const BUTTON_MIDDLE = "81.8%";
 
+// How wide each of the heading's two rows is, in times the font's size (measured in the page's
+// font, italic 800, and a little more): the sentences "A Small Gift." and "A Lasting Impression."
+// and the same in the other languages. If the heading in messages/*.json is changed, measure again.
+const HEADING_EM: Record<string, [number, number]> = {
+  EN: [6.7, 11.7],
+  RU: [11.9, 16.3],
+  HY: [6.1, 13.9],
+};
+
+// The heading is split after its first sentence: "A Small Gift." / "A Lasting Impression.".
+function splitHeading(heading: string): string[] {
+  const match = heading.match(/^(.*?[.։])\s+(.*)$/);
+  return match ? [match[1], match[2]] : [heading];
+}
+
 export default function AboutSection({ image, buttonHref }: AboutSectionProps) {
   // The texts follow the language chosen in the header (messages/*.json).
   const t = useTranslations("Home");
   const language = useLocale().toUpperCase();
+  const headingRows = splitHeading(t("about.heading"));
   return (
     // The top 1.5rem of the section is behind the Personalization section above
     // it (whose rounded bottom corners show the photo). The white is on the div
@@ -49,9 +65,22 @@ export default function AboutSection({ image, buttonHref }: AboutSectionProps) {
           <div className="about-text absolute inset-x-0 px-6" style={{ top: TEXT_TOP }}>
             <h2 data-reveal="title"
               className="font-montserrat italic text-[#130F0F]"
-              style={{ fontWeight: 800, fontSize: "35px", lineHeight: 1.1 }}
+              // The heading is two rows, one for each sentence; `containerType` makes `cqw` below
+              // the width of the heading, so a row that is too wide for it is made smaller to be
+              // one row (and is the font's size, 35px or what a larger screen has, when it fits).
+              style={{ fontWeight: 800, fontSize: "35px", lineHeight: 1.1, containerType: "inline-size" }}
             >
-              {t("about.heading")}
+              {headingRows.map((row, index) => (
+                <span
+                  key={index}
+                  className="block whitespace-nowrap"
+                  style={{
+                    fontSize: `min(${index === 1 ? "0.6em" : "1em"}, calc(100cqw / ${HEADING_EM[language]?.[index] ?? HEADING_EM.EN[index]}))`,
+                  }}
+                >
+                  {row}
+                </span>
+              ))}
             </h2>
             <p data-reveal="text"
               className="mt-[10px] mx-auto font-montserrat text-left text-[#414141]"

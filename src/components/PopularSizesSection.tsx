@@ -44,7 +44,7 @@ export default function PopularSizesSection({ onButtonClick }: PopularSizesSecti
       </h2>
       <p data-reveal="text"
         className="mx-auto max-w-md font-montserrat text-[#000000]"
-        style={{ fontWeight: 500, fontSize: "13px", whiteSpace: "pre-line" }}
+        style={{ fontWeight: 500, fontSize: "14px", whiteSpace: "pre-line" }}
       >
         {t("popularSizes.text")}
       </p>

@@ -50,7 +50,7 @@ export default function Home() {
           })}
           titleWidth={UNLOCK_TITLE_WIDTH[locale] ?? UNLOCK_TITLE_WIDTH.en}
           bottomHeading={t("unlock.heading")}
-          bottomText={t("unlock.text")}
+          bottomText={t.rich("unlock.text", { br: () => <br className="hero-phone-break" /> })}
           image={newAccessory}
           video="/videos/smoky-unlock.mp4"
           wideVideo="/videos/smoky-unlock-opener.mp4"

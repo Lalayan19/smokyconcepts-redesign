@@ -547,7 +547,12 @@ export default function CoverCollectionsSection() {
               <p
                 key={collection.name}
                 aria-hidden={shown ? undefined : true}
-                className="font-montserrat text-center text-white"
+                // Russian, Special Edition, on a phone: see `.collections-ru-special` in globals.css.
+                className={`font-montserrat text-center text-white${
+                  language === "RU" && COLLECTION_KEYS[index] === "specialEdition"
+                    ? " collections-ru-special"
+                    : ""
+                }`}
                 style={{
                   gridArea: "1 / 1",
                   fontSize: 14,

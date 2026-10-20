@@ -147,27 +147,27 @@ export default function HeroVideoBanner({
           {subtitle && (
             <p
               className="hero-banner-subtitle mt-[6px] text-white/80 font-montserrat"
-              style={{ fontSize: "12px" }}
+              style={{ fontSize: "14px" }}
             >
               {subtitle}
             </p>
           )}
         </div>
 
-        {/* The bottom heading + text and the button all sit 124px above the
-            bottom edge. */}
+        {/* The bottom heading + text, and the button under them (on the right), sit 55px above the
+            bottom edge (the text is as wide as the screen allows). */}
         <div
-          className="hero-banner-fit hero-banner-bottom absolute inset-x-0 bottom-0 z-20 flex items-end justify-start gap-4 px-6"
-          style={{ paddingBottom: "124px", display: 'flex', justifyContent: "center" }}
+          className="hero-banner-fit hero-banner-bottom absolute inset-x-0 bottom-0 z-20 flex flex-col items-stretch justify-start gap-3 px-6"
+          style={{ paddingBottom: "55px", display: 'flex', justifyContent: "center" }}
         >
-          <div className="hero-banner-copy min-w-0" style={{ maxWidth: "65%" }}>
+          <div className="hero-banner-copy min-w-0" style={{ maxWidth: "100%" }}>
             {bottomHeading && (
-              <h3 className="hero-banner-heading text-xl font-extrabold tracking-[-0.01em] text-white sm:text-2xl">
+              <h3 className="hero-banner-heading text-[22px] font-extrabold tracking-[-0.01em] text-white">
                 {bottomHeading}
               </h3>
             )}
             {bottomText && (
-              <p className="hero-banner-text mt-1.5 text-[8px] leading-snug text-white sm:text-xs">
+              <p className="hero-banner-text mt-1.5 text-[14px] leading-snug text-white">
                 {bottomText}
               </p>
             )}
@@ -186,7 +186,7 @@ export default function HeroVideoBanner({
               textTransform: "uppercase",
               fontSize: "17px"
             }}
-            className="hero-banner-button inline-flex shrink-0 items-center justify-center rounded-[8px] bg-[#dcc090] font-montserrat text-[20px] text-[#122a26] transition-colors hover:bg-[#d3b57c]"
+            className="hero-banner-button -mt-[27px] max-[340px]:mt-0 inline-flex shrink-0 items-center justify-center self-end rounded-[8px] bg-[#dcc090] font-montserrat text-[20px] text-[#122a26] transition-colors hover:bg-[#d3b57c]"
           >
             {buttonLabel}
           </Link>

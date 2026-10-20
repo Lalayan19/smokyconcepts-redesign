@@ -2680,12 +2680,100 @@ html[lang="hy"] .popular-sizes-section h2 {
 /* Armenian only, phone only: the Atelier heading is 10px higher still (15px up in all; the
    5px above stays for a tablet and larger). */
 html[lang="hy"] .atelier-section h2 {
-  translate: 0 -15px;
+  translate: 0 -25px;
 }
 
 @media (min-width: 744px) and (min-height: 500px) {
   html[lang="hy"] .atelier-section h2 {
-    translate: 0 -5px;
+    translate: 0 -15px;
+  }
+}
+
+/* Armenian only, laptop and desktop: the text of the Premium collection. Its first sentence was
+   three rows, the last one only "գեղեցկությունը։", because the box is 34rem (544px) and the
+   16px sentence needs about 585px a row to be two. The text is a box 640px wide (centered, a
+   little past the 34rem of the others) and its rows are balanced, so the word goes up to the
+   row above, and "Պրեմիում կաշիներ," starts the row under it, as the text has it. */
+@media (min-width: 1024px) and (min-height: 500px) {
+  .collections-desc p.collections-hy-premium {
+    width: 640px;
+    justify-self: center;
+    text-wrap: balance;
+  }
+}
+
+/* Unlock, "Smoky Covers" (the heading under the title): it has no font of the site (it is in the
+   system's), so the Armenian word of "Smoky Պատյաններ" was in whatever font the system has for
+   Armenian. "Noto Sans Armenian", the font the other Armenian texts have, is first: it has only
+   the Armenian letters, so the Latin ones ("Smoky Covers") stay as they were in every language. */
+.hero-banner-heading {
+  font-family: "Noto Sans Armenian", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Unlock, tablet, laptop and desktop: the line under the title ("Unique Accessories for Your
+   Rituals.") and the text under "Smoky Covers" are 16px, whatever the screen (they grew with it
+   before: clamp(0.7rem, 0.75vw, 1rem) and var(--hero-text)). `html` and `!important` make it win. */
+@media (min-width: 744px) and (min-height: 500px) {
+  html .hero-banner .hero-banner-text {
+    font-size: 16px !important;
+  }
+
+  /* "Smoky Covers", the text under it and the button are drawn 30px lower (the block is
+     `position: relative` with `top: 35px`, now 65px; nothing else moves). */
+  html .hero-banner .hero-banner-bottom {
+    top: 65px;
+  }
+
+  /* "Smoky Covers" is 2px bigger than it grew (clamp(0.92rem, 1.13vw, 1.5rem)). */
+  html .hero-banner .hero-banner-heading {
+    font-size: calc(clamp(0.92rem, 1.13vw, 1.5rem) + 2px);
+  }
+
+  /* The text under "Smoky Covers" is two rows (the column is only as wide as the title, so the
+     two rows go past it to the right, over the picture, like the line under the title). Its
+     whole line is 52.1 (English), 57.4 (Russian) and 54.0 (Armenian) times the font's size wide,
+     so a box about half that and a little more (29em, 32em and 30em) makes two balanced rows; it
+     is 16px, and a little smaller where the room to the right runs out (an iPad, a small
+     laptop): the same room as the line under the title, 22.5vw + 194px. */
+  html .hero-banner .hero-banner-text {
+    width: 29em;
+    max-width: none;
+    text-wrap: balance;
+    /* The balanced rows are about 24.5em (English), 26.1em (Russian) and 26.4em (Armenian) wide,
+       narrower than the box, so the font is worked out from those (and a little more). */
+    font-size: min(16px, calc((22.5vw + 194px) / 25.5)) !important;
+  }
+
+  html[lang="ru"] .hero-banner .hero-banner-text {
+    width: 32em;
+    font-size: min(16px, calc((22.5vw + 194px) / 27)) !important;
+  }
+
+  html[lang="hy"] .hero-banner .hero-banner-text {
+    width: 30em;
+    font-size: min(16px, calc((22.5vw + 194px) / 27.3)) !important;
+  }
+
+  /* The line under the title is 18px (then it was 16px). */
+  html .hero-banner .hero-banner-subtitle {
+    font-size: 18px !important;
+  }
+
+  /* Russian and Armenian: the line under the title is one row (the column is only as wide as the
+     title, so the line goes past it to the right, over the picture). Its width is 24.2 (Russian)
+     and 26.8 (Armenian) times the font's size, and the room to the right of where it starts is
+     about 22.5vw + 194px up to 1279px wide (it starts at 0.775vw - 210px, the screen's edge less
+     16px), so on an iPad and a small laptop it is smaller than 18px, and from 1280px it is 18px
+     (Russian from about 1180px). */
+  html[lang="ru"] .hero-banner .hero-banner-subtitle {
+    white-space: nowrap;
+    font-size: min(18px, calc((22.5vw + 194px) / 24.5)) !important;
+  }
+
+  html[lang="hy"] .hero-banner .hero-banner-subtitle {
+    white-space: nowrap;
+    font-size: min(18px, calc((22.5vw + 194px) / 27.2)) !important;
   }
 }
 
@@ -2697,11 +2785,56 @@ html[lang="hy"] .atelier-section h2 {
   }
 }
 
-/* Popular Sizes: the text under the heading is 14px on every screen and in every language (the
-   Armenian one too). `html[lang]` and `!important` make it win over the sizes above (13px inline,
-   15px from a laptop, and the Armenian 12px and 14px). */
+/* About, Armenian only: the second row of the heading is 5px lower on a tablet and larger too (a
+   phone has 10px, see the phone rule below). */
+@media (min-width: 744px) and (min-height: 500px) {
+  html[lang="hy"] .about-text h2 > span:nth-child(2) {
+    translate: 0 5px;
+  }
+}
+
+/* About, Armenian only: the last sentence of the text ("կարևոր է հոգատարությունը և պարգևած
+   զգացողությունները։") is one row. It is 32 times the font's size wide, so the font is the size it
+   was (12px, 14px on a phone, 16px on a laptop) or, where the box is narrower than that allows,
+   the box's width divided by 32.5. `cqw` is the width of the box of the heading and the text (the
+   container); on a laptop the text is at most 30rem wide. */
+html[lang="hy"] .about-text {
+  container-type: inline-size;
+}
+
+html[lang="hy"] .about-text p {
+  max-width: none !important;
+  font-size: min(12px, calc(100cqw / 32.5)) !important;
+}
+
+@media (min-width: 1024px) and (min-height: 500px) {
+  html[lang="hy"] .about-text p {
+    max-width: min(30rem, 100cqw) !important;
+    font-size: min(16px, calc(min(30rem, 100cqw) / 32.5)) !important;
+  }
+}
+
+/* Personalization: the text under the heading is 18px and italic on every screen (it was 13px
+   inline, 14px on a phone and 15px on a laptop), drawn 5px lower (`translate`, so nothing else
+   moves), and the text of the button is italic. `html` and `!important` make it win. */
+html .personalization-card p {
+  font-size: 18px !important;
+  font-style: italic;
+  translate: 0 5px;
+}
+
+html .personalization-card a {
+  font-style: italic;
+}
+
+/* Popular Sizes: the text under the heading is 16px on every screen and in every language (the
+   Armenian one too; it was 14px). `html[lang]` and `!important` make it win over the sizes above
+   (13px inline, 15px from a laptop, and the Armenian 12px and 14px). */
 html[lang] .popular-sizes-section > p {
-  font-size: 14px !important;
+  font-size: 16px !important;
+  /* 10px lower (a phone has 30px, see the phone rule below, 10px more than it had). It is drawn
+     lower with `translate`, so the button and the packs stay. */
+  translate: 0 10px;
 }
 
 /* Popular Sizes, phone: the section is smaller from the top and the bottom equally: 60px less on
@@ -2748,10 +2881,10 @@ html[lang] .popular-sizes-section > p {
     top: calc((100% - var(--about-extra)) * 0.103 + 55px) !important;
   }
 
-  /* Armenian only: the second row of the heading ("Մնայուն տպավորություն։") is drawn 5px lower
-     (`translate` moves only that row; the text under the heading stays). */
+  /* Armenian only: the second row of the heading ("Մնայուն տպավորություն։") is drawn 10px lower
+     (`translate` moves only that row; the text under the heading stays; it was 5px). */
   html[lang="hy"] .about-text h2 > span:nth-child(2) {
-    translate: 0 5px;
+    translate: 0 10px;
   }
 
   .about-split .about-button {
@@ -2766,6 +2899,10 @@ html[lang] .popular-sizes-section > p {
   }
 
   /* About, phone: the text under the heading is 14px (12px inline); a larger screen has its own. */
+  html[lang="hy"] .about-text p {
+    font-size: min(14px, calc(100cqw / 32.5)) !important;
+  }
+
   .about-text p {
     font-size: 14px !important;
     /* Centered, and further from the heading: 26px (it was 10px, then 18px). */
@@ -2790,7 +2927,7 @@ html[lang] .popular-sizes-section > p {
      smaller on a larger screen, see above), and drawn 10px lower (`translate` does not move the
      button or the packs, and does not touch the scroll reveal, which moves with `transform`). */
   html[lang] .popular-sizes-section > p {
-    translate: 0 20px;
+    translate: 0 30px;
   }
 
   /* Then the heading and the text were pushed 10px lower again: the heading is 10px lower (the

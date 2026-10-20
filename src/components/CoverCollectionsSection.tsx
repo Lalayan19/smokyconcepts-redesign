@@ -552,6 +552,10 @@ export default function CoverCollectionsSection() {
                   language === "RU" && COLLECTION_KEYS[index] === "specialEdition"
                     ? " collections-ru-special"
                     : ""
+                }${
+                  language === "HY" && COLLECTION_KEYS[index] === "premium"
+                    ? " collections-hy-premium"
+                    : ""
                 }`}
                 style={{
                   gridArea: "1 / 1",
@@ -564,7 +568,11 @@ export default function CoverCollectionsSection() {
                   whiteSpace: "pre-line",
                 }}
               >
-                {t(`collections.${COLLECTION_KEYS[index]}.text`)}
+                {/* A `<br></br>` in a text is a break on a phone only (hidden from a tablet, see
+                    `.hero-phone-break` in globals.css). */}
+                {t.rich(`collections.${COLLECTION_KEYS[index]}.text`, {
+                  br: () => <br className="hero-phone-break" />,
+                })}
               </p>
             );
           })}

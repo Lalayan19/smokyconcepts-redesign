@@ -2898,9 +2898,12 @@ html[lang] .popular-sizes-section > p {
     padding-bottom: calc(5.5rem + 30px);
   }
 
-  /* About, phone: the text under the heading is 14px (12px inline); a larger screen has its own. */
+  /* About, phone: the text under the heading is 14px (12px inline); a larger screen has its own.
+     The Armenian one is 14px too, not made smaller to keep its last sentence in one row (that was
+     11px on a 412px phone): the sentence is 448px wide at 14px, so it is two rows now, balanced. */
   html[lang="hy"] .about-text p {
-    font-size: min(14px, calc(100cqw / 32.5)) !important;
+    font-size: 14px !important;
+    text-wrap: balance;
   }
 
   .about-text p {
@@ -2927,6 +2930,7 @@ html[lang] .popular-sizes-section > p {
      smaller on a larger screen, see above), and drawn 10px lower (`translate` does not move the
      button or the packs, and does not touch the scroll reveal, which moves with `transform`). */
   html[lang] .popular-sizes-section > p {
+    font-size: 14px !important;
     translate: 0 30px;
   }
 

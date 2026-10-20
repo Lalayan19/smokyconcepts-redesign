@@ -22,8 +22,9 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 //    a video (16:9), in which every frame is a key frame
 //    (`public/videos/personalization-scrub.mp4`), so jumping to any time is as
 //    fast going backwards as forwards;
-//  - for a window taller than wide (a phone, a tablet upright): the 200 frames
-//    as pictures (9:16, `public/videos/personalization-mobile-frames/`), drawn
+//  - for a window taller than wide (a phone, a tablet upright): the 210 frames
+//    as pictures (9:16: the 16:9 film, whole, in the middle of black,
+//    `public/videos/personalization-mobile-frames/`), drawn
 //    on a canvas. A phone's video decoder is slow to jump to a frame (a jump is
 //    a hold-up of 50 to 150 ms there), so playing a video backwards, or
 //    scrubbing it, is jerky on a phone; a picture is drawn at once.
@@ -39,10 +40,10 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 
 // Raise it when a file of the film is changed (see next.config.ts): the new
 // address is not in the browser's keeping.
-const FILM_VERSION = 1;
+const FILM_VERSION = 3;
 const SRC_LARGE = `/videos/personalization-scrub.mp4?v=${FILM_VERSION}`;
 // The size of the video, for the bar if the server does not say (bytes).
-const FALLBACK_LARGE_BYTES = 8_200_000;
+const FALLBACK_LARGE_BYTES = 8_600_000;
 // Where the video is kept in the browser once it has come. (The browser's own
 // keeping, which the server's headers ask for, does not hold a file this big in
 // some browsers, Safari among them, so the video is also put in Cache Storage,
@@ -72,9 +73,12 @@ const FRAMES_DIR = "/videos/personalization-mobile-frames";
 const frameUrl = (index: number) =>
   `${FRAMES_DIR}/f${String(index).padStart(3, "0")}.webp?v=${FILM_VERSION}`;
 const FPS = 24;
-// The length of each shape, in frames.
-const FRAMES_LARGE = 199;
-const FRAMES_PHONE = 200;
+// The length of each shape, in frames. (The film as it was made has 250: the last 40 are the
+// words "Your Sign" held, and only a faint light moving on them; scrolling back from the end
+// had to play through them before anything moved, so they are cut, and the film ends 9
+// frames after the words have settled.)
+const FRAMES_LARGE = 210;
+const FRAMES_PHONE = 210;
 // The windows that get the video: wider than tall (the same test as in
 // globals.css).
 const LARGE_SCREEN = "(min-aspect-ratio: 1/1)";
@@ -198,7 +202,8 @@ const STOP_TEXTS: (StopText | null)[] = [
     ],
     heading: PLACEHOLDER_HEADING,
     body: PLACEHOLDER_BODY,
-    left: "64.2%",
+    // On the left of the picture (it was at 64.2%, on the horns in the new film).
+    left: "12%",
     top: "63%",
   },
   // stop 3, the blue case
@@ -211,7 +216,11 @@ const STOP_TEXTS: (StopText | null)[] = [
   },
   // stop 4, the three shields
   {
-    lines: [["Gold Silver Titan", 98]],
+    // Two lines (one line of this is wider than a phone): "White Gold, Gold, Rose Gold".
+    lines: [
+      ["White Gold,", 98],
+      ["Gold, Rose Gold", 98],
+    ],
     heading: PLACEHOLDER_HEADING,
     body: PLACEHOLDER_BODY,
     left: "10.9%",

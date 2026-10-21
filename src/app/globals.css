@@ -642,6 +642,16 @@ body:has(.personalization-scrub) {
   }
 }
 
+/* A stop with `phoneBottom` is at the bottom left (as a note is) on a window taller than wide
+   (a phone), where the pictures are empty at the bottom; a wide window has it where --left and
+   --top say. */
+@media not all and (min-aspect-ratio: 1/1) {
+  .stop-text-phone-bottom {
+    top: auto;
+    bottom: 6%;
+  }
+}
+
 /* A phone on its side has too little height for the text of a stop. */
 @media (min-aspect-ratio: 1/1) and (max-height: 499.98px) {
   .stop-text {

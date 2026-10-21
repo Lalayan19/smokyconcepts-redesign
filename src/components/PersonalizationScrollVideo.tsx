@@ -23,7 +23,7 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 //    (`public/videos/personalization-scrub.mp4`), so jumping to any time is as
 //    fast going backwards as forwards;
 //  - for a window taller than wide (a phone, a tablet upright): the 210 frames
-//    as pictures (9:16: the 16:9 film, whole, in the middle of black,
+//    as pictures (the film as it was made for a phone, 9:16,
 //    `public/videos/personalization-mobile-frames/`), drawn
 //    on a canvas. A phone's video decoder is slow to jump to a frame (a jump is
 //    a hold-up of 50 to 150 ms there), so playing a video backwards, or
@@ -40,7 +40,7 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 
 // Raise it when a file of the film is changed (see next.config.ts): the new
 // address is not in the browser's keeping.
-const FILM_VERSION = 3;
+const FILM_VERSION = 4;
 const SRC_LARGE = `/videos/personalization-scrub.mp4?v=${FILM_VERSION}`;
 // The size of the video, for the bar if the server does not say (bytes).
 const FALLBACK_LARGE_BYTES = 8_600_000;
@@ -168,6 +168,9 @@ type StopText = {
   left: string;
   top: string;
   note?: { left: string; top: string };
+  // The whole block (the big lines, the heading and the paragraph) is at the bottom left on
+  // a phone, instead of the top left; a wide window has it at `left` and `top` as usual.
+  phoneBottom?: boolean;
 };
 
 // How much a block moves with the mouse (a laptop, a desktop): 1 is a little, more
@@ -225,6 +228,8 @@ const STOP_TEXTS: (StopText | null)[] = [
     body: PLACEHOLDER_BODY,
     left: "10.9%",
     top: "19.5%",
+    // On a phone the cushions are at the top of the picture, so the text goes to the bottom.
+    phoneBottom: true,
   },
   // the last frame, "Your Sign": the big lines top left, the note bottom right
   {
@@ -1181,7 +1186,7 @@ export default function PersonalizationScrollVideo() {
             text && (
               <Fragment key={index}>
                 <div
-                  className="stop-text font-montserrat"
+                  className={`stop-text font-montserrat${text.phoneBottom ? " stop-text-phone-bottom" : ""}`}
                   data-shown={restText === index}
                   aria-hidden={restText !== index}
                   style={

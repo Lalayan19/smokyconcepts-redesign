@@ -304,6 +304,14 @@
   justify-content: center;
   min-height: calc(100vh - 4rem);
   min-height: calc(100svh - 4rem);
+  /* As tall as the tallest window a phone has (the address bar away), not the shortest: the
+     page must be long enough that the sheet's top can be at the header with the address bar
+     away too. With the shorter sheet, the page's end was `lvh - svh` (the height of the
+     address bar) too near, so the sheet could not rise all the way, and when a finger on it
+     took the address bar away, the page was pulled back by that much and the film showed
+     above the sheet. A laptop, a desktop: the same as above. (A browser without `lvh`
+     keeps the line above.) */
+  min-height: calc(100lvh - 4rem);
   padding: 3.5rem 2rem 5.5rem;
   border-top: 1px solid rgba(220, 192, 144, 0.6);
   border-radius: 1.5rem 1.5rem 0 0;
@@ -2980,5 +2988,18 @@ html[lang] .popular-sizes-section > p {
   .hero-banner .hero-banner-copy {
     position: relative;
     top: -6px;
+  }
+}
+
+/* Personalization, phone: the "Back to shop" link at the bottom of the contact sheet is 50px
+   higher (it is 1rem from the bottom), and the sheet has 50px more room for it under the form.
+   A tablet and larger are not changed. */
+@media not all and (min-width: 744px) and (min-height: 500px) {
+  html .personalization-back-link {
+    bottom: calc(1rem + 50px);
+  }
+
+  html .personalization-contact {
+    padding-bottom: calc(5.5rem + 50px);
   }
 }

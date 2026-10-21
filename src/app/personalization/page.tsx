@@ -121,7 +121,7 @@ export default function PersonalizationPage() {
         <Link
           href="/shop"
           style={{ letterSpacing: "0.1em", fontWeight: 500 }}
-          className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center justify-center gap-2 whitespace-nowrap px-2 py-2 font-montserrat text-[15px] text-[#898989] uppercase underline underline-offset-4 transition-colors hover:text-[#414141]"
+          className="personalization-back-link absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center justify-center gap-2 whitespace-nowrap px-2 py-2 font-montserrat text-[15px] text-[#898989] uppercase underline underline-offset-4 transition-colors hover:text-[#414141]"
         >
           <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0" aria-hidden="true">
             <path

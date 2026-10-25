@@ -4,7 +4,9 @@ import { Suspense, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import type { StaticImageData } from "next/image";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
+import { COLLECTION_KEYS } from "@/data/collectionKeys";
 import ShopProductCard from "@/components/ShopProductCard";
 import BrandSelectorModal from "@/components/BrandSelectorModal";
 import { PRODUCT_CATEGORIES } from "@/data/products";
@@ -38,11 +40,16 @@ const FIT_MIN_GAP_PX = 8; // least space between two buttons
 function CollectionBar({
   selected,
   onToggle,
+  label,
 }: {
   selected: string[];
   onToggle: (name: string) => void;
+  // The name of a collection in the chosen language.
+  label: (name: string) => string;
 }) {
   const barRef = useRef<HTMLDivElement>(null);
+  // The size of the text is fitted again when the names change (another language).
+  const names = COLLECTIONS.map(label).join("|");
 
   useLayoutEffect(() => {
     const bar = barRef.current;
@@ -69,7 +76,7 @@ function CollectionBar({
       observer.disconnect();
       document.fonts?.removeEventListener("loadingdone", fit);
     };
-  }, []);
+  }, [names]);
 
   return (
     <div
@@ -101,7 +108,7 @@ function CollectionBar({
                 active ? "bg-[#dcc090]" : "bg-transparent hover:bg-[#dcc090]/10"
               }`}
             >
-              {c}
+              {label(c)}
             </button>
           );
         })}
@@ -112,6 +119,10 @@ function CollectionBar({
 
 function ShopContent() {
   const searchParams = useSearchParams();
+  const t = useTranslations("Shop");
+  const home = useTranslations("Home");
+  const collectionLabel = (name: string) =>
+    COLLECTION_KEYS[name] ? home(`collections.${COLLECTION_KEYS[name]}.name`) : name;
 
   const initialCollections = useMemo(() => {
     const value = searchParams.get("collection");
@@ -154,8 +165,8 @@ function ShopContent() {
     <main className="bg-[#f5f4f1]">
       <div className="shop-page mx-auto max-w-[120rem] px-4 pt-8 pb-20 sm:px-8 lg:px-[7.5rem]">
         <h1 className="text-[1.75rem] leading-none font-normal text-[#414141] sm:text-[2rem]">
-          <span className="hidden font-extrabold lg:inline">Product Line: </span>
-          <span className="font-semibold">Smoky Covers</span>
+          <span className="hidden font-extrabold lg:inline">{t("productLine")} </span>
+          <span className="font-semibold">{t("line")}</span>
         </h1>
 
         <div className="shop-filter-row mt-6 flex items-center gap-2.5">
@@ -165,7 +176,7 @@ function ShopContent() {
             style={{ height: 36, padding: "0 14px", fontSize: 13, borderRadius: 8 }}
             className="flex-1 truncate bg-[#dcc090] text-left font-semibold text-[#122a26] shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#d3b57c]"
           >
-            {size ?? "Select cigarette"}
+            {size ?? t("selectCigarette")}
           </button>
 
           <button
@@ -190,7 +201,7 @@ function ShopContent() {
 
         <div className="shop-divider mt-6 h-px bg-black/10" />
 
-        <CollectionBar selected={collections} onToggle={toggleCollection} />
+        <CollectionBar selected={collections} onToggle={toggleCollection} label={collectionLabel} />
 
         <div className="shop-list mt-8 flex flex-col gap-12">
           {categories.map((category) => (
@@ -207,7 +218,7 @@ function ShopContent() {
                     />
                   </span>
                 )}
-                {category.name}
+                {collectionLabel(category.name)}
               </h2>
               <div className="shop-grid mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
                 {category.products.map((product) => (

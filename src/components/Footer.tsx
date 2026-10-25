@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import applePay from "@/assets/icons/apple-pay.svg";
 import googlePay from "@/assets/icons/google-pay.svg";
@@ -20,12 +21,13 @@ const PAYMENT_METHODS = [
   { label: "Idram", src: idram, onWhiteCard: true },
 ];
 
+// The names are in messages/*.json (`Footer`).
 const LEGAL_LINKS = [
-  { label: "Privacy Policy", href: "/privacy" },
-  { label: "Terms and conditions", href: "/terms" },
-  { label: "Delivery Terms", href: "/delivery-terms" },
-  { label: "Refund Policy", href: "/refund-policy" },
-];
+  { key: "privacy", href: "/privacy" },
+  { key: "terms", href: "/terms" },
+  { key: "delivery", href: "/delivery-terms" },
+  { key: "refund", href: "/refund-policy" },
+] as const;
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -54,7 +56,8 @@ function YouTubeIcon({ className }: { className?: string }) {
   );
 }
 
-export default function Footer() {
+export default async function Footer() {
+  const t = await getTranslations("Footer");
   return (
     <footer className="site-footer rounded-t-[1.5rem] bg-[#122a26]">
       <div className="mx-auto flex max-w-[120rem] flex-col gap-10 px-4 py-16 text-[#dcc090] sm:px-8 lg:px-[7.5rem]">
@@ -66,13 +69,13 @@ export default function Footer() {
                 href={link.href}
                 className="transition-opacity hover:opacity-80"
               >
-                {link.label}
+                {t(link.key)}
               </Link>
             ))}
           </div>
 
           <div className="order-1 flex flex-col items-center gap-4 text-center lg:order-2">
-            <p className="text-sm font-extrabold">Contact info</p>
+            <p className="text-sm font-extrabold">{t("contact")}</p>
             <a
               href="mailto:official@smokyconcepts.com"
               className="text-sm font-medium transition-opacity hover:opacity-80"
@@ -117,14 +120,14 @@ export default function Footer() {
           </div>
 
           <div className="order-3 flex flex-col items-center gap-8 lg:items-end lg:text-right">
-            <p className="text-sm font-extrabold">Created by</p>
-            <p className="text-sm font-extrabold">Designed by</p>
+            <p className="text-sm font-extrabold">{t("createdBy")}</p>
+            <p className="text-sm font-extrabold">{t("designedBy")}</p>
           </div>
         </div>
 
         <div className="flex flex-col items-center gap-4">
           <p className="text-center text-xs font-medium">
-            Copyright© 2026. All Rights Reserved.
+            {t("copyright")}
           </p>
 
           <ul aria-label="Payment methods" className="flex items-center justify-center gap-2">

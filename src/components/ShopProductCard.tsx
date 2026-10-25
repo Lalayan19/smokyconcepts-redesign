@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
+import { COLLECTION_KEYS } from "@/data/collectionKeys";
 import { formatPrice, type Product } from "@/data/products";
 
 type ShopProductCardProps = {
@@ -11,6 +13,9 @@ type ShopProductCardProps = {
 };
 
 export default function ShopProductCard({ product, eager = false }: ShopProductCardProps) {
+  const t = useTranslations("Shop");
+  const home = useTranslations("Home");
+  const collectionKey = COLLECTION_KEYS[product.collection];
   return (
     <Link
       href={`/products/${product.slug}`}
@@ -38,7 +43,7 @@ export default function ShopProductCard({ product, eager = false }: ShopProductC
             {product.size}
           </span>
           <span className="max-w-full truncate rounded-[0.25rem] bg-[#122a26] px-1 py-px text-[9px] leading-[1.4] font-medium text-white">
-            {product.collection}
+            {collectionKey ? home(`collections.${collectionKey}.name`) : product.collection}
           </span>
         </div>
         <div className="mt-1 flex items-center justify-between gap-2">
@@ -46,7 +51,7 @@ export default function ShopProductCard({ product, eager = false }: ShopProductC
             {formatPrice(product.price)}
           </span>
           <span className="inline-flex h-6 min-w-[3.5rem] items-center justify-center rounded-[0.5rem] border-2 border-[#dcc090] px-2 text-xs font-extrabold text-[#dcc090]">
-            Buy
+            {t("buy")}
           </span>
         </div>
       </div>

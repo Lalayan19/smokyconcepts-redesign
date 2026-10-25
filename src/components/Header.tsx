@@ -10,15 +10,16 @@ import bagIcon from "@/assets/icons/bag.svg";
 import currencyIcon from "@/assets/icons/currency-banknote.svg";
 import globeIcon from "@/assets/icons/globe.svg";
 import MobileMenuSheet from "@/components/MobileMenuSheet";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { setLanguage as saveLanguage } from "@/i18n/actions";
 
+// The menu's links; their names are in messages/*.json (`Header`).
 const NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/shop", label: "Shop" },
-  { href: "/about", label: "About" },
-  { href: "/personalization", label: "Personalization" },
-];
+  { href: "/", key: "home" },
+  { href: "/shop", key: "shop" },
+  { href: "/about", key: "about" },
+  { href: "/personalization", key: "personalization" },
+] as const;
 
 const CURRENCIES = [
   { code: "USD", symbol: "$" },
@@ -101,6 +102,8 @@ export default function Header() {
   // The language is the site's (src/i18n): it is kept in a cookie, and the server draws the page again
   // in it (the home page's texts follow it); an action that sets a cookie makes Next draw it again.
   const locale = useLocale();
+  const t = useTranslations("Header");
+  const navLinks = NAV_LINKS.map(({ href, key }) => ({ href, label: t(key) }));
   const language = LANGUAGES.find((l) => l.code.toLowerCase() === locale) ?? LANGUAGES[0];
   const setLanguage = (l: { code: string }) => {
     void saveLanguage(l.code.toLowerCase());
@@ -139,7 +142,7 @@ export default function Header() {
           {/* The menu is in the exact middle of the header, whatever the widths of the logo and of
               the buttons on the right (so it is not pushed off the middle by the wider side). */}
           <nav className="site-header-nav hidden items-center justify-center gap-10 md:absolute md:top-1/2 md:left-1/2 md:flex md:-translate-x-1/2 md:-translate-y-1/2">
-            {NAV_LINKS.map(({ href, label }) => {
+            {navLinks.map(({ href, label }) => {
               const active = pathname === href;
               return (
                 <Link
@@ -286,7 +289,7 @@ export default function Header() {
     <MobileMenuSheet
       open={menuOpen}
       onClose={() => setMenuOpen(false)}
-      links={NAV_LINKS}
+      links={navLinks}
       pathname={pathname}
       currencies={CURRENCIES}
       currency={currency}

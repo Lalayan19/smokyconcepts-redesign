@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 import { useSwipeSheet } from "@/hooks/useSwipeSheet";
 
@@ -152,6 +153,7 @@ export default function MobileMenuSheet({
   language,
   onLanguageChange,
 }: MobileMenuSheetProps) {
+  const t = useTranslations("Header");
   const {
     mounted,
     sheetRef,
@@ -204,7 +206,7 @@ export default function MobileMenuSheet({
             id="menu-sheet-title"
             className="text-[28px] leading-none font-extrabold text-brand-gold"
           >
-            Menu
+            {t("menu")}
           </h2>
 
           <nav aria-label="Main" className="mt-5">
@@ -234,11 +236,11 @@ export default function MobileMenuSheet({
 
           <div className="flex items-center gap-2 text-brand-muted" style={{ marginTop: 20 }}>
             <GlobeIcon className="h-4 w-4" />
-            <p className={SECTION_LABEL}>Language</p>
+            <p className={SECTION_LABEL}>{t("language")}</p>
           </div>
           <div className="mt-3">
             <Segmented
-              label="Language"
+              label={t("language")}
               items={inOrder(languages, LANGUAGE_ORDER)}
               selected={language}
               onSelect={onLanguageChange}
@@ -246,10 +248,10 @@ export default function MobileMenuSheet({
             />
           </div>
 
-          <p className={`${SECTION_LABEL} mt-7`}>Currency</p>
+          <p className={`${SECTION_LABEL} mt-7`}>{t("currency")}</p>
           <div className="mt-3">
             <Segmented
-              label="Currency"
+              label={t("currency")}
               items={inOrder(currencies, CURRENCY_ORDER)}
               selected={currency}
               onSelect={onCurrencyChange}

@@ -55,5 +55,37 @@
         "text": "Standards were never your thing.\nExceptional creations. Bold ideas. No limits.\nStand out."
       }
     }
+  },
+  "Header": {
+    "home": "Home",
+    "shop": "Shop",
+    "about": "About",
+    "personalization": "Personalization",
+    "menu": "Menu",
+    "currency": "Currency",
+    "language": "Language"
+  },
+  "Footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms and conditions",
+    "delivery": "Delivery Terms",
+    "refund": "Refund Policy",
+    "contact": "Contact info",
+    "createdBy": "Created by",
+    "designedBy": "Designed by",
+    "copyright": "Copyright© 2026. All Rights Reserved."
+  },
+  "Shop": {
+    "productLine": "Product Line:",
+    "line": "Smoky Covers",
+    "selectCigarette": "Select cigarette",
+    "buy": "Buy",
+    "search": "Search brands",
+    "recommendedBrands": "Recommended brands",
+    "options": "{count, plural, one {# product} other {# products}}",
+    "brand": "Brand",
+    "size": "Size",
+    "cancel": "Cancel",
+    "submit": "Submit"
   }
 }

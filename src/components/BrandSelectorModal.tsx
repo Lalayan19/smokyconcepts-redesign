@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useTranslations } from "next-intl";
 
 import cigaretteIcon from "@/assets/images/cigarete-icon.svg";
 import {
@@ -120,6 +121,7 @@ function SearchField({
   onEnter: () => void;
   onFocusChange: (focused: boolean) => void;
 }) {
+  const t = useTranslations("Shop");
   // What is shown follows `value` when it is changed from outside (a brand was
   // chosen, the field was cleared); what is typed is already in the box.
   useEffect(() => {
@@ -157,11 +159,11 @@ function SearchField({
     <div
       ref={fieldRef}
       role="searchbox"
-      aria-label="Search brands"
+      aria-label={t("search")}
       aria-multiline="false"
       contentEditable
       suppressContentEditableWarning
-      data-placeholder="Search brands"
+      data-placeholder={t("search")}
       inputMode="search"
       enterKeyHint="search"
       autoCorrect="off"
@@ -324,6 +326,7 @@ function BrandSelectorSheet({
   sheet: ReturnType<typeof useSwipeSheet>;
   onApply: (item: SelectedProduct) => void;
 }) {
+  const t = useTranslations("Shop");
   const [query, setQuery] = useState("");
   const [brand, setBrand] = useState<Brand | null>(null);
   const [picked, setPicked] = useState<{ brand: string; product: BrandProduct } | null>(null);
@@ -490,7 +493,7 @@ function BrandSelectorSheet({
       ? "Products"
       : text
         ? "Brands"
-        : "Recommended brands";
+        : t("recommendedBrands");
 
   return (
     <div
@@ -508,7 +511,7 @@ function BrandSelectorSheet({
         ref={sheetRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Select cigarette"
+        aria-label={t("selectCigarette")}
         style={{
           ...sheetStyle,
           ...(dialog ? {} : { height: SHEET_HEIGHT }),
@@ -578,11 +581,11 @@ function BrandSelectorSheet({
               </h3>
               <dl className="mt-2 divide-y divide-black/5 text-[14px]">
                 <div className="flex items-center justify-between gap-4 py-1.5">
-                  <dt className="text-[#9d9d9d]">Brand</dt>
+                  <dt className="text-[#9d9d9d]">{t("brand")}</dt>
                   <dd className="font-bold text-[#414141]">{picked.brand}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-4 py-1.5">
-                  <dt className="text-[#9d9d9d]">Size</dt>
+                  <dt className="text-[#9d9d9d]">{t("size")}</dt>
                   <dd className="font-bold text-[#414141]">{picked.product.category}</dd>
                 </div>
                 {picked.product.version > 0 && (
@@ -645,7 +648,7 @@ function BrandSelectorSheet({
                     {b.name}
                   </span>
                   <span className="block text-[14px] leading-snug text-[#9d9d9d]">
-                    {b.products.length} {b.products.length === 1 ? "product" : "products"}
+                    {t("options", { count: b.products.length })}
                   </span>
                 </span>
                 <ChevronIcon className="h-5 w-5 shrink-0 text-[#c4c4c4]" />
@@ -693,14 +696,14 @@ function BrandSelectorSheet({
               onClick={cancelAll}
               className="inline-flex h-14 min-w-0 flex-[2] basis-0 items-center justify-center text-sm font-extrabold tracking-[0.2em] text-[#414141] uppercase underline decoration-2 underline-offset-[6px] transition-colors hover:text-black"
             >
-              Cancel
+              {t("cancel")}
             </button>
             <button
               type="button"
               onClick={confirm}
               className="inline-flex h-14 min-w-0 flex-[3] basis-0 items-center justify-center rounded-full bg-[#dcc090] text-sm font-extrabold tracking-[0.2em] text-[#122a26] uppercase transition-colors hover:bg-[#d3b57c]"
             >
-              Submit
+              {t("submit")}
             </button>
           </div>
         )}

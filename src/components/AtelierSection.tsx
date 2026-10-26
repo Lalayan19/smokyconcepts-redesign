@@ -24,16 +24,18 @@ const ATELIER_FRAMES = 48;
 const ATELIER_FIRST_FRAME = 16;
 const ATELIER_RAMP = 0.214;
 const ATELIER_RAMP_END = 0;
-// The phone's own video (see ATELIER_MOBILE_VIDEO): 48 frames (2 seconds at 24 a second), the
-// case small and dark on the first and big and golden on the last, and all of them are played
-// (from frame 0 to 47). It plays at the speed of the other Atelier videos (0.321 of the window's
-// height of scroll for the 48 frames, 0.00669 a frame) and starts when the top of the section is
-// 0.348 of the window's height further down than in the middle of the window: 20 frames of scroll
-// earlier than it did (0.214, and before that 0.0802: each step 20 * 0.00669 = 0.134). It has
-// played to its last frame 0.321 further on, 0.027 of the window's height before the middle.
-const ATELIER_MOBILE_FRAMES = 48;
-const ATELIER_MOBILE_RAMP = 0.348;
-const ATELIER_MOBILE_RAMP_END = 0.027;
+// The phone's own video (see ATELIER_MOBILE_VIDEO): 72 frames (3 seconds at 24 a second), the case
+// turning from its narrow side to a three-quarter view with the shield, and all of them are
+// played (from frame 0 to 71). It plays over 0.63 of the window's height of scroll, 0.00875 a frame
+// (it was 0.321 for the 72 frames, 0.00446 a frame, which was too fast, then 0.45, 0.00625; the
+// other Atelier videos have 0.00669). It starts when the top of the section is 0.551 of the
+// window's height further down than in the middle of the window, and has played to its last frame
+// 0.079 of the window's height past the middle: 15 frames of scroll (15 * 0.00875 = 0.131) earlier
+// than it did at first (0.42 and -0.21; 10 of them, then 5 more), at the same speed.
+const ATELIER_MOBILE_FRAMES = 72;
+const ATELIER_MOBILE_EARLIER_FRAMES = 15;
+const ATELIER_MOBILE_RAMP = 0.42 + ATELIER_MOBILE_EARLIER_FRAMES * (0.63 / 72);
+const ATELIER_MOBILE_RAMP_END = -0.21 + ATELIER_MOBILE_EARLIER_FRAMES * (0.63 / 72);
 
 type AtelierSectionProps = {
   buttonHref: string;
@@ -94,7 +96,7 @@ export default function AtelierSection({ buttonHref }: AtelierSectionProps) {
             windows="phone"
             className="atelier-case-video atelier-case-video-mobile"
             frames={ATELIER_MOBILE_FRAMES}
-            fallbackFolder="atelier-mobile"
+            fallbackFolder="atelier-mobile-v2"
             glideMs={ATELIER_GLIDE_MS}
             ramp={ATELIER_MOBILE_RAMP}
             rampEnd={ATELIER_MOBILE_RAMP_END}

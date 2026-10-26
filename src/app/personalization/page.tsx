@@ -17,8 +17,15 @@ import { formatPrice } from "@/data/products";
 
 const FIELDS = [
   { name: "name", label: "Name", type: "text", autoComplete: "name" },
-  { name: "phone", label: "Phone Number", type: "tel", autoComplete: "tel" },
   { name: "email", label: "Email", type: "email", autoComplete: "email" },
+  { name: "phone", label: "Phone Number", type: "tel", autoComplete: "tel" },
+];
+
+// When the customer wants to be called (the list of the drop-down under the two fields).
+const CALL_TIMES = [
+  { value: "morning", label: "Morning (9:00 - 12:00)" },
+  { value: "midday", label: "Midday (12:00 - 16:00)" },
+  { value: "evening", label: "Evening (16:00 - 19:00)" },
 ];
 
 const MIN_COST = 100000;
@@ -94,6 +101,29 @@ export default function PersonalizationPage() {
                 <label htmlFor={`personalization-${field.name}`}>{field.label}*</label>
               </div>
             ))}
+
+            {/* A drop-down made like the fields: its name sits on the line, and moves up when
+                a time is chosen (see `.float-field select` in globals.css). The first, empty
+                choice is the one before anything is chosen, so the box must be filled in. */}
+            <div className="float-field font-montserrat">
+              <select
+                id="personalization-call-time"
+                required
+                name="callTime"
+                defaultValue=""
+                // 16px, not smaller: an iPhone zooms the whole page in when a field under
+                // 16px gets focus.
+                style={{ fontSize: 16 }}
+              >
+                <option value="" disabled hidden />
+                {CALL_TIMES.map((time) => (
+                  <option key={time.value} value={time.value}>
+                    {time.label}
+                  </option>
+                ))}
+              </select>
+              <label htmlFor="personalization-call-time">When to call*</label>
+            </div>
           </div>
 
           <label className="mt-8 flex cursor-pointer items-start gap-3 font-montserrat text-[13px] leading-snug text-black/80">

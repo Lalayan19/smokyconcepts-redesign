@@ -1,25 +1,43 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import type { StaticImageData } from "next/image";
 
 import { BUTTON_EDGE } from "@/components/buttonEdge";
+import ScrollVideo from "@/components/ScrollVideo";
+import { ABOUT_MOBILE_VIDEO, ABOUT_VIDEO } from "@/lib/homeVideos";
 import { useLocale, useTranslations } from "next-intl";
 
 type AboutSectionProps = {
-  image: StaticImageData;
   buttonHref: string;
 };
 
-// The photo is 402 x 668: the bag on its pedestal, with the empty top of the
-// picture left for the text. It runs from one edge of the screen to the other
-// and sets the height of the section; the text and the button are placed on it
-// in percentages of that height, so on every phone they are in the same place
-// on the picture (the title's middle 13.2% down, the button's middle 81.8%
-// down, on the front of the pedestal).
+// The picture is a video of the bag, played by the scroll (see ScrollVideo and `.about-video` in
+// globals.css): a phone plays its own (1080 x 1794, 52 frames: the bag turns and settles facing the
+// front, on white, with the empty top of the frame left for the text), a tablet and larger the
+// other (1280 x 960, 50 frames). The box is 402 x 668 on a phone: it runs from one edge of the
+// screen to the other and sets the height of the section; the text and the button are placed on it
+// in percentages of that height, so on every phone they are in the same place on the picture (the
+// title's middle 13.2% down, the button's middle 91% down, under the bag, which ends at 82%).
 const TEXT_TOP = "10.3%";
-const BUTTON_MIDDLE = "81.8%";
+const BUTTON_MIDDLE = "91%";
+
+// How the videos play (see ScrollVideo): no hold; they have played to their last frame when the
+// section is in the middle of the window (under the header), and start when its top is this share
+// of the window's height further down than that. Scrolling back up they play backwards at once.
+// They start 10 frames of scroll later than the first place (at the same speed: 0.55 of the
+// window's height for all the frames of a file, so a frame is 0.55 / its frames), so they also end
+// that much past the middle.
+const ABOUT_FRAMES = 50;
+const ABOUT_MOBILE_FRAMES = 52;
+const ABOUT_DELAY_FRAMES = 10;
+// The phone's video starts 10 frames later again (20 in all), and ends that much further past the
+// middle.
+const ABOUT_MOBILE_DELAY_FRAMES = ABOUT_DELAY_FRAMES + 10;
+const ABOUT_RAMP = 0.55 - (ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_MOBILE_FRAMES;
+const ABOUT_RAMP_END = -(ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_MOBILE_FRAMES;
+const ABOUT_WIDE_RAMP = 0.55 - (ABOUT_DELAY_FRAMES * 0.55) / ABOUT_FRAMES;
+const ABOUT_WIDE_RAMP_END = -(ABOUT_DELAY_FRAMES * 0.55) / ABOUT_FRAMES;
+const ABOUT_GLIDE_MS = 50;
 
 // How wide each of the heading's two rows is, in times the font's size (measured in the page's
 // font, italic 800, and a little more): the sentences "A Small Gift." and "A Lasting Impression."
@@ -36,7 +54,7 @@ function splitHeading(heading: string): string[] {
   return match ? [match[1], match[2]] : [heading];
 }
 
-export default function AboutSection({ image, buttonHref }: AboutSectionProps) {
+export default function AboutSection({ buttonHref }: AboutSectionProps) {
   // The texts follow the language chosen in the header (messages/*.json).
   const t = useTranslations("Home");
   const language = useLocale().toUpperCase();
@@ -55,12 +73,32 @@ export default function AboutSection({ image, buttonHref }: AboutSectionProps) {
       <div className="overflow-hidden rounded-b-[1.5rem] bg-white">
         {/* On a wide screen the picture stops growing at 560px and is centered. */}
         <div className="about-split relative mx-auto" style={{ maxWidth: 560 }}>
-          <Image
-            src={image}
-            alt="Smoky Concepts gift bag on a white pedestal"
-            sizes="(min-width: 561px) 560px, 100vw"
-            className="about-photo block h-auto w-full"
-          />
+          {/* The bag: the box that has the picture's shape (the video is in it, the one for a phone
+              or the one for a tablet and larger; the other is not shown, see globals.css). */}
+          <div className="about-photo about-art relative w-full" aria-hidden="true">
+            <ScrollVideo
+              src={ABOUT_MOBILE_VIDEO}
+              sectionSelector=".about-split"
+              windows="phone"
+              className="about-video about-video-mobile"
+              frames={ABOUT_MOBILE_FRAMES}
+              fallbackFolder="about-mobile"
+              glideMs={ABOUT_GLIDE_MS}
+              ramp={ABOUT_RAMP}
+              rampEnd={ABOUT_RAMP_END}
+            />
+            <ScrollVideo
+              src={ABOUT_VIDEO}
+              sectionSelector=".about-split"
+              windows="tabletUp"
+              className="about-video about-video-wide"
+              frames={ABOUT_FRAMES}
+              fallbackFolder="about"
+              glideMs={ABOUT_GLIDE_MS}
+              ramp={ABOUT_WIDE_RAMP}
+              rampEnd={ABOUT_WIDE_RAMP_END}
+            />
+          </div>
 
           <div className="about-text absolute inset-x-0 px-6" style={{ top: TEXT_TOP }}>
             <h2 data-reveal="title"

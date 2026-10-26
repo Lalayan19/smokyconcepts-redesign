@@ -87,5 +87,14 @@
     "size": "Size",
     "cancel": "Cancel",
     "submit": "Submit"
+  },
+  "Care": {
+    "title": "Care & Limits",
+    "temperature": "Operating temperature ( −10˚C to +65˚C )",
+    "sunlight": "Avoid prolonged direct sunlight",
+    "moisture": "Wipe off moisture promptly with a soft, dry cloth",
+    "cleaners": "No alcohol, solvents or harsh cleaners",
+    "patina": "Leather develops a natural patina",
+    "lock": "Lock wear depends on use"
   }
 }

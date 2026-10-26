@@ -1,5 +1,5 @@
-// The three videos the home page plays by the scroll (the two Atelier cases and the
-// Personalization case). They are fetched whole, in the background, as soon as the home page
+// The videos the home page plays by the scroll (the Atelier cases, the Personalization case and
+// the About bag). They are fetched whole, in the background, as soon as the home page
 // opens, and kept: in the browser's Cache Storage (where there is one: https and localhost),
 // and by the browser's own cache (the files are sent with a one-year cache header, see
 // next.config.ts). The next visit finds them there and does not download them again.
@@ -15,7 +15,11 @@ export const ATELIER_SILVER_VIDEO = withVersion("/videos/atelier-silver.mp4");
 export const PERSONALIZED_VIDEO = withVersion("/videos/personalized.mp4");
 // The Atelier case on a phone (a square video, 48 frames, the gold case): a phone plays this one
 // where a tablet, a laptop and a desktop play ATELIER_VIDEO.
-export const ATELIER_MOBILE_VIDEO = withVersion("/videos/atelier-mobile.mp4");
+export const ATELIER_MOBILE_VIDEO = withVersion("/videos/atelier-mobile-v2.mp4");
+// The About bag (it turns and settles facing the front, on white; every frame a key frame): the
+// phone's is 1080 x 1794 (52 frames), the tablet's and larger 1280 x 960 (50 frames).
+export const ABOUT_VIDEO = `/videos/about.mp4?v=${HOME_VIDEO_VERSION}-3`;
+export const ABOUT_MOBILE_VIDEO = `/videos/about-mobile.mp4?v=${HOME_VIDEO_VERSION}-3`;
 
 // The videos this window plays (a phone does not need the two Atelier cases of the larger
 // screens, nor they the phone's): fetched in the background when the home page opens, and
@@ -27,8 +31,8 @@ function homeVideos(): string[] {
   if (chosen) return chosen;
   const list =
     typeof window !== "undefined" && window.matchMedia(PHONE_WINDOW).matches
-      ? [ATELIER_MOBILE_VIDEO, PERSONALIZED_VIDEO]
-      : [ATELIER_VIDEO, ATELIER_SILVER_VIDEO, PERSONALIZED_VIDEO];
+      ? [ATELIER_MOBILE_VIDEO, PERSONALIZED_VIDEO, ABOUT_MOBILE_VIDEO]
+      : [ATELIER_VIDEO, ATELIER_SILVER_VIDEO, PERSONALIZED_VIDEO, ABOUT_VIDEO];
   if (typeof window !== "undefined") chosen = list;
   return list;
 }
@@ -38,7 +42,9 @@ const APPROX_BYTES: Record<string, number> = {
   [ATELIER_VIDEO]: 1_420_000,
   [ATELIER_SILVER_VIDEO]: 1_180_000,
   [PERSONALIZED_VIDEO]: 1_400_000,
-  [ATELIER_MOBILE_VIDEO]: 1_500_000,
+  [ATELIER_MOBILE_VIDEO]: 1_270_000,
+  [ABOUT_VIDEO]: 720_000,
+  [ABOUT_MOBILE_VIDEO]: 915_000,
 };
 
 const CACHE_NAME = "home-videos";

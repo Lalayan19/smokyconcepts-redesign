@@ -7,6 +7,7 @@ import CustomizeModal, { type Customization } from "@/components/CustomizeModal"
 import DeliveryInfo from "@/components/DeliveryInfo";
 import DragScroll from "@/components/DragScroll";
 import HowToUse from "@/components/HowToUse";
+import CareLimits from "@/components/CareLimits";
 import ProductCard from "@/components/ProductCard";
 import ProductDescription from "@/components/ProductDescription";
 import ProductGallery from "@/components/ProductGallery";
@@ -313,6 +314,10 @@ export default function ProductPage() {
 
         <div className="product-howto mt-8">
           <HowToUse />
+        </div>
+
+        <div className="product-care mt-8">
+          <CareLimits />
         </div>
 
         <section className="product-related mt-10">

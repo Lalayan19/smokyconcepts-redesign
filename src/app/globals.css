@@ -726,6 +726,29 @@ body:has(.personalization-scrub) {
   border-bottom-color: #000000;
 }
 
+/* The drop-down ("When to call") is made like the fields: the same height, line and name; its
+   arrow is drawn at the right. Its name moves up when it is focused or a time is chosen (it is
+   `required`, with an empty first choice, so it is :valid once a time is chosen). */
+.float-field select {
+  width: 100%;
+  height: 100%;
+  padding: 14px 28px 0 0;
+  border: 0;
+  border-bottom: 1px solid #dcc090;
+  border-radius: 0;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23000' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 2px center / 12px 7px;
+  color: #000000;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.2s;
+}
+
+.float-field select:focus {
+  border-bottom-color: #000000;
+}
+
 /* When the browser fills a field in by itself it paints it light blue or yellow:
    cover that with the white and keep the text black. */
 .float-field input:-webkit-autofill,
@@ -748,7 +771,9 @@ body:has(.personalization-scrub) {
 }
 
 .float-field input:focus + label,
-.float-field input:not(:placeholder-shown) + label {
+.float-field input:not(:placeholder-shown) + label,
+.float-field select:focus + label,
+.float-field select:valid + label {
   transform: translateY(-17px);
   font-size: 11px;
 }
@@ -883,15 +908,15 @@ body:has(.personalization-page) .site-footer {
   transform: translate(-42%, -50%);
 }
 
-/* Home, Atelier, a phone: its own video, a square one (2160 x 2160 made 1080 x 1080, white all
-   round the case). The case in its last frame is 84.1% of the frame's height and 47.4% of
-   its width, with its middle at 48.9% across and 50.7% down: the frame is drawn so that case
+/* Home, Atelier, a phone: its own video, a square one (1920 x 1920 made 1080 x 1080, white all
+   round the case). The case in its last frame is 86.3% of the frame's height and 44.4% of
+   its width, with its middle at 52.0% across and 51.0% down: the frame is drawn so that case
    is --case-h tall (the same as the other video's case) and in the middle of the box. The
    other video (`-left`) is not shown on a phone, nor this one on a tablet and larger. */
 .atelier-case-video-mobile {
-  height: calc(var(--case-h) / 0.841);
-  width: calc(var(--case-h) / 0.841);
-  transform: translate(-48.9%, -50.7%);
+  height: calc(var(--case-h) / 0.863);
+  width: calc(var(--case-h) / 0.863);
+  transform: translate(-52%, -51%);
 }
 
 /* Home, the three sections with a video played by the scroll: under each video, the last frame
@@ -910,7 +935,7 @@ body:has(.personalization-page) .site-footer {
 }
 
 .atelier-case-video-mobile {
-  background: url("/videos/home-frames/atelier-mobile/f047.webp?v=5") center / 100% 100% no-repeat;
+  background: url("/videos/home-frames/atelier-mobile-v2/f071.webp?v=5") center / 100% 100% no-repeat;
 }
 
 .personalization-art-video {
@@ -1728,9 +1753,11 @@ body:has(.personalization-page) .site-footer {
   .about-split {
     display: grid;
     grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
-    /* The text block is a little lower than the middle of the photo (the space
-       above it is 1.5 times the space under it). */
-    grid-template-rows: 1.5fr auto auto 1fr;
+    /* The section is as tall as the window (100vh; taller only where the picture does not fit
+       in a low window), and the text block is exactly in the middle of it, up and down (the
+       space above it is the same as the space under it; it was 1.5 times as much above). */
+    min-height: 100vh;
+    grid-template-rows: 1fr auto auto 1fr;
     column-gap: 4rem;
     max-width: min(72rem, 100% - 4rem) !important;
   }
@@ -1738,6 +1765,8 @@ body:has(.personalization-page) .site-footer {
   .about-split .about-photo {
     grid-column: 1;
     grid-row: 1 / -1;
+    /* The picture is in the middle of the section, up and down. */
+    align-self: center;
   }
 
   .about-text {
@@ -2879,18 +2908,17 @@ html[lang] .popular-sizes-section > p {
     padding-top: 67px;
   }
 
-  /* About, phone: the section is 100px taller at the top (white, above the photo; it was 60px,
-     then 40px more): the photo and the button, which is on the pedestal (81.8% of the photo's
-     height), are 100px lower, and the text stays where it was (10.3% of the photo's height from
+  /* About, phone: the section is 100px taller at the top (white, above the bag's video; it was
+     60px, then 40px more): the video and the button, which is under the bag (91% of the video's
+     height), are 100px lower, and the text stays where it was (10.3% of the video's height from
      the top of the section), so it has 100px more room above the bag's handles. A tablet and
      larger are not changed. */
   .about-split {
     --about-extra: 100px;
     padding-top: var(--about-extra);
-    /* The space above the photo is the colour of the photo's top edge (it is a little grey and
-       darker on the right: 252, 248 and 240 of 255 at the left, the middle and the right), so
-       there is no band where the photo starts. */
-    background: linear-gradient(to right, #fcfbfc, #f8f8f8 50%, #f0f0f0);
+    /* The video is white all round the bag, so the space above it is white too (there was a
+       grey gradient here, the colour of the old photo's top edge). */
+    background: #fff;
   }
 
   /* The heading and the text under it are 55px lower than 10.3% of the photo's height (the
@@ -2906,7 +2934,7 @@ html[lang] .popular-sizes-section > p {
   }
 
   .about-split .about-button {
-    top: calc(var(--about-extra) + (100% - var(--about-extra)) * 0.818) !important;
+    top: calc(var(--about-extra) + (100% - var(--about-extra)) * 0.91) !important;
   }
 
   /* Say Hi, phone: the section is 10px taller at the bottom (the padding under the button is 10px
@@ -3001,5 +3029,115 @@ html[lang] .popular-sizes-section > p {
 
   html .personalization-contact {
     padding-bottom: calc(5.5rem + 50px);
+  }
+}
+
+/* A product's page, "Care & Limits" (a card like How to Use): on a tablet and larger the six rules
+   are in two rows of three, each a big drawing with its rule under it, in the middle of its third
+   of the card. The rule's number is not shown here. A phone has the list (number, rule, drawing). */
+@media (min-width: 744px) and (min-height: 500px) {
+  .care-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 1.5rem;
+    row-gap: 2.5rem;
+  }
+
+  .care-step {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    text-align: center;
+  }
+
+  .care-number {
+    display: none;
+  }
+
+  .care-body {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .care-icon {
+    /* 39% smaller than How to Use's drawings (0.61 of their size; it was the same size, then 0.85,
+       then 0.72). A phone keeps its own size (34.6px). */
+    width: calc(clamp(5rem, 9vw, 8.5rem) * 0.61);
+    height: calc(clamp(5rem, 9vw, 8.5rem) * 0.61);
+    align-self: center;
+    order: -1; /* above the rule */
+  }
+
+  .care-title {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+}
+
+/* Home, About: the bag is a video (see ScrollVideo and AboutSection.tsx), played by the scroll. The
+   box has the shape of the old photo, 402 x 668, on a phone (the phone's file is 1080 x 1794 and
+   fills it), and is 4 : 5 on a tablet and larger, where the other file (4 : 3) is in the middle of
+   it. The video is white all round the bag, like the section. Under each video, its last frame as a
+   picture (the same size, so it is never seen while the video plays; it stands in if the video
+   does not load, like the other sections' videos: the version in the address is HOME_VIDEO_VERSION
+   in src/lib/homeVideos.ts). Only the video for the window is shown. */
+.about-art {
+  aspect-ratio: 1080 / 1794;
+  overflow: hidden;
+  background: #fff;
+  /* No fade at the sides (the old photo's sides faded into the page; this is white all round,
+     and the fade would thin the bag where it comes near the side). */
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.about-video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.about-video-mobile {
+  background: url("/videos/home-frames/about-mobile/f051.webp?v=5-3") center / 100% 100% no-repeat;
+}
+
+.about-video-wide {
+  display: none;
+  background: url("/videos/home-frames/about/f049.webp?v=5-3") center / 100% 100% no-repeat;
+}
+
+/* A tablet and larger: the box is 5 : 7 (it was 4 : 5) and the video is drawn 190% as wide as it,
+   so the bag is 82% as wide as the box (the bag is 43% of the video's width, and in the middle of it
+   across); it was 43% of the box. The box clips the white that goes out of it at the sides (the
+   bag, from 26% to 74% of the video's width in every frame, stays inside the middle 53% that
+   shows). Up and down the video is placed by the bag, not by the frame: the bag's middle is 66.5%
+   of the way down the frame, and that is put 5% of the video's height (about 40px) under the
+   middle of the box (the video is moved by -61.5%, not -66.5%). */
+@media (min-width: 744px) and (min-height: 500px) {
+  .about-art {
+    aspect-ratio: 5 / 7;
+  }
+
+  .about-video-mobile {
+    display: none;
+  }
+
+  .about-video-wide {
+    display: block;
+    inset: auto;
+    top: 50%;
+    left: -45%;
+    width: 190%;
+    max-width: none; /* the page's base style keeps a video as narrow as its box */
+    height: auto;
+    aspect-ratio: 4 / 3;
+    transform: translateY(-61.5%);
   }
 }

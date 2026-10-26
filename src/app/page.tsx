@@ -23,7 +23,6 @@ import { useLocale, useTranslations } from "next-intl";
 const UNLOCK_TITLE_WIDTH: Record<string, number> = { en: 7.52, ru: 9.1, hy: 8.8 };
 
 import newAccessory from "@/assets/images/Unlock.png";
-import aboutUs from "@/assets/images/about_image_final.png";
 
 export default function Home() {
   const router = useRouter();
@@ -67,7 +66,7 @@ export default function Home() {
 
       <PersonalizationSection buttonHref="/personalization" />
 
-      <AboutSection image={aboutUs} buttonHref="/shop" />
+      <AboutSection buttonHref="/shop" />
 
       <SayHiSection />
 

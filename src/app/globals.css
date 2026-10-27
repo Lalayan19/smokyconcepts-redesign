@@ -1395,6 +1395,23 @@ body:has(.personalization-page) .site-footer {
     width: calc(60% - 0.375rem);
   }
 
+  .product-cart {
+    gap: 0.5rem;
+    padding-inline: 0.75rem;
+  }
+
+  .product-cart-icon {
+    display: none;
+  }
+
+  .product-cart-label {
+    display: inline;
+  }
+
+  .product-cart-icon-wide {
+    display: block;
+  }
+
   /* The sheets of a tablet and larger are plain modals: there is no handle to pull
      (the animation and the not following a finger are in useSwipeSheet). */
   .sheet-handle {

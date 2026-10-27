@@ -60,9 +60,24 @@ function XIcon({ className }: { className?: string }) {
   );
 }
 
-// The bag of the header (assets/icons/bag.svg, drawn in the button's colour) with a circle with a
-// plus in it at its lower right.
+// The icon of the button on a phone: a plain bag.
 function CartIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M6 8h12l-1 11a2 2 0 0 1-2 1.8H9A2 2 0 0 1 7 19L6 8Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M9 8V6a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// The icon of the button on a tablet and larger: the bag of the header (assets/icons/bag.svg,
+// drawn in the button's colour) with a circle with a plus in it at its lower right.
+function CartPlusIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 26 26" fill="none" className={className} aria-hidden="true">
       <path
@@ -274,13 +289,14 @@ export default function ProductPage() {
           <button
             type="button"
             aria-label={t("addToCart")}
-            className="product-cart flex h-14 shrink-0 items-center justify-center gap-2 rounded-2xl border-2 border-[#122a26] px-3 text-[#122a26] shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-transform active:scale-90"
+            className="product-cart flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-[#122a26] text-[#122a26] shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-transform active:scale-90"
           >
-            {/* "Add to" at the left, the bag with a + at the right. */}
-            <span className="product-cart-label text-xs font-extrabold tracking-[0.1em] uppercase sm:text-sm sm:tracking-[0.14em]">
+            <CartIcon className="product-cart-icon h-6 w-6" />
+            {/* On a tablet and larger: "Add to" at the left, the bag with a + at the right. */}
+            <span className="product-cart-label hidden text-sm font-extrabold tracking-[0.14em] uppercase">
               {forUppercase(t("addTo"))}
             </span>
-            <CartIcon className="product-cart-icon h-[26px] w-[26px] shrink-0" />
+            <CartPlusIcon className="product-cart-icon-wide hidden h-[26px] w-[26px] shrink-0" />
           </button>
           <button
             type="button"

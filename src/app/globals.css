@@ -2918,9 +2918,10 @@ html[lang] .popular-sizes-section > p {
   .about-split {
     --about-extra: 100px;
     padding-top: var(--about-extra);
-    /* The video is white all round the bag, so the space above it is white too (there was a
-       grey gradient here, the colour of the old photo's top edge). */
-    background: #fff;
+    /* The video is the same pale colour all round the bag (#fbfdfd, as the section), so the space
+       above it is that colour too (there was a grey gradient here, the colour of the old photo's
+       top edge). */
+    background: #fbfdfd;
   }
 
   /* The heading and the text under it are 30px lower than 10.3% of the video's height (the
@@ -3084,15 +3085,17 @@ html[lang] .popular-sizes-section > p {
    the scroll. The box has the shape of the old photo, 402 x 668, on a phone (the phone's file is
    1080 x 1794 and fills it), and is 5 : 7 on a tablet and larger, where the other file (the same
    shape, 840 x 1176, cut round the bag with its handles and the pedestal) fills it too: the pedestal goes down to the
-   bottom of the box. The video is white all round the bag, like the section. Under each video, its last frame as a
+   bottom of the box. The video is the same pale colour all round the bag, like the section (#fbfdfd). Under each video, its last frame as a
    picture (the same size, so it is never seen while the video plays; it stands in if the video
    does not load, like the other sections' videos: the version in the address is HOME_VIDEO_VERSION
    in src/lib/homeVideos.ts). Only the video for the window is shown. */
 .about-art {
   aspect-ratio: 1080 / 1794;
   overflow: hidden;
-  background: #fff;
-  /* No fade at the sides (the old photo's sides faded into the page; this is white all round,
+  /* The section's colour, #fbfdfd, which is the colour of the videos' background (it is 250, 252
+     and 252 of 255 in them). */
+  background: #fbfdfd;
+  /* No fade at the sides (the old photo's sides faded into the page; this is pale all round,
      and the fade would thin the bag where it comes near the side). */
   -webkit-mask-image: none;
   mask-image: none;
@@ -3109,12 +3112,12 @@ html[lang] .popular-sizes-section > p {
 }
 
 .about-video-mobile {
-  background: url("/videos/home-frames/about-mobile-v2/f119.webp?v=5") center / 100% 100% no-repeat;
+  background: url("/videos/home-frames/about-mobile-v3/f119.webp?v=5") center / 100% 100% no-repeat;
 }
 
 .about-video-wide {
   display: none;
-  background: url("/videos/home-frames/about-v3/f119.webp?v=5") center / 100% 100% no-repeat;
+  background: url("/videos/home-frames/about-v4/f119.webp?v=5") center / 100% 100% no-repeat;
 }
 
 /* A tablet and larger: the box is 5 : 7 and the video (also 5 : 7) fills it, the pedestal at the

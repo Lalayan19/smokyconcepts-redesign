@@ -86,7 +86,7 @@ export default function AboutSection({ buttonHref }: AboutSectionProps) {
       className="relative left-1/2 mb-3 w-screen -mx-[50vw] overflow-hidden text-center"
       style={{ marginTop: "-1.5rem" }}
     >
-      <div className="overflow-hidden rounded-b-[1.5rem] bg-white">
+      <div className="overflow-hidden rounded-b-[1.5rem] bg-[#fbfdfd]">
         {/* On a wide screen the picture stops growing at 560px and is centered. */}
         <div className="about-split relative mx-auto" style={{ maxWidth: 560 }}>
           {/* The bag: the box that has the picture's shape (the video is in it, the one for a phone
@@ -98,7 +98,7 @@ export default function AboutSection({ buttonHref }: AboutSectionProps) {
               windows="phone"
               className="about-video about-video-mobile"
               frames={ABOUT_MOBILE_FRAMES}
-              fallbackFolder="about-mobile-v2"
+              fallbackFolder="about-mobile-v3"
               glideMs={ABOUT_GLIDE_MS}
               ramp={ABOUT_RAMP}
               rampEnd={ABOUT_RAMP_END}
@@ -109,7 +109,7 @@ export default function AboutSection({ buttonHref }: AboutSectionProps) {
               windows="tabletUp"
               className="about-video about-video-wide"
               frames={ABOUT_FRAMES}
-              fallbackFolder="about-v3"
+              fallbackFolder="about-v4"
               glideMs={ABOUT_GLIDE_MS}
               ramp={ABOUT_WIDE_RAMP}
               rampEnd={ABOUT_WIDE_RAMP_END}

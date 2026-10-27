@@ -18,8 +18,8 @@ export const PERSONALIZED_VIDEO = withVersion("/videos/personalized.mp4");
 export const ATELIER_MOBILE_VIDEO = withVersion("/videos/atelier-mobile-v2.mp4");
 // The About bag (it turns and settles facing the front, on white; every frame a key frame): the
 // phone's is 1080 x 1794 (52 frames), the tablet's and larger 1280 x 960 (50 frames).
-export const ABOUT_VIDEO = withVersion("/videos/about-v3.mp4");
-export const ABOUT_MOBILE_VIDEO = withVersion("/videos/about-mobile-v2.mp4");
+export const ABOUT_VIDEO = withVersion("/videos/about-v4.mp4");
+export const ABOUT_MOBILE_VIDEO = withVersion("/videos/about-mobile-v3.mp4");
 
 // The videos this window plays (a phone does not need the two Atelier cases of the larger
 // screens, nor they the phone's): fetched in the background when the home page opens, and

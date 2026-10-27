@@ -18,8 +18,8 @@ export const PERSONALIZED_VIDEO = withVersion("/videos/personalized.mp4");
 export const ATELIER_MOBILE_VIDEO = withVersion("/videos/atelier-mobile-v2.mp4");
 // The About bag (it turns and settles facing the front, on white; every frame a key frame): the
 // phone's is 1080 x 1794 (52 frames), the tablet's and larger 1280 x 960 (50 frames).
-export const ABOUT_VIDEO = `/videos/about.mp4?v=${HOME_VIDEO_VERSION}-3`;
-export const ABOUT_MOBILE_VIDEO = `/videos/about-mobile.mp4?v=${HOME_VIDEO_VERSION}-3`;
+export const ABOUT_VIDEO = withVersion("/videos/about-v3.mp4");
+export const ABOUT_MOBILE_VIDEO = withVersion("/videos/about-mobile-v2.mp4");
 
 // The videos this window plays (a phone does not need the two Atelier cases of the larger
 // screens, nor they the phone's): fetched in the background when the home page opens, and
@@ -43,8 +43,8 @@ const APPROX_BYTES: Record<string, number> = {
   [ATELIER_SILVER_VIDEO]: 1_180_000,
   [PERSONALIZED_VIDEO]: 1_400_000,
   [ATELIER_MOBILE_VIDEO]: 1_270_000,
-  [ABOUT_VIDEO]: 720_000,
-  [ABOUT_MOBILE_VIDEO]: 915_000,
+  [ABOUT_VIDEO]: 2_000_000,
+  [ABOUT_MOBILE_VIDEO]: 1_790_000,
 };
 
 const CACHE_NAME = "home-videos";

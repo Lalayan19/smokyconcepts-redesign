@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 
+import { forUppercase } from "@/lib/armenianCaps";
+
 function TruckIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
@@ -91,7 +93,7 @@ export default function DeliveryInfo() {
   return (
     <section className="delivery-card relative mt-5 rounded-[1.5rem] bg-white p-5 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
       <h2 className="text-[11px] font-bold tracking-wider text-[#898989] uppercase">
-        {t("deliveryTitle")}
+        {forUppercase(t("deliveryTitle"))}
       </h2>
 
       <div className="mt-1 flex flex-col divide-y divide-black/5">
@@ -150,7 +152,7 @@ export default function DeliveryInfo() {
               id="delivery-popup-title"
               className="text-[11px] font-bold tracking-wider text-[#898989] uppercase"
             >
-              {t("deliveryTitle")}
+              {forUppercase(t("deliveryTitle"))}
             </h2>
 
             <div className="mt-1 flex items-start gap-4 py-4">

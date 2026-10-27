@@ -196,8 +196,10 @@ export default function CustomizeModal({
                     backgroundColor: "#122a26",
                   }}
                 >
+                  {/* With nothing typed, the "Your Text" is gray, the colour of the field's placeholder
+                      (#b3b3b3); what is typed is white. */}
                   <p
-                    className="max-w-full truncate text-center text-white"
+                    className={`max-w-full truncate text-center ${text.trim() ? "text-white" : "text-[#b3b3b3]"}`}
                     style={{
                       fontSize: "calc(var(--case) * 0.094)",
                       fontFamily: font.family,

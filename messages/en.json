@@ -90,7 +90,7 @@
   },
   "Care": {
     "title": "Care & Limits",
-    "temperature": "Operating temperature (−10°C to +65°C)",
+    "temperature": "Operating temperature <nowrap>(−10°C to +65°C)</nowrap>",
     "sunlight": "Avoid prolonged direct sunlight",
     "moisture": "Wipe off moisture promptly with a soft, dry cloth",
     "cleaners": "No alcohol, solvents or harsh cleaners",

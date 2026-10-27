@@ -1754,9 +1754,11 @@ body:has(.personalization-page) .site-footer {
     display: grid;
     grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
     /* The section is as tall as the window (100vh; taller only where the picture does not fit
-       in a low window), and the text block is exactly in the middle of it, up and down (the
-       space above it is the same as the space under it; it was 1.5 times as much above). */
-    min-height: 100vh;
+       in a low window) and 10% more at the top (10vh of white above it: 110vh in all). The picture
+       and the text block are in the middle of the 100vh under that, up and down (the space above
+       the text is the same as the space under it; it was 1.5 times as much above). */
+    min-height: 110vh;
+    padding-top: 10vh;
     grid-template-rows: 1fr auto auto 1fr;
     column-gap: 4rem;
     max-width: min(72rem, 100% - 4rem) !important;
@@ -2909,7 +2911,7 @@ html[lang] .popular-sizes-section > p {
   }
 
   /* About, phone: the section is 100px taller at the top (white, above the bag's video; it was
-     60px, then 40px more): the video and the button, which is under the bag (91% of the video's
+     60px, then 40px more): the video and the button, which is on the pedestal (81.8% of the video's
      height), are 100px lower, and the text stays where it was (10.3% of the video's height from
      the top of the section), so it has 100px more room above the bag's handles. A tablet and
      larger are not changed. */
@@ -2921,10 +2923,11 @@ html[lang] .popular-sizes-section > p {
     background: #fff;
   }
 
-  /* The heading and the text under it are 55px lower than 10.3% of the photo's height (the
-     button and the photo did not move; it was 30px, then 10px more, then 15px more). */
+  /* The heading and the text under it are 30px lower than 10.3% of the video's height (the
+     button and the video did not move; it was 55px, 25px higher now, so the text is clear of the
+     bag's handles; before that 30px, then 10px more, then 15px more). */
   .about-split .about-text {
-    top: calc((100% - var(--about-extra)) * 0.103 + 55px) !important;
+    top: calc((100% - var(--about-extra)) * 0.103 + 30px) !important;
   }
 
   /* Armenian only: the second row of the heading ("Մնայուն տպավորություն։") is drawn 10px lower
@@ -2934,7 +2937,7 @@ html[lang] .popular-sizes-section > p {
   }
 
   .about-split .about-button {
-    top: calc(var(--about-extra) + (100% - var(--about-extra)) * 0.91) !important;
+    top: calc(var(--about-extra) + (100% - var(--about-extra)) * 0.818) !important;
   }
 
   /* Say Hi, phone: the section is 10px taller at the bottom (the padding under the button is 10px
@@ -3077,10 +3080,11 @@ html[lang] .popular-sizes-section > p {
   }
 }
 
-/* Home, About: the bag is a video (see ScrollVideo and AboutSection.tsx), played by the scroll. The
-   box has the shape of the old photo, 402 x 668, on a phone (the phone's file is 1080 x 1794 and
-   fills it), and is 4 : 5 on a tablet and larger, where the other file (4 : 3) is in the middle of
-   it. The video is white all round the bag, like the section. Under each video, its last frame as a
+/* Home, About: the bag on its pedestal is a video (see ScrollVideo and AboutSection.tsx), played by
+   the scroll. The box has the shape of the old photo, 402 x 668, on a phone (the phone's file is
+   1080 x 1794 and fills it), and is 5 : 7 on a tablet and larger, where the other file (the same
+   shape, 840 x 1176, cut round the bag with its handles and the pedestal) fills it too: the pedestal goes down to the
+   bottom of the box. The video is white all round the bag, like the section. Under each video, its last frame as a
    picture (the same size, so it is never seen while the video plays; it stands in if the video
    does not load, like the other sections' videos: the version in the address is HOME_VIDEO_VERSION
    in src/lib/homeVideos.ts). Only the video for the window is shown. */
@@ -3105,21 +3109,17 @@ html[lang] .popular-sizes-section > p {
 }
 
 .about-video-mobile {
-  background: url("/videos/home-frames/about-mobile/f051.webp?v=5-3") center / 100% 100% no-repeat;
+  background: url("/videos/home-frames/about-mobile-v2/f119.webp?v=5") center / 100% 100% no-repeat;
 }
 
 .about-video-wide {
   display: none;
-  background: url("/videos/home-frames/about/f049.webp?v=5-3") center / 100% 100% no-repeat;
+  background: url("/videos/home-frames/about-v3/f119.webp?v=5") center / 100% 100% no-repeat;
 }
 
-/* A tablet and larger: the box is 5 : 7 (it was 4 : 5) and the video is drawn 190% as wide as it,
-   so the bag is 82% as wide as the box (the bag is 43% of the video's width, and in the middle of it
-   across); it was 43% of the box. The box clips the white that goes out of it at the sides (the
-   bag, from 26% to 74% of the video's width in every frame, stays inside the middle 53% that
-   shows). Up and down the video is placed by the bag, not by the frame: the bag's middle is 66.5%
-   of the way down the frame, and that is put 5% of the video's height (about 40px) under the
-   middle of the box (the video is moved by -61.5%, not -66.5%). */
+/* A tablet and larger: the box is 5 : 7 and the video (also 5 : 7) fills it, the pedestal at the
+   bottom of it; the bag is about 60% as wide as the box, the whole pedestal (84%) and the handles are
+   in it. */
 @media (min-width: 744px) and (min-height: 500px) {
   .about-art {
     aspect-ratio: 5 / 7;
@@ -3131,13 +3131,5 @@ html[lang] .popular-sizes-section > p {
 
   .about-video-wide {
     display: block;
-    inset: auto;
-    top: 50%;
-    left: -45%;
-    width: 190%;
-    max-width: none; /* the page's base style keeps a video as narrow as its box */
-    height: auto;
-    aspect-ratio: 4 / 3;
-    transform: translateY(-61.5%);
   }
 }

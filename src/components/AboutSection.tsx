@@ -12,14 +12,15 @@ type AboutSectionProps = {
 };
 
 // The picture is a video of the bag, played by the scroll (see ScrollVideo and `.about-video` in
-// globals.css): a phone plays its own (1080 x 1794, 52 frames: the bag turns and settles facing the
-// front, on white, with the empty top of the frame left for the text), a tablet and larger the
-// other (1280 x 960, 50 frames). The box is 402 x 668 on a phone: it runs from one edge of the
-// screen to the other and sets the height of the section; the text and the button are placed on it
-// in percentages of that height, so on every phone they are in the same place on the picture (the
-// title's middle 13.2% down, the button's middle 91% down, under the bag, which ends at 82%).
+// globals.css): a phone plays its own (1080 x 1794, 120 frames: the bag stands on a white pedestal
+// and turns to face the front, with the empty top of the frame left for the text), a tablet and
+// larger the other (840 x 1176, 120 frames: the same, cut round the bag with its handles and its pedestal). The box
+// is 402 x 668 on a phone: it runs from one edge of the screen to the other and sets the height of
+// the section; the text and the button are placed on it in percentages of that height, so on every
+// phone they are in the same place on the picture (the title's middle 13.2% down, the button's
+// middle 81.8% down, on the front of the pedestal, which goes from 72% down to the bottom).
 const TEXT_TOP = "10.3%";
-const BUTTON_MIDDLE = "91%";
+const BUTTON_MIDDLE = "81.8%";
 
 // How the videos play (see ScrollVideo): no hold; they have played to their last frame when the
 // section is in the middle of the window (under the header), and start when its top is this share
@@ -27,16 +28,31 @@ const BUTTON_MIDDLE = "91%";
 // They start 10 frames of scroll later than the first place (at the same speed: 0.55 of the
 // window's height for all the frames of a file, so a frame is 0.55 / its frames), so they also end
 // that much past the middle.
-const ABOUT_FRAMES = 50;
-const ABOUT_MOBILE_FRAMES = 52;
+const ABOUT_FRAMES = 120;
+const ABOUT_MOBILE_FRAMES = 120;
+// The places where the videos start and end are what they were with the videos before these (52
+// frames for a phone, 50 for the others: the numbers below are worked out from those), so the new
+// ones (120 frames each) are played over the same distance of scroll.
+const ABOUT_OLD_MOBILE_FRAMES = 52;
+const ABOUT_OLD_FRAMES = 50;
 const ABOUT_DELAY_FRAMES = 10;
 // The phone's video started 10 frames later again (20 in all); it now starts 10 frames earlier
 // (10 in all, the same as the other), and ends that much sooner.
 const ABOUT_MOBILE_DELAY_FRAMES = ABOUT_DELAY_FRAMES;
-const ABOUT_RAMP = 0.55 - (ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_MOBILE_FRAMES;
-const ABOUT_RAMP_END = -(ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_MOBILE_FRAMES;
-const ABOUT_WIDE_RAMP = 0.55 - (ABOUT_DELAY_FRAMES * 0.55) / ABOUT_FRAMES;
-const ABOUT_WIDE_RAMP_END = -(ABOUT_DELAY_FRAMES * 0.55) / ABOUT_FRAMES;
+// All the videos then start (and end) a little earlier: 0.06 of the window's height of scroll, about
+// 5 frames of the old videos.
+const ABOUT_EARLIER = 0.06;
+const ABOUT_RAMP =
+  0.55 - (ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_OLD_MOBILE_FRAMES + ABOUT_EARLIER;
+const ABOUT_RAMP_END = -(ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_OLD_MOBILE_FRAMES + ABOUT_EARLIER;
+// A tablet and larger: the section is 10vh taller at the top (see `.about-split` in globals.css),
+// which puts the bag 10vh lower in it and the middle of the window 5vh higher, so the video starts
+// and ends 0.05 of the window's height earlier in these numbers, for the bag to be where it was.
+const ABOUT_WIDE_TOP_EXTRA = 0.05;
+const ABOUT_WIDE_RAMP =
+  0.55 - (ABOUT_DELAY_FRAMES * 0.55) / ABOUT_OLD_FRAMES - ABOUT_WIDE_TOP_EXTRA + ABOUT_EARLIER;
+const ABOUT_WIDE_RAMP_END =
+  -(ABOUT_DELAY_FRAMES * 0.55) / ABOUT_OLD_FRAMES - ABOUT_WIDE_TOP_EXTRA + ABOUT_EARLIER;
 const ABOUT_GLIDE_MS = 50;
 
 // How wide each of the heading's two rows is, in times the font's size (measured in the page's
@@ -82,7 +98,7 @@ export default function AboutSection({ buttonHref }: AboutSectionProps) {
               windows="phone"
               className="about-video about-video-mobile"
               frames={ABOUT_MOBILE_FRAMES}
-              fallbackFolder="about-mobile"
+              fallbackFolder="about-mobile-v2"
               glideMs={ABOUT_GLIDE_MS}
               ramp={ABOUT_RAMP}
               rampEnd={ABOUT_RAMP_END}
@@ -93,7 +109,7 @@ export default function AboutSection({ buttonHref }: AboutSectionProps) {
               windows="tabletUp"
               className="about-video about-video-wide"
               frames={ABOUT_FRAMES}
-              fallbackFolder="about"
+              fallbackFolder="about-v3"
               glideMs={ABOUT_GLIDE_MS}
               ramp={ABOUT_WIDE_RAMP}
               rampEnd={ABOUT_WIDE_RAMP_END}

@@ -30,9 +30,9 @@ const BUTTON_MIDDLE = "91%";
 const ABOUT_FRAMES = 50;
 const ABOUT_MOBILE_FRAMES = 52;
 const ABOUT_DELAY_FRAMES = 10;
-// The phone's video starts 10 frames later again (20 in all), and ends that much further past the
-// middle.
-const ABOUT_MOBILE_DELAY_FRAMES = ABOUT_DELAY_FRAMES + 10;
+// The phone's video started 10 frames later again (20 in all); it now starts 10 frames earlier
+// (10 in all, the same as the other), and ends that much sooner.
+const ABOUT_MOBILE_DELAY_FRAMES = ABOUT_DELAY_FRAMES;
 const ABOUT_RAMP = 0.55 - (ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_MOBILE_FRAMES;
 const ABOUT_RAMP_END = -(ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_MOBILE_FRAMES;
 const ABOUT_WIDE_RAMP = 0.55 - (ABOUT_DELAY_FRAMES * 0.55) / ABOUT_FRAMES;

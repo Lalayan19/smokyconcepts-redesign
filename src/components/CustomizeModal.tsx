@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState, type CSSProperties } from "react";
+import { useTranslations } from "next-intl";
 
 import caseIcon from "@/assets/icons/case.svg";
 import { useSwipeSheet } from "@/hooks/useSwipeSheet";
@@ -72,6 +73,7 @@ export default function CustomizeModal({
   onSave,
   initial,
 }: CustomizeModalProps) {
+  const t = useTranslations("Product");
   const [text, setText] = useState(initial?.text ?? "");
   const [fontNav, setFontNav] = useState(() => startFontNav(initial?.font));
   const [bold, setBold] = useState(initial?.bold ?? false);
@@ -146,7 +148,7 @@ export default function CustomizeModal({
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-4 pb-5 sm:px-12 sm:pt-4"
         >
           <p className="text-[11px] font-bold tracking-[0.14em] text-[#898989] uppercase">
-            Live Preview
+            {t("livePreview")}
           </p>
           {/* The case: a gold drawing on the sheet itself, 457 x 194 in its own
               units, as wide as the fields below (at most 450px). Everything is
@@ -203,7 +205,7 @@ export default function CustomizeModal({
                       fontStyle: italic ? "italic" : "normal",
                     }}
                   >
-                    {text.trim() || "Your Text"}
+                    {text.trim() || t("yourText")}
                   </p>
                 </div>
               </div>
@@ -212,13 +214,13 @@ export default function CustomizeModal({
 
           <div className="relative mt-4 bg-white">
             <label className="text-[11px] font-bold tracking-[0.14em] text-[#898989] uppercase">
-              Custom Text
+              {t("customText")}
             </label>
             <div className="mt-2 flex items-center gap-3 rounded-2xl border border-[#dcdcd8] bg-white px-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-colors focus-within:border-[#dcc090]">
               <input
                 type="text"
                 maxLength={18}
-                placeholder="Type something special…"
+                placeholder={t("textPlaceholder")}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 // 16px, not smaller: an iPhone zooms the whole page in when a
@@ -234,7 +236,7 @@ export default function CustomizeModal({
 
           <div className="relative mt-4 bg-white">
             <label className="text-[11px] font-bold tracking-[0.14em] text-[#898989] uppercase">
-              Style
+              {t("style")}
             </label>
             <div className="mt-2 flex items-center gap-2">
               {/* The font: an arrow on each side and its name between them. When
@@ -344,7 +346,7 @@ export default function CustomizeModal({
             }}
             className="flex h-14 w-full items-center justify-center rounded-2xl bg-[#dcc090] text-sm font-extrabold tracking-[0.14em] text-[#122a26] uppercase shadow-[0_4px_16px_rgba(220,192,144,0.4)] transition-all hover:bg-[#d3b57c] active:scale-[0.98]"
           >
-            Save Customization
+            {t("saveCustomization")}
           </button>
         </div>
         </div>

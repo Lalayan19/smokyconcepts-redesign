@@ -1,9 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
+import { COLLECTION_KEYS } from "@/data/collectionKeys";
 import { formatPrice, type Product } from "@/data/products";
 
 export default function ProductCard({ product }: { product: Product }) {
+  const shop = useTranslations("Shop");
+  const home = useTranslations("Home");
+  const collectionKey = COLLECTION_KEYS[product.collection];
   return (
     <article className="group relative z-0 flex h-full min-h-0 max-sm:w-[calc((100vw-2.25rem)/1.72)] w-full shrink-0 flex-col overflow-visible rounded-[1.125rem] bg-white px-0 pt-[7rem] pb-8 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] hover:z-[8] focus-within:z-[8] sm:w-[11rem] sm:pt-[8rem] sm:pb-9 lg:w-[11rem] lg:pt-[7.5rem] xl:w-[11.5rem]">
       <div className="relative z-10 mb-0 flex h-[14.75rem] shrink-0 items-end justify-center overflow-visible -mt-[4.5rem] sm:mb-1 sm:h-[17.75rem] sm:-mt-[5.5rem] lg:h-[14.5rem] lg:-mt-[5rem]">
@@ -42,7 +47,7 @@ export default function ProductCard({ product }: { product: Product }) {
               {product.size}
             </span>
             <span className="rounded-[0.3125rem] bg-[#122a26] px-[0.3125rem] py-px text-[0.5625rem] leading-tight font-medium text-white sm:rounded-[0.375rem] sm:px-[0.375rem] sm:py-[0.125rem] sm:text-[0.625rem]">
-              {product.collection}
+              {collectionKey ? home(`collections.${collectionKey}.name`) : product.collection}
             </span>
           </div>
         </div>
@@ -54,10 +59,10 @@ export default function ProductCard({ product }: { product: Product }) {
           </span>
           <Link
             href={`/products/${product.slug}`}
-            aria-label={`Buy — ${product.name}`}
+            aria-label={`${shop("buy")} — ${product.name}`}
             className="ml-0.5 inline-flex h-[1.375rem] min-w-[3.125rem] items-center justify-center rounded-[0.4375rem] border-2 border-[#dcc090] px-1.5 text-[0.6875rem] leading-tight font-extrabold text-[#dcc090] transition-colors hover:bg-[#dcc090]/10 sm:ml-1 sm:h-6 sm:min-w-[3.625rem] sm:rounded-[0.5rem] sm:px-2 sm:text-[0.75rem]"
           >
-            Buy
+            {shop("buy")}
           </Link>
         </div>
       </div>

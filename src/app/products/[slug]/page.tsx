@@ -2,12 +2,14 @@
 
 import { notFound, useParams } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 import CustomizeModal, { type Customization } from "@/components/CustomizeModal";
 import DeliveryInfo from "@/components/DeliveryInfo";
 import DragScroll from "@/components/DragScroll";
 import HowToUse from "@/components/HowToUse";
 import CareLimits from "@/components/CareLimits";
+import { COLLECTION_KEYS } from "@/data/collectionKeys";
 import ProductCard from "@/components/ProductCard";
 import ProductDescription from "@/components/ProductDescription";
 import ProductGallery from "@/components/ProductGallery";
@@ -20,16 +22,17 @@ import {
   PRODUCT_CATEGORIES,
 } from "@/data/products";
 
+// The names of the details are in messages/*.json (`Product`); the values are as they were.
 const DETAILS = [
-  { label: "Collection", value: "Classic" },
-  { label: "Leather", value: "High Quality Leather" },
-  { label: "Color", value: "Dark Brown" },
-  { label: "Body", value: "PET Carbon Fiber" },
-  { label: "Dimensions", value: "88 × 56 × 18 mm" },
-  { label: "Weight", value: "45 g" },
-  { label: "Finish", value: "Natural matte" },
-  { label: "Construction", value: "Engineered core, wrapped and hand-finished in leather" },
-];
+  { key: "collection", value: "Classic" },
+  { key: "leather", value: "High Quality Leather" },
+  { key: "color", value: "Dark Brown" },
+  { key: "body", value: "PET Carbon Fiber" },
+  { key: "dimensions", value: "88 × 56 × 18 mm" },
+  { key: "weight", value: "45 g" },
+  { key: "finish", value: "Natural matte" },
+  { key: "construction", value: "Engineered core, wrapped and hand-finished in leather" },
+] as const;
 
 // What customizing a Classic case costs on top of its price.
 const CLASSIC_CUSTOMIZE_FEE = 2000;
@@ -87,6 +90,10 @@ function PencilIcon({ className }: { className?: string }) {
 export default function ProductPage() {
   const params = useParams<{ slug: string }>();
   const product = findProductBySlug(params.slug);
+  // The texts follow the language chosen in the header (messages/*.json).
+  const t = useTranslations("Product");
+  const shop = useTranslations("Shop");
+  const home = useTranslations("Home");
 
   // The name of the cigarette picked in the list ("Chapman Cherry"), shown in the
   // size button.
@@ -166,7 +173,10 @@ export default function ProductPage() {
             {product.name}
           </h2>
           <span className="inline-flex w-fit items-center rounded-full bg-[#122a26]/[0.06] px-3 py-1 text-[11px] font-bold tracking-wider text-[#122a26] uppercase">
-            {product.size} · {product.collection}
+            {product.size} ·{" "}
+            {COLLECTION_KEYS[product.collection]
+              ? home(`collections.${COLLECTION_KEYS[product.collection]}.name`)
+              : product.collection}
           </span>
 
           <button
@@ -176,13 +186,13 @@ export default function ProductPage() {
           >
             <span className="flex min-w-0 flex-col gap-0.5">
               <span className="text-[10px] font-bold tracking-wider text-[#122a26]/70 uppercase">
-                Size
+                {t("size")}
               </span>
               {/* `truncate` hides what is outside the line's box, and a 15px line
                   (leading-none) cut the tails of letters like g and y: the line is
                   taller (the button has the room). */}
               <span className="truncate text-[15px] leading-[1.35] font-extrabold text-[#122a26]">
-                {cigarette ?? "Select cigarette"}
+                {cigarette ?? shop("selectCigarette")}
               </span>
             </span>
             <ChevronRightIcon className="h-5 w-5 shrink-0 text-[#122a26]" />
@@ -206,7 +216,7 @@ export default function ProductPage() {
                   <span className="flex items-center gap-2.5">
                     <PencilIcon className="h-4 w-4" />
                     <span className="text-xs font-extrabold tracking-[0.14em] uppercase">
-                      {product.collection === "Atelier" ? "Personalize" : "Customize"}
+                      {product.collection === "Atelier" ? "Personalize" : t("customize")}
                     </span>
                   </span>
                   {/* What customizing costs on top, for the Classic collection:
@@ -246,7 +256,7 @@ export default function ProductPage() {
 
           <div>
             <p className="text-[11px] font-bold tracking-wider text-[#898989] uppercase">
-              Price
+              {t("price")}
             </p>
             <p className="mt-1 text-[1.875rem] leading-none font-extrabold text-[#414141]">
               {formatPrice(product.price)}
@@ -260,13 +270,13 @@ export default function ProductPage() {
         <div className="product-actions mt-8 flex items-center gap-3">
           <button
             type="button"
-            aria-label="Add to cart"
+            aria-label={t("addToCart")}
             className="product-cart flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-[#122a26] text-[#122a26] shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-transform active:scale-90"
           >
             <CartIcon className="product-cart-icon h-6 w-6" />
             {/* On a tablet and larger the button says it, instead of the icon. */}
             <span className="product-cart-label hidden text-sm font-extrabold tracking-[0.14em] uppercase">
-              Add to cart
+              {t("addToCart")}
             </span>
           </button>
           <button
@@ -274,7 +284,7 @@ export default function ProductPage() {
             className="product-buy flex h-14 flex-1 items-center justify-between rounded-2xl bg-[#dcc090] px-5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-transform active:scale-[0.98]"
           >
             <span className="text-sm font-extrabold tracking-[0.14em] text-[#122a26] uppercase">
-              Buy Now
+              {t("buyNow")}
             </span>
             <span className="text-base font-extrabold text-[#122a26]">
               {formatPrice(totalPrice)}
@@ -286,20 +296,20 @@ export default function ProductPage() {
         <div className="product-rest contents">
         {/* On a tablet and larger this line is the heading of the card, above it and outside it
             like "Product Story" (the word "Details" in the card is not shown there). */}
-        <p className="product-details-sub hidden">Product specifications</p>
+        <p className="product-details-sub hidden">{t("specifications")}</p>
         <section className="product-details mt-10">
           <h2 className="product-details-title text-[1.375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
-            Details
+            {t("detailsTitle")}
           </h2>
           <dl className="product-details-list mt-4 overflow-hidden rounded-[1.5rem] bg-white shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
             {DETAILS.map((d, index) => (
               <div
-                key={d.label}
+                key={d.key}
                 className={`flex items-start justify-between gap-4 px-5 py-4 ${
                   index !== DETAILS.length - 1 ? "border-b border-black/5" : ""
                 }`}
               >
-                <dt className="shrink-0 text-sm text-[#898989]">{d.label}</dt>
+                <dt className="shrink-0 text-sm text-[#898989]">{t(d.key)}</dt>
                 <dd className="max-w-[65%] text-right text-sm font-semibold text-[#414141]">
                   {d.value}
                 </dd>
@@ -322,7 +332,7 @@ export default function ProductPage() {
 
         <section className="product-related mt-10">
           <h2 className="text-[1.375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
-            You May Also Like
+            {t("alsoLike")}
           </h2>
           <DragScroll className="scrollbar-hide mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto pt-2 pb-2">
             {related.map((p) => (

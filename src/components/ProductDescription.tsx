@@ -2,6 +2,7 @@
 
 import Image, { type StaticImageData } from "next/image";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useTranslations } from "next-intl";
 
 import descriptionImage from "@/assets/images/description-image.png";
 import slider5 from "@/assets/images/slider5.jpg";
@@ -80,6 +81,7 @@ function translateFor(index: number, pos: number) {
 }
 
 export default function ProductDescription() {
+  const t = useTranslations("Product");
   const [index, setIndex] = useState(0);
   const posRef = useRef(0); // which slide is showing, as a fraction while moving
   const shownRef = useRef(0); // the slide nearest to being in view
@@ -214,7 +216,7 @@ export default function ProductDescription() {
   return (
     <section className="mt-10">
       <h2 className="text-[1.375rem] font-extrabold tracking-[-0.01em] text-[#414141]">
-        Product Story
+        {t("story")}
       </h2>
 
       <div
@@ -340,9 +342,7 @@ export default function ProductDescription() {
           {/* The note stays put whichever slide is showing. */}
           <div className="product-story-note mx-5 rounded-2xl border border-[#dcc090] bg-white/10 px-4 py-3.5 backdrop-blur-sm sm:mx-8">
             <p className="text-xs leading-relaxed text-white">
-              <span className="font-bold text-white">Note:</span> Natural leather
-              may vary slightly in grain, texture, and color tone. Each piece is
-              unique and may differ slightly from the photos shown.
+              <span className="font-bold text-white">{t("noteLabel")}</span> {t("noteText")}
             </p>
           </div>
         </div>

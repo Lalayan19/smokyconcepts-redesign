@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
 
 function TruckIcon({ className }: { className?: string }) {
   return (
@@ -17,7 +18,7 @@ function TruckIcon({ className }: { className?: string }) {
 }
 
 const ROW = {
-  title: "Shipping Details",
+  // (The title, "Shipping Details", is in messages/*.json, `Product`.)
   // The whole text, in the popup.
   subtitle:
     "Shipping time depends on the model you choose. In-stock items ship within 2–3 business days. Made-to-order pieces are hand-assembled after your order is placed, with delivery in 5–10 business days. Currently delivering within Yerevan — expanding soon to the rest of Armenia and worldwide.",
@@ -32,6 +33,7 @@ const MORE_CLASS =
   "font-bold text-[#122a26] underline underline-offset-2 hover:text-[#dcc090]";
 
 export default function DeliveryInfo() {
+  const t = useTranslations("Product");
   // "more" opens the whole text in a popup. The popup is not in the middle of the
   // screen: it opens in the card's own place (the same width, from the card's top,
   // as tall as its text needs), over the card and what is under it, with the rest of
@@ -89,7 +91,7 @@ export default function DeliveryInfo() {
   return (
     <section className="delivery-card relative mt-5 rounded-[1.5rem] bg-white p-5 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)]">
       <h2 className="text-[11px] font-bold tracking-wider text-[#898989] uppercase">
-        Delivery &amp; Availability
+        {t("deliveryTitle")}
       </h2>
 
       <div className="mt-1 flex flex-col divide-y divide-black/5">
@@ -98,7 +100,7 @@ export default function DeliveryInfo() {
             <TruckIcon className="h-6 w-6 text-[#122a26]" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-[#414141]">{ROW.title}</p>
+            <p className="text-sm font-bold text-[#414141]">{t("shippingDetails")}</p>
             <p className="mt-0.5 text-[13px] leading-relaxed text-[#898989]">
               {ROW.short}{" "}
               <button
@@ -109,7 +111,7 @@ export default function DeliveryInfo() {
                 onClick={show}
                 className={MORE_CLASS}
               >
-                more
+                {t("more")}
               </button>
             </p>
           </div>
@@ -148,7 +150,7 @@ export default function DeliveryInfo() {
               id="delivery-popup-title"
               className="text-[11px] font-bold tracking-wider text-[#898989] uppercase"
             >
-              Delivery &amp; Availability
+              {t("deliveryTitle")}
             </h2>
 
             <div className="mt-1 flex items-start gap-4 py-4">
@@ -156,7 +158,7 @@ export default function DeliveryInfo() {
                 <TruckIcon className="h-6 w-6 text-[#122a26]" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-[#414141]">{ROW.title}</p>
+                <p className="text-sm font-bold text-[#414141]">{t("shippingDetails")}</p>
                 <p className="mt-0.5 text-[13px] leading-relaxed text-[#898989]">
                   {ROW.subtitle}
                 </p>
@@ -169,7 +171,7 @@ export default function DeliveryInfo() {
               onClick={hide}
               className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#dcc090] text-sm font-extrabold tracking-[0.14em] text-[#122a26] uppercase transition-colors hover:bg-[#d3b57c]"
             >
-              Close
+              {t("close")}
             </button>
           </div>
         </>

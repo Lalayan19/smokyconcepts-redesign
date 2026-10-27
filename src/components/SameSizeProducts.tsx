@@ -3,8 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 
 import DragScroll from "@/components/DragScroll";
+import { COLLECTION_KEYS } from "@/data/collectionKeys";
 import { formatPrice, type Product } from "@/data/products";
 
 const CARD_PX = 216; // 13.5rem
@@ -36,11 +38,15 @@ function translateFor(index: number, pos: number, total: number) {
 }
 
 function ProductTile({ product }: { product: Product }) {
+  const home = useTranslations("Home");
+  const collectionKey = COLLECTION_KEYS[product.collection];
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-[#fffffe] p-3 shadow-[0_1px_4px_rgba(0,0,0,0.05)] transition-transform active:scale-[0.97]">
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-bold text-[#414141]">{product.name}</p>
-        <p className="text-[11px] font-semibold text-[#898989]">{product.collection}</p>
+        <p className="text-[11px] font-semibold text-[#898989]">
+          {collectionKey ? home(`collections.${collectionKey}.name`) : product.collection}
+        </p>
         <p className="mt-1.5 text-sm font-extrabold text-[#414141]">
           {formatPrice(product.price)}
         </p>
@@ -343,7 +349,12 @@ export default function SameSizeProducts({
   collection: string;
   products: Product[];
 }) {
+  const t = useTranslations("Product");
+  const home = useTranslations("Home");
   if (products.length === 0) return null;
+  // The collection's name in the chosen language (the same names as in the home page's row).
+  const collectionKey = COLLECTION_KEYS[collection];
+  const collectionName = collectionKey ? home(`collections.${collectionKey}.name`) : collection;
 
   return (
     <section className="mt-10">
@@ -353,10 +364,10 @@ export default function SameSizeProducts({
           className="text-[0.9375rem] font-extrabold tracking-[-0.01em] text-[#414141]"
           style={{ paddingLeft: LEFT_PX }}
         >
-          More in {collection} Collection
+          {t("moreInCollection", { collection: collectionName })}
         </h2>
         <span className="shrink-0 text-xs font-semibold text-[#898989]">
-          {products.length} styles
+          {t("styles", { count: products.length })}
         </span>
       </div>
 

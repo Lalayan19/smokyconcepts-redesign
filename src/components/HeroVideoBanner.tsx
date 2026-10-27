@@ -70,7 +70,7 @@ export default function HeroVideoBanner({
           wideEl.src = wideVideo;
           wideEl.load();
         }
-        stop = keepPlaying(wideEl, "unlock-wide", "/videos/unlock-fallback-wide.webp");
+        stop = keepPlaying(wideEl, "unlock-wide", "/videos/unlock-fallback-wide-v2.webp");
       } else {
         wideEl?.pause();
         if (!portrait.getAttribute("src")) {
@@ -122,7 +122,7 @@ export default function HeroVideoBanner({
               loop
               playsInline
               preload="none"
-              poster="/videos/unlock-poster-wide.webp"
+              poster="/videos/unlock-poster-wide-v2.webp"
               aria-hidden="true"
               className="hero-banner-wide"
               style={{ aspectRatio: "16 / 9", backgroundColor: "#000" }}

@@ -1566,7 +1566,8 @@ body:has(.personalization-page) .site-footer {
   }
 
   .howto-title {
-    font-size: 12px;
+    /* 11px (it was 12px). */
+    font-size: 11px;
     line-height: 1.35;
   }
 
@@ -1753,11 +1754,10 @@ body:has(.personalization-page) .site-footer {
   .about-split {
     display: grid;
     grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
-    /* The section is as tall as the window (100vh; taller only where the picture does not fit
-       in a low window) and 10% more at the top (10vh of white above it: 110vh in all). The picture
-       and the text block are in the middle of the 100vh under that, up and down (the space above
-       the text is the same as the space under it; it was 1.5 times as much above). */
-    min-height: 110vh;
+    /* The section is as tall as the picture box (the pedestal in the video stands on the bottom of
+       the section, where it ends) and 10vh of white above it. The text block is in the middle of the
+       picture box, up and down (the space above the text is the same as the space under it; it was
+       1.5 times as much above). It was at least 110vh tall, with white under the pedestal. */
     padding-top: 10vh;
     grid-template-rows: 1fr auto auto 1fr;
     column-gap: 4rem;
@@ -3076,7 +3076,8 @@ html[lang] .popular-sizes-section > p {
   }
 
   .care-title {
-    font-size: 12px;
+    /* 11px, the same as How to Use's (it was 12px). */
+    font-size: 11px;
     line-height: 1.35;
   }
 }
@@ -3084,7 +3085,7 @@ html[lang] .popular-sizes-section > p {
 /* Home, About: the bag on its pedestal is a video (see ScrollVideo and AboutSection.tsx), played by
    the scroll. The box has the shape of the old photo, 402 x 668, on a phone (the phone's file is
    1080 x 1794 and fills it), and is 5 : 7 on a tablet and larger, where the other file (the same
-   shape, 840 x 1176, cut round the bag with its handles and the pedestal) fills it too: the pedestal goes down to the
+   shape, 630 x 882, cut round the bag with its handles and the pedestal) fills it too: the pedestal goes down to the
    bottom of the box. The video is the same pale colour all round the bag, like the section (#fbfdfd). Under each video, its last frame as a
    picture (the same size, so it is never seen while the video plays; it stands in if the video
    does not load, like the other sections' videos: the version in the address is HOME_VIDEO_VERSION
@@ -3102,22 +3103,27 @@ html[lang] .popular-sizes-section > p {
 }
 
 .about-video {
+  /* The video is drawn 80% of the size of its box (the box, and so the section, is as big as it
+     was), in the middle across and on the bottom of the box, so the pedestal stands on the bottom
+     of the section. What is round it is the section's own colour. */
+  --about-video-scale: 0.8;
   position: absolute;
-  inset: 0;
+  bottom: 0;
+  left: calc((1 - var(--about-video-scale)) * 50%);
   display: block;
-  width: 100%;
-  height: 100%;
+  width: calc(var(--about-video-scale) * 100%);
+  height: calc(var(--about-video-scale) * 100%);
   pointer-events: none;
   will-change: transform;
 }
 
 .about-video-mobile {
-  background: url("/videos/home-frames/about-mobile-v3/f119.webp?v=5") center / 100% 100% no-repeat;
+  background: url("/videos/home-frames/about-mobile-v4/f119.webp?v=5") center / 100% 100% no-repeat;
 }
 
 .about-video-wide {
   display: none;
-  background: url("/videos/home-frames/about-v4/f119.webp?v=5") center / 100% 100% no-repeat;
+  background: url("/videos/home-frames/about-v5/f119.webp?v=5") center / 100% 100% no-repeat;
 }
 
 /* A tablet and larger: the box is 5 : 7 and the video (also 5 : 7) fills it, the pedestal at the

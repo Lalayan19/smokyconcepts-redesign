@@ -33,7 +33,7 @@ export default function CareLimits() {
   return (
     <section className="care-card rounded-[1.5rem] bg-white px-6 py-10 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] sm:px-10">
       <div className="text-center">
-        <h2 className="text-2xl font-extrabold tracking-[0.05em] text-[#dcc090] uppercase sm:text-3xl">
+        <h2 className="text-[22px] font-extrabold tracking-[0.05em] text-[#dcc090] uppercase sm:text-[28px]">
           {forUppercase(t("title"))}
         </h2>
       </div>
@@ -46,7 +46,7 @@ export default function CareLimits() {
             </div>
             <div className="care-body flex min-w-0 flex-1 items-start justify-between gap-4">
               <div className="min-w-0">
-                <p className="care-title inline-block w-fit border-b-2 border-[#dcc090] pb-1 text-[15px] font-bold text-[#414141]">
+                <p className="care-title inline-block w-fit border-b-2 border-[#dcc090] pb-1 text-[14px] font-bold text-[#414141]">
                   {/* <nowrap> in a text keeps what is inside it in one row (the temperatures). */}
                   {t.rich(key, {
                     nowrap: (chunks) => <span className="whitespace-nowrap">{chunks}</span>,

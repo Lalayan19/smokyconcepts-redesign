@@ -17,7 +17,7 @@ export default function HowToUse() {
   return (
     <section className="howto-card rounded-[1.5rem] bg-white px-6 py-10 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] sm:px-10">
       <div className="text-center">
-        <h2 className="text-2xl font-extrabold tracking-[0.05em] text-[#dcc090] uppercase sm:text-3xl">
+        <h2 className="text-[22px] font-extrabold tracking-[0.05em] text-[#dcc090] uppercase sm:text-[28px]">
           {t("howToUse")}
         </h2>
         <p className="mt-1 text-xs font-semibold tracking-[0.1em] text-[#dcc090]/80 uppercase">
@@ -37,7 +37,7 @@ export default function HowToUse() {
                   under it; the drawing is centered on the row. */}
               <div className="howto-body flex min-w-0 flex-1 items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="howto-title inline-block w-fit border-b-2 border-[#dcc090] pb-1 text-[15px] font-bold text-[#414141]">
+                  <p className="howto-title inline-block w-fit border-b-2 border-[#dcc090] pb-1 text-[14px] font-bold text-[#414141]">
                     {t(step)}
                   </p>
                 </div>

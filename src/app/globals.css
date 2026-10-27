@@ -2044,7 +2044,8 @@ body:has(.personalization-page) .site-footer {
    the whole section, which is as tall as the screen under the header (the video is cut at
    the sides to fit). The texts are over it: the title (on one row) and the line under it at
    the top, in the middle; the heading, the text and the button at the bottom, on the left,
-   over a dark shade. The green shade is over the top, as on a phone. */
+   with no shade at the bottom. The green shade is over the top, as on a phone, and the right side of the
+   video fades to black. */
 @media (min-width: 744px) and (min-height: 500px) {
   .hero-banner {
     --hero-h: calc(100svh - 4rem);
@@ -2085,8 +2086,10 @@ body:has(.personalization-page) .site-footer {
     inset: 0 var(--hero-shift) 0 calc(var(--hero-shift) * -1);
   }
 
-  /* The right side of the video fades into the black, so the texts over it can be read and
-     the video has no hard edge. */
+  /* The right side of the video fades into the black, so the video has no hard edge there and the
+     empty part on the right is not seen (the texts are over it). This is the only black fade: the
+     black shade that was at the bottom of the section is gone, and so the green one at the top,
+     from the component, is the only other gradient. */
   .hero-banner .hero-banner-wide-link::after {
     content: "";
     position: absolute;
@@ -2106,18 +2109,6 @@ body:has(.personalization-page) .site-footer {
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-
-  /* The shade at the bottom, so the texts can be read over the lighter scenes. */
-  .hero-banner::after {
-    content: "";
-    position: absolute;
-    inset-inline: 0;
-    bottom: 0;
-    z-index: 10;
-    height: 45%;
-    pointer-events: none;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0) 100%);
   }
 
   .hero-banner .hero-banner-fit {

@@ -17,7 +17,7 @@ export default function HowToUse() {
   return (
     <section className="howto-card rounded-[1.5rem] bg-white px-6 py-10 shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] sm:px-10">
       <div className="text-center">
-        <h2 className="text-[22px] font-extrabold tracking-[0.05em] text-[#dcc090] uppercase sm:text-[28px]">
+        <h2 className="text-[22px] font-extrabold tracking-[0.05em] text-[#dcc090] uppercase">
           {t("howToUse")}
         </h2>
         <p className="mt-1 text-xs font-semibold tracking-[0.1em] text-[#dcc090]/80 uppercase">

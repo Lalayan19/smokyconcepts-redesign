@@ -10,6 +10,7 @@ import DragScroll from "@/components/DragScroll";
 import HowToUse from "@/components/HowToUse";
 import CareLimits from "@/components/CareLimits";
 import { COLLECTION_KEYS } from "@/data/collectionKeys";
+import { forUppercase } from "@/lib/armenianCaps";
 import ProductCard from "@/components/ProductCard";
 import ProductDescription from "@/components/ProductDescription";
 import ProductGallery from "@/components/ProductGallery";
@@ -59,16 +60,18 @@ function XIcon({ className }: { className?: string }) {
   );
 }
 
+// The bag of the header (assets/icons/bag.svg, drawn in the button's colour) with a circle with a
+// plus in it at its lower right.
 function CartIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+    <svg viewBox="0 0 26 26" fill="none" className={className} aria-hidden="true">
       <path
-        d="M6 8h12l-1 11a2 2 0 0 1-2 1.8H9A2 2 0 0 1 7 19L6 8Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
+        transform="translate(0 1)"
+        d="M18.75 6.75H15V5.25C15 2.355 12.645 0 9.75 0C6.855 0 4.5 2.355 4.5 5.25V6.75H0.75C0.336 6.75 0 7.086 0 7.5V22.5C0 22.914 0.336 23.25 0.75 23.25H18.75C19.164 23.25 19.5 22.914 19.5 22.5V7.5C19.5 7.086 19.164 6.75 18.75 6.75ZM6 5.25C6 3.18225 7.68225 1.5 9.75 1.5C11.8177 1.5 13.5 3.18225 13.5 5.25V6.75H6V5.25ZM18 21.75H1.5V8.25H4.5V10.5H6V8.25H13.5V10.5H15V8.25H18V21.75Z"
+        fill="currentColor"
       />
-      <path d="M9 8V6a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="19.5" cy="19.5" r="6" fill="#dcc090" stroke="white" strokeWidth="1.5" />
+      <path d="M19.5 16.8v5.4M16.8 19.5h5.4" stroke="#122a26" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
@@ -271,13 +274,13 @@ export default function ProductPage() {
           <button
             type="button"
             aria-label={t("addToCart")}
-            className="product-cart flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-[#122a26] text-[#122a26] shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-transform active:scale-90"
+            className="product-cart flex h-14 shrink-0 items-center justify-center gap-2 rounded-2xl border-2 border-[#122a26] px-3 text-[#122a26] shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-transform active:scale-90"
           >
-            <CartIcon className="product-cart-icon h-6 w-6" />
-            {/* On a tablet and larger the button says it, instead of the icon. */}
-            <span className="product-cart-label hidden text-sm font-extrabold tracking-[0.14em] uppercase">
-              {t("addToCart")}
+            {/* "Add to" at the left, the bag with a + at the right. */}
+            <span className="product-cart-label text-xs font-extrabold tracking-[0.1em] uppercase sm:text-sm sm:tracking-[0.14em]">
+              {forUppercase(t("addTo"))}
             </span>
+            <CartIcon className="product-cart-icon h-[26px] w-[26px] shrink-0" />
           </button>
           <button
             type="button"

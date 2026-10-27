@@ -1338,8 +1338,8 @@ body:has(.personalization-page) .site-footer {
      The name is not in the pictures (it stays there for screen readers) and not
      above the purchase card: it is in the card, over the size and collection. The
      price of customizing is in the customize button, at its right. The two buttons
-     under it are 40% and 60% of the row, and the first one says "Add to cart"
-     instead of showing an icon. */
+     under it are 40% and 60% of the row, and the first one says "Add to" and shows
+     the bag with a +, as on a phone. */
   .product-layout {
     max-width: 46rem;
   }
@@ -1393,14 +1393,6 @@ body:has(.personalization-page) .site-footer {
   .product-buy {
     flex: none;
     width: calc(60% - 0.375rem);
-  }
-
-  .product-cart-icon {
-    display: none;
-  }
-
-  .product-cart-label {
-    display: inline;
   }
 
   /* The sheets of a tablet and larger are plain modals: there is no handle to pull

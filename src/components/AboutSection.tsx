@@ -40,12 +40,16 @@ const ABOUT_DELAY_FRAMES = 10;
 // The phone's video started 10 frames later again (20 in all); it now starts 10 frames earlier
 // (10 in all, the same as the other), and ends that much sooner.
 const ABOUT_MOBILE_DELAY_FRAMES = ABOUT_DELAY_FRAMES;
+// The phone's video then starts 15 frames of its own (120 over 0.55 of the window's height) later
+// than that, and ends that much past it.
+const ABOUT_MOBILE_LATER = (15 * 0.55) / ABOUT_MOBILE_FRAMES;
 // All the videos then start (and end) earlier: 0.14 of the window's height of scroll (it was 0.06,
 // and before that 0), about 12 frames of the old videos.
 const ABOUT_EARLIER = 0.14;
 const ABOUT_RAMP =
-  0.55 - (ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_OLD_MOBILE_FRAMES + ABOUT_EARLIER;
-const ABOUT_RAMP_END = -(ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_OLD_MOBILE_FRAMES + ABOUT_EARLIER;
+  0.55 - (ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_OLD_MOBILE_FRAMES + ABOUT_EARLIER - ABOUT_MOBILE_LATER;
+const ABOUT_RAMP_END =
+  -(ABOUT_MOBILE_DELAY_FRAMES * 0.55) / ABOUT_OLD_MOBILE_FRAMES + ABOUT_EARLIER - ABOUT_MOBILE_LATER;
 // A tablet and larger: the section is 10vh taller at the top (see `.about-split` in globals.css),
 // which puts the bag 10vh lower in it and the middle of the window 5vh higher, so the video starts
 // and ends 0.05 of the window's height earlier in these numbers, for the bag to be where it was.

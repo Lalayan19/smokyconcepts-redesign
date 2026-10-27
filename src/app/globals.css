@@ -2915,11 +2915,11 @@ html[lang] .popular-sizes-section > p {
     background: #fbfdfd;
   }
 
-  /* The heading and the text under it are 30px lower than 10.3% of the video's height (the
-     button and the video did not move; it was 55px, 25px higher now, so the text is clear of the
-     bag's handles; before that 30px, then 10px more, then 15px more). */
+  /* The heading and the text under it are 42px lower than 10.3% of the video's height (the
+     button and the video did not move; it was 30px, 12px lower now; before that 55px, 25px higher,
+     so the text is clear of the bag's handles; before that 30px, then 10px more, then 15px more). */
   .about-split .about-text {
-    top: calc((100% - var(--about-extra)) * 0.103 + 30px) !important;
+    top: calc((100% - var(--about-extra)) * 0.103 + 42px) !important;
   }
 
   /* Armenian only: the second row of the heading ("Մնայուն տպավորություն։") is drawn 10px lower

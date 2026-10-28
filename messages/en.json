@@ -86,7 +86,9 @@
     "brand": "Brand",
     "size": "Size",
     "cancel": "Cancel",
-    "submit": "Submit"
+    "submit": "Submit",
+    "noResults": "Nothing found. Clear filters.",
+    "clearFilters": "Clear filters"
   },
   "Care": {
     "title": "Care & Limits",

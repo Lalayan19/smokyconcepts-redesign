@@ -2937,8 +2937,9 @@ html[lang] .popular-sizes-section > p {
     translate: 0 10px;
   }
 
+  /* The button's middle is 81.8% down the video, and 12px lower than that. */
   .about-split .about-button {
-    top: calc(var(--about-extra) + (100% - var(--about-extra)) * 0.818) !important;
+    top: calc(var(--about-extra) + (100% - var(--about-extra)) * 0.818 + 12px) !important;
   }
 
   /* Say Hi, phone: the section is 10px taller at the bottom (the padding under the button is 10px

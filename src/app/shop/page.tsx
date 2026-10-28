@@ -228,7 +228,17 @@ function ShopContent() {
             </section>
           ))}
           {categories.length === 0 && (
-            <p className="text-sm text-[#9d9d9d]">No products match these filters.</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm text-[#9d9d9d]">{t("noResults")}</p>
+              <button
+                type="button"
+                onClick={clearAll}
+                style={{ height: 36, padding: "0 14px", fontSize: 13, borderRadius: 8 }}
+                className="shrink-0 bg-[#dcc090] font-semibold text-[#122a26] shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#d3b57c]"
+              >
+                {t("clearFilters")}
+              </button>
+            </div>
           )}
         </div>
       </div>

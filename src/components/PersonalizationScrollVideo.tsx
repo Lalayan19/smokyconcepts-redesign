@@ -40,7 +40,7 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 
 // Raise it when a file of the film is changed (see next.config.ts): the new
 // address is not in the browser's keeping.
-const FILM_VERSION = 4;
+const FILM_VERSION = 5;
 const SRC_LARGE = `/videos/personalization-scrub.mp4?v=${FILM_VERSION}`;
 // The size of the video, for the bar if the server does not say (bytes).
 const FALLBACK_LARGE_BYTES = 8_600_000;
@@ -77,7 +77,9 @@ const FPS = 24;
 // words "Your Sign" held, and only a faint light moving on them; scrolling back from the end
 // had to play through them before anything moved, so they are cut, and the film ends 9
 // frames after the words have settled.)
-const FRAMES_LARGE = 210;
+// The film for a wide window is a newer one (250 frames, "Personalize_Tower_Update_V2"): its words
+// have settled at frame 229, so it ends 10 frames after that, at 240.
+const FRAMES_LARGE = 240;
 const FRAMES_PHONE = 210;
 // The windows that get the video: wider than tall (the same test as in
 // globals.css).
@@ -86,12 +88,17 @@ const LARGE_SCREEN = "(min-aspect-ratio: 1/1)";
 // The stops, as the frame (counting from 0) the film stays on. They are the
 // moments where the picture comes to rest (the knight, the empty frame, the
 // blue case, the three shields): the frames at the middle of each rest, which
-// last 4 to 8 frames. They are the same frames in both shapes.
-const STOP_FRAMES = [37, 75, 117, 157];
-const STOP_TIMES = STOP_FRAMES.map((frame) => (frame + 0.5) / FPS);
-const placesFor = (frames: number) => [0, ...STOP_TIMES, (frames - 0.5) / FPS];
-const PLACES_LARGE = placesFor(FRAMES_LARGE);
-const PLACES_PHONE = placesFor(FRAMES_PHONE);
+// last 4 to 8 frames. The two shapes are two different films, so each has its own (the wide
+// one's are the middles of the rests at frames 35-38, 84-88, 130-134 and 172-176).
+const STOP_FRAMES_PHONE = [37, 75, 117, 157];
+const STOP_FRAMES_LARGE = [36, 86, 132, 174];
+const placesFor = (stops: number[], frames: number) => [
+  0,
+  ...stops.map((frame) => (frame + 0.5) / FPS),
+  (frames - 0.5) / FPS,
+];
+const PLACES_LARGE = placesFor(STOP_FRAMES_LARGE, FRAMES_LARGE);
+const PLACES_PHONE = placesFor(STOP_FRAMES_PHONE, FRAMES_PHONE);
 // How fast the film plays between two places (1 is the speed it was made at):
 // the speed of each stretch of the film, in the order of the places (the start to
 // the first stop, the first stop to the second, and so on to the last frame). The
@@ -1061,7 +1068,7 @@ export default function PersonalizationScrollVideo() {
     const settle = () => {
       const index = place - 1; // places 1 to 4 are the stops, place 5 the last frame
       setStop(
-        index >= 0 && index < STOP_FRAMES.length ? index : null,
+        index >= 0 && index < STOP_FRAMES_PHONE.length ? index : null,
         index >= 0 && index < STOP_TEXTS.length ? index : null,
       );
     };

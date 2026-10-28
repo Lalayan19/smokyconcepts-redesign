@@ -680,6 +680,16 @@ body:has(.personalization-scrub) {
   will-change: transform;
 }
 
+/* On a laptop or a desktop the picture is always this much larger, resting or playing, so it
+   does not grow when the film stops and shrink when it plays (only how far it follows the mouse
+   comes and goes). */
+@media (min-width: 1024px) and (min-height: 500px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .personalization-scrub-canvas,
+  .personalization-scrub-video {
+    transform: translate3d(calc(var(--px, 0) * -14px), calc(var(--py, 0) * -9px), 0) scale(1.05);
+  }
+}
+
 @media (min-aspect-ratio: 1/1) {
   .personalization-scrub-canvas {
     display: none;

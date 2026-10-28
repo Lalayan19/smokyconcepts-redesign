@@ -70,14 +70,14 @@ export default function HeroVideoBanner({
           wideEl.src = wideVideo;
           wideEl.load();
         }
-        stop = keepPlaying(wideEl, "unlock-wide", "/videos/unlock-fallback-wide-v2.webp");
+        stop = keepPlaying(wideEl, "unlock-wide", "/videos/unlock-fallback-wide-v3.webp");
       } else {
         wideEl?.pause();
         if (!portrait.getAttribute("src")) {
           portrait.src = video;
           portrait.load();
         }
-        stop = keepPlaying(portrait, "unlock-phone", "/videos/unlock-fallback-phone.webp");
+        stop = keepPlaying(portrait, "unlock-phone", "/videos/unlock-fallback-phone-v2.webp");
       }
     };
     apply();
@@ -98,7 +98,7 @@ export default function HeroVideoBanner({
         <video
           ref={videoRef}
           src={video}
-          poster="/videos/unlock-poster-phone.webp"
+          poster="/videos/unlock-poster-phone-v2.webp"
           autoPlay
           muted
           loop
@@ -107,9 +107,9 @@ export default function HeroVideoBanner({
           // A video has no size until its file starts to load, so the section
           // used to shrink to almost nothing for a moment on every refresh and
           // the page below jumped down when it arrived. The box has the video's
-          // own proportions (464 x 848) from the first paint, and is black until
+          // own proportions (720 x 1280) from the first paint, and is black until
           // the first picture is there.
-          style={{ aspectRatio: "464 / 848", backgroundColor: "#000" }}
+          style={{ aspectRatio: "720 / 1280", backgroundColor: "#000" }}
         />
      </Link>
         {/* The horizontal video, for a tablet, a laptop and a desktop only (it is not
@@ -122,7 +122,7 @@ export default function HeroVideoBanner({
               loop
               playsInline
               preload="none"
-              poster="/videos/unlock-poster-wide-v2.webp"
+              poster="/videos/unlock-poster-wide-v3.webp"
               aria-hidden="true"
               className="hero-banner-wide"
               style={{ aspectRatio: "16 / 9", backgroundColor: "#000" }}

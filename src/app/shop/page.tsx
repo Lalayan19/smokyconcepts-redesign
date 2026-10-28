@@ -228,7 +228,7 @@ function ShopContent() {
             </section>
           ))}
           {categories.length === 0 && (
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-1.5">
               <p className="text-sm text-[#9d9d9d]">{t("noResults")}</p>
               <button
                 type="button"

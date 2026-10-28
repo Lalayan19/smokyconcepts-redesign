@@ -233,8 +233,7 @@ function ShopContent() {
               <button
                 type="button"
                 onClick={clearAll}
-                style={{ height: 36, padding: "0 14px", fontSize: 13, borderRadius: 8 }}
-                className="shrink-0 bg-[#dcc090] font-semibold text-[#122a26] shadow-[0_4px_22.5px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#d3b57c]"
+                className="shrink-0 text-sm font-bold text-[#dcc090] underline underline-offset-2 hover:text-[#d3b57c]"
               >
                 {t("clearFilters")}
               </button>

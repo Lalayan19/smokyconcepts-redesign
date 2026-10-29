@@ -22,9 +22,9 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 //    a video (16:9), in which every frame is a key frame
 //    (`public/videos/personalization-scrub.mp4`), so jumping to any time is as
 //    fast going backwards as forwards;
-//  - for a window taller than wide (a phone, a tablet upright): the 210 frames
-//    as pictures (the film as it was made for a phone, 9:16,
-//    `public/videos/personalization-mobile-frames/`), drawn
+//  - for a window taller than wide (a phone, a tablet upright): the 245 frames
+//    as pictures (the same film as the wide one, made as its own vertical version, 9:16,
+//    `public/videos/personalization-mobile-frames-v4/`), drawn
 //    on a canvas. A phone's video decoder is slow to jump to a frame (a jump is
 //    a hold-up of 50 to 150 ms there), so playing a video backwards, or
 //    scrubbing it, is jerky on a phone; a picture is drawn at once.
@@ -40,7 +40,7 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 
 // Raise it when a file of the film is changed (see next.config.ts): the new
 // address is not in the browser's keeping.
-const FILM_VERSION = 5;
+const FILM_VERSION = 7;
 const SRC_LARGE = `/videos/personalization-scrub.mp4?v=${FILM_VERSION}`;
 // The size of the video, for the bar if the server does not say (bytes).
 const FALLBACK_LARGE_BYTES = 8_600_000;
@@ -69,7 +69,7 @@ const openFilmCache = async (): Promise<Cache | null> => {
     return null;
   }
 };
-const FRAMES_DIR = "/videos/personalization-mobile-frames";
+const FRAMES_DIR = "/videos/personalization-mobile-frames-v4";
 const frameUrl = (index: number) =>
   `${FRAMES_DIR}/f${String(index).padStart(3, "0")}.webp?v=${FILM_VERSION}`;
 const FPS = 24;
@@ -77,10 +77,11 @@ const FPS = 24;
 // words "Your Sign" held, and only a faint light moving on them; scrolling back from the end
 // had to play through them before anything moved, so they are cut, and the film ends 9
 // frames after the words have settled.)
-// The film for a wide window is a newer one (250 frames, "Personalize_Tower_Update_V2"): its words
-// have settled at frame 229, so it ends 10 frames after that, at 240.
+// The film is "Personalize_Tower_Update_V2" (250 frames) for both shapes, with the same stops.
+// The wide one's words have settled at frame 229, so it ends 10 frames after that, at 240; the
+// vertical one has a black pause before them and its words settle at 235, so it ends at 245.
 const FRAMES_LARGE = 240;
-const FRAMES_PHONE = 210;
+const FRAMES_PHONE = 245;
 // The windows that get the video: wider than tall (the same test as in
 // globals.css).
 const LARGE_SCREEN = "(min-aspect-ratio: 1/1)";
@@ -88,10 +89,10 @@ const LARGE_SCREEN = "(min-aspect-ratio: 1/1)";
 // The stops, as the frame (counting from 0) the film stays on. They are the
 // moments where the picture comes to rest (the knight, the empty frame, the
 // blue case, the three shields): the frames at the middle of each rest, which
-// last 4 to 8 frames. The two shapes are two different films, so each has its own (the wide
-// one's are the middles of the rests at frames 35-38, 84-88, 130-134 and 172-176).
-const STOP_FRAMES_PHONE = [37, 75, 117, 157];
+// last 4 to 8 frames. They are the middles of the rests at frames 35-38, 84-88, 130-134 and
+// 172-176 of the film, the same in both shapes.
 const STOP_FRAMES_LARGE = [36, 86, 132, 174];
+const STOP_FRAMES_PHONE = STOP_FRAMES_LARGE;
 const placesFor = (stops: number[], frames: number) => [
   0,
   ...stops.map((frame) => (frame + 0.5) / FPS),

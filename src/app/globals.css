@@ -2105,10 +2105,11 @@ body:has(.personalization-page) .site-footer {
     inset: 0 var(--hero-shift) 0 calc(var(--hero-shift) * -1);
   }
 
-  /* The right side of the video fades into the black, so the video has no hard edge there and the
-     empty part on the right is not seen (the texts are over it). This is the only black fade: the
-     black shade that was at the bottom of the section is gone, and so the green one at the top,
-     from the component, is the only other gradient. */
+  /* The right edge of the video fades into the black, so the video has no hard edge there and the
+     empty part on the right is not seen. It is only the last 15% of the video's width, so the rest
+     of the video is not darkened (it was a fade from 35% across, which made the whole right half
+     darker). This is the only black fade: the black shade that was at the bottom of the section is
+     gone, and so the green one at the top, from the component, is the only other gradient. */
   .hero-banner .hero-banner-wide-link::after {
     content: "";
     position: absolute;
@@ -2116,9 +2117,9 @@ body:has(.personalization-page) .site-footer {
     pointer-events: none;
     background: linear-gradient(
       to right,
-      rgba(0, 0, 0, 0) 35%,
-      rgba(0, 0, 0, 0.55) 55%,
-      rgba(0, 0, 0, 0.88) 80%,
+      rgba(0, 0, 0, 0) 85%,
+      rgba(0, 0, 0, 0.55) 92%,
+      rgba(0, 0, 0, 0.88) 97%,
       #000 100%
     );
   }

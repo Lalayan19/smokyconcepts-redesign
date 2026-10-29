@@ -3203,11 +3203,12 @@ html[lang] .popular-sizes-section > p {
   }
 
   /* Unlock, phone: the text under "Smoky Covers" is only as wide as the room left of the button
-     (about three rows), and the button is at its right, its bottom edge level with the bottom of
-     the text (it was under the text, pulled up over it). Both are drawn 6px higher, together. */
+     (about three rows), and the button is at its right, in the middle of the height of the
+     heading and the text (it was under the text, pulled up over it). Both are drawn 6px higher,
+     together. */
   html .hero-banner .hero-banner-bottom {
     flex-direction: row;
-    align-items: flex-end;
+    align-items: center;
   }
 
   html .hero-banner .hero-banner-copy {
@@ -3217,9 +3218,10 @@ html[lang] .popular-sizes-section > p {
 
   html .hero-banner .hero-banner-button {
     margin-top: 0;
-    align-self: flex-end;
+    align-self: center;
     position: relative;
-    top: -6px;
+    /* 6px, like the text, and 8px more: a little above the middle of it. */
+    top: -14px;
   }
 }
 

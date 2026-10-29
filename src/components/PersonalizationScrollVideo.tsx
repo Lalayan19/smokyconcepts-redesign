@@ -197,9 +197,14 @@ type StopText = {
   left: string;
   top: string;
   note?: { left: string; top: string };
-  // The whole block (the big lines, the heading and the paragraph) is at the bottom left on
-  // a phone, instead of the top left; a wide window has it at `left` and `top` as usual.
+  // The whole block (the big lines, the heading and the paragraph) is at the bottom on
+  // a phone (at the left, or in the middle with `phoneCenter`), instead of the top left; a wide window has it at `left` and `top` as usual.
   phoneBottom?: boolean;
+  // On a phone the block is in the middle of the width, its texts left-aligned (a wide window has it
+  // where `left` and `top` say, left-aligned).
+  phoneCenter?: boolean;
+  // On a phone the big lines are one row ("START DESIGNING"), not one over the other.
+  phoneOneRow?: boolean;
 };
 
 // How much a block moves with the mouse (a laptop, a desktop): 1 is a little, more
@@ -222,6 +227,9 @@ const STOP_TEXTS: (StopText | null)[] = [
     // for every stop (the knight starts at 35%).
     left: "13%",
     top: "50%",
+    // On a phone it stays at the top (the knight is in the lower three quarters), in the middle.
+    phoneCenter: true,
+    phoneOneRow: true,
   },
   // stop 2, the empty frame
   {
@@ -235,6 +243,8 @@ const STOP_TEXTS: (StopText | null)[] = [
     // start at 31%).
     left: "13%",
     top: "74%",
+    phoneBottom: true,
+    phoneCenter: true,
   },
   // stop 3, the blue case
   {
@@ -244,12 +254,13 @@ const STOP_TEXTS: (StopText | null)[] = [
     // At the bottom left, before the colour wall and its floor (they start at 27-32%).
     left: "13%",
     top: "74%",
+    phoneCenter: true,
   },
   // stop 4, the three shields
   {
-    // Two lines (one line of this is wider than a phone): "White Gold, Gold, Rose Gold".
+    // Two lines (one line of this is wider than a phone): "Gold, White Gold, Rose Gold".
     lines: [
-      ["White Gold,", 98],
+      ["Gold, White", 98],
       ["Gold, Rose Gold", 98],
     ],
     heading: "Finish in metal",
@@ -260,6 +271,7 @@ const STOP_TEXTS: (StopText | null)[] = [
     top: "78%",
     // On a phone the cushions are at the top of the picture, so the text goes to the bottom.
     phoneBottom: true,
+    phoneCenter: true,
   },
   // the last frame, "Your Sign": the big lines top left, the note bottom right
   {
@@ -272,12 +284,13 @@ const STOP_TEXTS: (StopText | null)[] = [
     // "Your Sign" is in the middle (33-67% across, 31-63% down): the big lines are at the
     // top left and the note at the bottom right, away from it.
     // The big lines, the heading and the paragraph are one block: at the bottom left on a wide
-    // window, as at the stops 2 and 3, and at the bottom left on a phone. (The note's own
+    // window, as at the stops 2 and 3, and at the bottom centre on a phone. (The note's own
     // place, `note`, is not shown.)
     left: "13%",
     top: "74%",
     note: { left: "72%", top: "76%" },
     phoneBottom: true,
+    phoneCenter: true,
   },
 ];
 
@@ -1262,7 +1275,7 @@ export default function PersonalizationScrollVideo() {
             text && (
               <Fragment key={index}>
                 <div
-                  className={`stop-text font-montserrat${text.phoneBottom ? " stop-text-phone-bottom" : ""}`}
+                  className={`stop-text font-montserrat${text.phoneBottom ? " stop-text-phone-bottom" : ""}${text.phoneCenter ? " stop-text-phone-center" : ""}${text.phoneOneRow ? " stop-text-phone-row" : ""}`}
                   data-shown={restText === index}
                   aria-hidden={restText !== index}
                   style={

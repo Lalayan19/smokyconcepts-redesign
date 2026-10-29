@@ -51,8 +51,8 @@ export default function Home() {
           bottomHeading={t("unlock.heading")}
           bottomText={t.rich("unlock.text", { br: () => <br className="hero-phone-break" /> })}
           image={newAccessory}
-          video="/videos/smoky-unlock-v3.mp4"
-          wideVideo="/videos/smoky-unlock-opener-v4.mp4"
+          video="/videos/smoky-unlock-v4.mp4"
+          wideVideo="/videos/smoky-unlock-opener-v5.mp4"
           buttonLabel={t("unlock.button")}
           buttonHref="/shop"
         />

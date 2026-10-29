@@ -20,11 +20,11 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 // It is the same film, in two shapes, and it fills the whole window in both:
 //  - for a window wider than tall (a laptop, a desktop, a tablet on its side):
 //    a video (16:9), in which every frame is a key frame
-//    (`public/videos/personalization-scrub.mp4`), so jumping to any time is as
+//    (`public/videos/personalization-scrub-v2.mp4`), so jumping to any time is as
 //    fast going backwards as forwards;
-//  - for a window taller than wide (a phone, a tablet upright): the 245 frames
+//  - for a window taller than wide (a phone, a tablet upright): the 233 frames
 //    as pictures (the same film as the wide one, made as its own vertical version, 9:16,
-//    `public/videos/personalization-mobile-frames-v4/`), drawn
+//    `public/videos/personalization-mobile-frames-v5/`), drawn
 //    on a canvas. A phone's video decoder is slow to jump to a frame (a jump is
 //    a hold-up of 50 to 150 ms there), so playing a video backwards, or
 //    scrubbing it, is jerky on a phone; a picture is drawn at once.
@@ -41,9 +41,9 @@ import { BUTTON_EDGE } from "@/components/buttonEdge";
 // Raise it when a file of the film is changed (see next.config.ts): the new
 // address is not in the browser's keeping.
 const FILM_VERSION = 7;
-const SRC_LARGE = `/videos/personalization-scrub.mp4?v=${FILM_VERSION}`;
+const SRC_LARGE = `/videos/personalization-scrub-v2.mp4?v=${FILM_VERSION}`;
 // The size of the video, for the bar if the server does not say (bytes).
-const FALLBACK_LARGE_BYTES = 8_600_000;
+const FALLBACK_LARGE_BYTES = 11_100_000;
 // Where the video is kept in the browser once it has come. (The browser's own
 // keeping, which the server's headers ask for, does not hold a file this big in
 // some browsers, Safari among them, so the video is also put in Cache Storage,
@@ -69,30 +69,29 @@ const openFilmCache = async (): Promise<Cache | null> => {
     return null;
   }
 };
-const FRAMES_DIR = "/videos/personalization-mobile-frames-v4";
+const FRAMES_DIR = "/videos/personalization-mobile-frames-v5";
 const frameUrl = (index: number) =>
   `${FRAMES_DIR}/f${String(index).padStart(3, "0")}.webp?v=${FILM_VERSION}`;
 const FPS = 24;
-// The length of each shape, in frames. (The film as it was made has 250: the last 40 are the
-// words "Your Sign" held, and only a faint light moving on them; scrolling back from the end
-// had to play through them before anything moved, so they are cut, and the film ends 9
-// frames after the words have settled.)
-// The film is "Personalize_Tower_Update_V2" (250 frames) for both shapes, with the same stops.
-// The wide one's words have settled at frame 229, so it ends 10 frames after that, at 240; the
-// vertical one has a black pause before them and its words settle at 235, so it ends at 245.
-const FRAMES_LARGE = 240;
-const FRAMES_PHONE = 245;
+// The length of each shape, in frames. The wide one is the second version of
+// "Personalize_Tower_Update_V2" (250 frames, all of it: its words have settled at frame 243, and
+// the film ends 7 frames after that); the vertical one is its own film, whose words settle at
+// frame 223, so it ends at 233. The two have different stops (below).
+const FRAMES_LARGE = 250;
+const FRAMES_PHONE = 233;
 // The windows that get the video: wider than tall (the same test as in
 // globals.css).
 const LARGE_SCREEN = "(min-aspect-ratio: 1/1)";
 
 // The stops, as the frame (counting from 0) the film stays on. They are the
 // moments where the picture comes to rest (the knight, the empty frame, the
-// blue case, the three shields): the frames at the middle of each rest, which
-// last 4 to 8 frames. They are the middles of the rests at frames 35-38, 84-88, 130-134 and
-// 172-176 of the film, the same in both shapes.
-const STOP_FRAMES_LARGE = [36, 86, 132, 174];
-const STOP_FRAMES_PHONE = STOP_FRAMES_LARGE;
+// blue case, the three shields): the frames at the middle of each rest.
+// The wide film rests (the picture does not change) at frames 36-39, 87-95 and 182-186; the
+// blue case has no rest in it: its stop is frame 139, the picture of the old film's rest (140 is the next frame, already moving on).
+// The vertical film rests at frames 36-39, 88-91, 135-139 and 178-183 (the picture does not
+// change), and its stops are the middles of them.
+const STOP_FRAMES_LARGE = [37, 91, 139, 184];
+const STOP_FRAMES_PHONE = [38, 90, 137, 180];
 const placesFor = (stops: number[], frames: number) => [
   0,
   ...stops.map((frame) => (frame + 0.5) / FPS),
@@ -108,6 +107,28 @@ const PLACES_PHONE = placesFor(STOP_FRAMES_PHONE, FRAMES_PHONE);
 const PLAY_SPEED = 1.6;
 const SLOWER_SPEED = 1.25;
 const STRETCH_SPEEDS = [PLAY_SPEED, PLAY_SPEED, SLOWER_SPEED, SLOWER_SPEED, PLAY_SPEED];
+// Leaving a stop, the film is still, or almost, for a few frames before the picture goes
+// on: that looked like a short stop. Within a zone (a place, and the frame it starts to
+// move at, going back and going on) the film goes through the frames EASE_BOOST times as
+// fast, leaving (arriving, it eases as it was made).
+const EASE_BOOST = 3;
+type EaseZone = { place: number; back: number; forward: number };
+const EASE_ZONES_LARGE: EaseZone[] = [
+  { place: 1, back: 35, forward: 40 },
+  { place: 2, back: 84, forward: 97 },
+  { place: 4, back: 181, forward: 188 },
+];
+const EASE_ZONES_PHONE: EaseZone[] = [
+  { place: 1, back: 35, forward: 41 },
+  { place: 2, back: 84, forward: 93 },
+  { place: 3, back: 133, forward: 141 },
+  { place: 4, back: 177, forward: 185 },
+];
+// A tablet or larger: within this many frames of the place it is going to, the film waits
+// for the video to have jumped to a frame before it asks for the next; and it comes to
+// rest only once the video shows the frame it stops on (at most ARRIVE_WAIT_MS ms).
+const APPROACH_FRAMES = 4;
+const ARRIVE_WAIT_MS = 400;
 
 // A finger's swipe takes the page on to the contact form (and back) by itself, not
 // all at once: this many ms for each px it has to go (but at least, and at most,
@@ -188,11 +209,6 @@ type StopText = {
 const DEPTH = 1;
 const NOTE_DEPTH = 1.6;
 
-// The heading and the paragraph of every text, only to be going on with.
-const PLACEHOLDER_HEADING = "Contrary";
-const PLACEHOLDER_BODY =
-  "The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from";
-
 const STOP_TEXTS: (StopText | null)[] = [
   // stop 1, the knight
   {
@@ -200,10 +216,12 @@ const STOP_TEXTS: (StopText | null)[] = [
       ["START", 110],
       ["DESIGNING", 78],
     ],
-    heading: PLACEHOLDER_HEADING,
-    body: PLACEHOLDER_BODY,
-    left: "18.9%",
-    top: "56%",
+    heading: "Make it yours",
+    body: "Choose your cigarette size, then shape every detail of your Smoky Cover, from the leather to the finish.",
+    // On a wide window the text is in the empty dark left of the picture, at one left edge
+    // for every stop (the knight starts at 35%).
+    left: "13%",
+    top: "50%",
   },
   // stop 2, the empty frame
   {
@@ -211,19 +229,21 @@ const STOP_TEXTS: (StopText | null)[] = [
       ["High class", 91],
       ["Leather", 110],
     ],
-    heading: PLACEHOLDER_HEADING,
-    body: PLACEHOLDER_BODY,
-    // On the left of the picture (it was at 64.2%, on the horns in the new film).
-    left: "12%",
-    top: "63%",
+    heading: "Choose your leather",
+    body: "Premium leathers in a range of colours and textures, picked for how well they feel and how beautifully they age.",
+    // At the bottom left, under the dark corner before the frame and the leathers (they
+    // start at 31%).
+    left: "13%",
+    top: "74%",
   },
   // stop 3, the blue case
   {
     lines: [["Body Color", 98]],
-    heading: PLACEHOLDER_HEADING,
-    body: PLACEHOLDER_BODY,
-    left: "11.8%",
-    top: "37.9%",
+    heading: "Pick your colour",
+    body: "A wide palette for the body of your cover, from quiet neutrals to bold statements. Your cover, your shade.",
+    // At the bottom left, before the colour wall and its floor (they start at 27-32%).
+    left: "13%",
+    top: "74%",
   },
   // stop 4, the three shields
   {
@@ -232,10 +252,12 @@ const STOP_TEXTS: (StopText | null)[] = [
       ["White Gold,", 98],
       ["Gold, Rose Gold", 98],
     ],
-    heading: PLACEHOLDER_HEADING,
-    body: PLACEHOLDER_BODY,
-    left: "10.9%",
-    top: "19.5%",
+    heading: "Finish in metal",
+    body: "Put your emblem or monogram on the leather in white gold, gold or rose gold, whichever suits your style.",
+    // At the bottom right, in the dark under the steps (the cushions are at 16-69% across
+    // and end at 67% of the height).
+    left: "72%",
+    top: "78%",
     // On a phone the cushions are at the top of the picture, so the text goes to the bottom.
     phoneBottom: true,
   },
@@ -245,11 +267,13 @@ const STOP_TEXTS: (StopText | null)[] = [
       ["More", 113],
       ["Free Zones", 72],
     ],
-    heading: PLACEHOLDER_HEADING,
-    body: PLACEHOLDER_BODY,
-    left: "18.2%",
-    top: "14.8%",
-    note: { left: "61.8%", top: "78%" },
+    heading: "Leave your mark",
+    body: "A name, initials or a short line in the free zones: the last detail that makes it unmistakably yours.",
+    // "Your Sign" is in the middle (33-67% across, 31-63% down): the big lines are at the
+    // top left and the note at the bottom right, away from it.
+    left: "7%",
+    top: "16%",
+    note: { left: "72%", top: "76%" },
   },
 ];
 
@@ -332,6 +356,13 @@ export default function PersonalizationScrollVideo() {
       if (Math.abs(video.currentTime - target) > 1 / (FPS * 2)) {
         video.currentTime = target;
       }
+    };
+
+    // Whether the video is showing the frame whose time is `time` (and is not jumping).
+    const videoShows = (at: number) => {
+      const last = Math.max(0, Math.round(duration() * FPS) - 1);
+      const index = Math.min(last, Math.max(0, Math.floor(at * FPS)));
+      return !video.seeking && Math.abs(video.currentTime - (index + 0.5) / FPS) <= 0.75 / FPS;
     };
 
     // The video, all of it (it was fetched whole, see `loadVideo`), has its first
@@ -612,15 +643,30 @@ export default function PersonalizationScrollVideo() {
       const list = places();
       for (let i = 0; i < list.length - 1; i++) {
         const inside = way > 0 ? at >= list[i] && at < list[i + 1] : at > list[i] && at <= list[i + 1];
-        if (inside) return STRETCH_SPEEDS[i] ?? PLAY_SPEED;
+        if (inside) return (STRETCH_SPEEDS[i] ?? PLAY_SPEED) * easeBoost(at, way);
       }
       return PLAY_SPEED;
+    };
+
+    // Leaving a stop (see EASE_ZONES_LARGE), the film goes through the frames where the
+    // picture hardly moves EASE_BOOST times as fast, so it is on its way at once;
+    // arriving, it eases as it was made.
+    const easeBoost = (at: number, way: number) => {
+      const list = places();
+      const inside = (large() ? EASE_ZONES_LARGE : EASE_ZONES_PHONE).some((zone) => {
+        const stop = list[zone.place];
+        return way > 0
+          ? at >= stop && at < zone.forward / FPS
+          : at > zone.back / FPS && at <= stop;
+      });
+      return inside ? EASE_BOOST : 1;
     };
 
     let moving = 0; // 1 playing forwards, -1 backwards, 0 at rest
     let moveAt = 0; // when the film last moved
     let moveFrame: number | null = null;
     let lockedUntil = 0; // no new scroll is taken before this (after a stop)
+    let arriveWaitSince: number | null = null; // the film is at its place, waiting for the picture
 
     // The film plays, in real time, towards places()[place] (forwards, or
     // backwards: the video has every frame as a key frame, so it is a jump to
@@ -639,12 +685,25 @@ export default function PersonalizationScrollVideo() {
           if (!arrived.has(ahead)) passed = 0;
         }
         const goal = places()[place];
+        // On a tablet or larger, near the place it is going to, the film waits for the
+        // picture before it goes on: a frame asked for while the video is still jumping
+        // to the one before is dropped, so the picture would stop on an earlier frame
+        // and then jump to the right one.
+        if (large() && video.seeking && Math.abs(goal - time) * FPS <= APPROACH_FRAMES) passed = 0;
         time += moving * speedAt(time, moving) * passed;
         if ((moving > 0 && time >= goal) || (moving < 0 && time <= goal)) {
           time = goal;
-          moving = 0;
-          lockedUntil = performance.now() + SETTLE_MS;
-          settle();
+          // It comes to rest only when the picture shows the frame it stops on (or, if
+          // the video does not get there, after ARRIVE_WAIT_MS).
+          showAt(time);
+          const shown = !large() || videoShows(goal);
+          if (!shown && arriveWaitSince === null) arriveWaitSince = now;
+          if (shown || (arriveWaitSince !== null && now - arriveWaitSince > ARRIVE_WAIT_MS)) {
+            arriveWaitSince = null;
+            moving = 0;
+            lockedUntil = performance.now() + SETTLE_MS;
+            settle();
+          }
         }
       }
       showAt(time);
@@ -673,6 +732,7 @@ export default function PersonalizationScrollVideo() {
         if (next < 0 || next >= list.length) return;
         place = next;
         moving = way;
+        arriveWaitSince = null;
         moveAt = performance.now();
         setStop(null);
         if (moveFrame === null) moveFrame = requestAnimationFrame(playTick);
@@ -691,6 +751,7 @@ export default function PersonalizationScrollVideo() {
         if (next < 0) return;
         place = next;
         moving = way;
+        arriveWaitSince = null;
         setStop(null);
       }
     };
@@ -1172,18 +1233,21 @@ export default function PersonalizationScrollVideo() {
         {/* The title on the first frame (see globals.css): it goes when the film
             starts to play, and comes back when the film is at its start again. */}
         <h1 className="personalization-intro font-montserrat" data-shown={atStart}>
-          <span className="personalization-intro-small">Build Your</span>
-          <span className="personalization-intro-big">DESIGN</span>
+          <span className="personalization-intro-row">
+            <span className="personalization-intro-small personalization-intro-word">Build</span>
+            <span className="personalization-intro-small personalization-intro-word">Your</span>
+            <span className="personalization-intro-big personalization-intro-word">Design</span>
+          </span>
           <svg
             className="personalization-intro-arrow"
-            viewBox="0 0 24 32"
+            viewBox="0 0 24 14"
             fill="none"
             stroke="currentColor"
             strokeLinecap="round"
             strokeLinejoin="round"
             aria-hidden="true"
           >
-            <path d="M12 2v27M3 20l9 9 9-9" vectorEffect="non-scaling-stroke" />
+            <path d="M2 2l10 10L22 2" vectorEffect="non-scaling-stroke" />
           </svg>
         </h1>
 

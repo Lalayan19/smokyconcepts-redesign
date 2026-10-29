@@ -472,17 +472,16 @@ body:has(.personalization-scrub) {
   background: #d3b57c;
 }
 
-/* The title on the first frame: "Build Your" over "DESIGN" (Montserrat ExtraBold
-   Italic, white) and an arrow pointing down, in the middle of the film. It is shown
-   only while the film is at its start and at rest (data-shown). --intro-size is the
-   size of "Build Your"; "DESIGN" is 1.336 times that (122px and 163px on a
-   desktop), which makes the two lines about as wide as each other.
-   A window taller than wide (a phone, a tablet upright) takes the lines as 8.2% of
-   its width for "Build Your", so the two lines are 45% of the width; a window wider
-   than tall (a laptop, a desktop) takes 6.35% of the width, up to 122px (at 1920px
-   wide), and no more than 15% of the height, so it fits a low window. */
+/* The title on the first frame: "Build Your Design" in one row (Montserrat
+   Regular, white) and a "v" pointing down under it, in the middle of the
+   film. It is shown only while the film is at its start and at rest (data-shown).
+   --intro-size is the size of all three words (108px on a desktop).
+   A window taller than wide (a phone, a tablet upright) takes it as 6% of its
+   width; a window wider than tall (a laptop, a desktop) takes 5.6% of the width, up
+   to 108px (at 1930px wide), and no more than 13% of the height, so it fits a low
+   window. */
 .personalization-intro {
-  --intro-size: min(8.2vw, 13svh);
+  --intro-size: min(6vw, 11.5svh);
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -492,8 +491,8 @@ body:has(.personalization-scrub) {
   justify-content: center;
   text-align: center;
   color: #fff;
-  font-style: italic;
-  font-weight: 800;
+  font-style: normal;
+  font-weight: 400;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.35s ease;
@@ -501,7 +500,18 @@ body:has(.personalization-scrub) {
 
 .personalization-intro[data-shown="true"] {
   opacity: 1;
-  transition: opacity 0.5s ease 0.1s;
+  transition: none;
+}
+
+/* The three words are one row; each comes in after the one before it ("Build",
+   then "Your", then "DESIGN", then the arrow) every time the title is shown. When
+   it goes, the animation ends and the whole title fades out together. */
+.personalization-intro-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: calc(var(--intro-size) * 0.3);
+  white-space: nowrap;
 }
 
 .personalization-intro-small,
@@ -511,27 +521,88 @@ body:has(.personalization-scrub) {
   white-space: nowrap;
 }
 
+.personalization-intro[data-shown="true"] .personalization-intro-word {
+  animation: personalization-intro-word 0.6s ease-out both;
+}
+
+.personalization-intro[data-shown="true"] .personalization-intro-word:nth-child(2) {
+  animation-delay: 0.45s;
+}
+
+.personalization-intro[data-shown="true"] .personalization-intro-word:nth-child(3) {
+  animation-delay: 0.9s;
+}
+
+/* The arrow comes in after the words, then moves a little down and up for as long
+   as the title is shown. */
+.personalization-intro[data-shown="true"] .personalization-intro-arrow {
+  animation:
+    personalization-intro-arrow-in 0.8s ease-out 1.4s both,
+    personalization-intro-bob 1.2s ease-in-out 2.3s infinite;
+}
+
+/* The arrow's own size is small (its em is the page's), so it comes down a set
+   distance in px, not in em like the words. */
+@keyframes personalization-intro-arrow-in {
+  from {
+    opacity: 0;
+    transform: translateY(-32px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes personalization-intro-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes personalization-intro-word {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .personalization-intro[data-shown="true"] .personalization-intro-word,
+  .personalization-intro[data-shown="true"] .personalization-intro-arrow {
+    animation: none;
+  }
+}
+
 .personalization-intro-small {
   font-size: var(--intro-size);
 }
 
 .personalization-intro-big {
-  font-size: calc(var(--intro-size) * 1.336);
+  font-size: var(--intro-size);
 }
 
-/* The arrow is half the height of "DESIGN" and a little under it (at most 56px, and
-   72px under). */
+/* The arrow is a plain "v" (no stick), a little under the row (at most 28px high,
+   and 130px under). */
 .personalization-intro-arrow {
   flex: none;
   width: auto;
-  height: min(calc(var(--intro-size) * 0.668), 56px);
-  margin-top: min(calc(var(--intro-size) * 1.2), 72px);
+  height: min(calc(var(--intro-size) * 0.35), 28px);
+  margin-top: min(calc(var(--intro-size) * 2.2), 130px);
   stroke-width: 2px;
 }
 
 @media (min-aspect-ratio: 1/1) {
   .personalization-intro {
-    --intro-size: min(122px, 6.354vw, 15svh);
+    --intro-size: min(108px, 5.6vw, 13svh);
   }
 
   .personalization-intro-arrow {
@@ -644,9 +715,46 @@ body:has(.personalization-scrub) {
     text-shadow: none;
   }
 
+  /* The text of a stop is smaller and thinner than the design on a wide window: the big
+     lines are 0.6 of their size (600 weight), the heading 26 and the paragraph 14 of
+     --u (600 and 400 weight). */
+  .stop-text-title {
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .stop-text-line {
+    font-size: calc(var(--n) * var(--u) * 0.6);
+  }
+
+  /* The heading and the paragraph under the big lines: a short gold rule, the heading
+     small in gold capitals with wide spacing, and the paragraph soft white. */
+  .stop-text-heading {
+    margin-top: calc(22 * var(--u));
+    color: #dcc090;
+    font-size: max(calc(17 * var(--u)), 12px);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .stop-text-heading::before {
+    content: "";
+    display: block;
+    width: calc(40 * var(--u));
+    min-width: 28px;
+    height: 1px;
+    margin-bottom: calc(14 * var(--u));
+    background: #dcc090;
+  }
+
   .stop-text-body {
-    margin-top: calc(7.7 * var(--u));
-    max-width: calc(396 * var(--u));
+    margin-top: calc(10 * var(--u));
+    max-width: calc(340 * var(--u));
+    color: rgba(255, 255, 255, 0.78);
+    font-size: max(calc(15 * var(--u)), 12px);
+    font-weight: 400;
+    line-height: 1.65;
   }
 }
 

@@ -70,14 +70,14 @@ export default function HeroVideoBanner({
           wideEl.src = wideVideo;
           wideEl.load();
         }
-        stop = keepPlaying(wideEl, "unlock-wide", "/videos/unlock-fallback-wide-v3.webp");
+        stop = keepPlaying(wideEl, "unlock-wide", "/videos/unlock-fallback-wide-v4.webp");
       } else {
         wideEl?.pause();
         if (!portrait.getAttribute("src")) {
           portrait.src = video;
           portrait.load();
         }
-        stop = keepPlaying(portrait, "unlock-phone", "/videos/unlock-fallback-phone-v2.webp");
+        stop = keepPlaying(portrait, "unlock-phone", "/videos/unlock-fallback-phone-v3.webp");
       }
     };
     apply();
@@ -98,7 +98,7 @@ export default function HeroVideoBanner({
         <video
           ref={videoRef}
           src={video}
-          poster="/videos/unlock-poster-phone-v2.webp"
+          poster="/videos/unlock-poster-phone-v3.webp"
           autoPlay
           muted
           loop
@@ -122,7 +122,7 @@ export default function HeroVideoBanner({
               loop
               playsInline
               preload="none"
-              poster="/videos/unlock-poster-wide-v3.webp"
+              poster="/videos/unlock-poster-wide-v4.webp"
               aria-hidden="true"
               className="hero-banner-wide"
               style={{ aspectRatio: "16 / 9", backgroundColor: "#000" }}

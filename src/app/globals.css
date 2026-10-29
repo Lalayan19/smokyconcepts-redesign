@@ -2096,6 +2096,11 @@ body:has(.personalization-page) .site-footer {
     display: none;
   }
 
+  /* The green shade at the top is 22% of the section's height here (30% on a phone). */
+  .hero-banner .hero-banner-gradient {
+    height: 22%;
+  }
+
   /* The video keeps its size (the whole width of the section) but is moved to the left by
      `--hero-shift`, so that much of it is out of the screen, on the left; the black on the
      right is where the texts are. */

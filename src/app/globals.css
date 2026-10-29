@@ -675,6 +675,12 @@ body:has(.personalization-scrub) {
   bottom: 6%;
 }
 
+/* The heading and paragraph of a note, under the big lines: only on a wide window (below);
+   a window taller than wide has the note's own block. */
+.stop-text-note-inline {
+  display: none;
+}
+
 .stop-text-heading {
   margin-top: calc(19.8 * var(--u));
   font-size: max(calc(40 * var(--u)), 18px);
@@ -746,6 +752,14 @@ body:has(.personalization-scrub) {
     height: 1px;
     margin-bottom: calc(14 * var(--u));
     background: #dcc090;
+  }
+
+  .stop-text-note-inline {
+    display: block;
+  }
+
+  .stop-text-note {
+    display: none;
   }
 
   .stop-text-body {

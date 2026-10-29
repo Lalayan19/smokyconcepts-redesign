@@ -675,17 +675,33 @@ body:has(.personalization-scrub) {
   bottom: 6%;
 }
 
-/* The heading and paragraph of a note, under the big lines: only on a wide window (below);
-   a window taller than wide has the note's own block. */
-.stop-text-note-inline {
+/* The heading and paragraph of a note are under the big lines, on every window, in one
+   block with them; the note's own block (a place of its own, apart from them) is not shown. */
+.stop-text-note {
   display: none;
 }
 
+/* The heading and the paragraph under the big lines (the same design on every window): a
+   short gold rule, the heading small in gold capitals with wide spacing, and the paragraph
+   soft white. A wide window sets its own sizes below. */
 .stop-text-heading {
-  margin-top: calc(19.8 * var(--u));
-  font-size: max(calc(40 * var(--u)), 18px);
-  font-weight: 800;
+  margin-top: max(calc(22 * var(--u)), 14px);
+  color: #dcc090;
+  font-size: max(calc(17 * var(--u)), 13px);
+  font-weight: 600;
+  letter-spacing: 0.16em;
   line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.stop-text-heading::before {
+  content: "";
+  display: block;
+  width: calc(40 * var(--u));
+  min-width: 28px;
+  height: 1px;
+  margin-bottom: max(calc(14 * var(--u)), 8px);
+  background: #dcc090;
 }
 
 .stop-text-note .stop-text-heading {
@@ -693,10 +709,11 @@ body:has(.personalization-scrub) {
 }
 
 .stop-text-body {
-  margin-top: calc(11 * var(--u));
-  font-size: max(calc(16 * var(--u)), 13px);
-  font-weight: 500;
-  line-height: 1.5;
+  margin-top: max(calc(10 * var(--u)), 8px);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: max(calc(15 * var(--u)), 13px);
+  font-weight: 400;
+  line-height: 1.65;
 }
 
 @media (min-aspect-ratio: 1/1) {
@@ -752,14 +769,6 @@ body:has(.personalization-scrub) {
     height: 1px;
     margin-bottom: calc(14 * var(--u));
     background: #dcc090;
-  }
-
-  .stop-text-note-inline {
-    display: block;
-  }
-
-  .stop-text-note {
-    display: none;
   }
 
   .stop-text-body {

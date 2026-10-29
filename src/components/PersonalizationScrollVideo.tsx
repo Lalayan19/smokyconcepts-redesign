@@ -271,12 +271,13 @@ const STOP_TEXTS: (StopText | null)[] = [
     body: "A name, initials or a short line in the free zones: the last detail that makes it unmistakably yours.",
     // "Your Sign" is in the middle (33-67% across, 31-63% down): the big lines are at the
     // top left and the note at the bottom right, away from it.
-    // On a wide window the big lines, the heading and the paragraph are one block at the bottom
-    // left, as at the stops 2 and 3 (the note's own place, `note`, is for a window taller
-    // than wide).
+    // The big lines, the heading and the paragraph are one block: at the bottom left on a wide
+    // window, as at the stops 2 and 3, and at the bottom left on a phone. (The note's own
+    // place, `note`, is not shown.)
     left: "13%",
     top: "74%",
     note: { left: "72%", top: "76%" },
+    phoneBottom: true,
   },
 ];
 
@@ -1285,8 +1286,8 @@ export default function PersonalizationScrollVideo() {
                       ))}
                     </h2>
                     {text.note ? (
-                      // On a wide window the heading and the paragraph of a note are under the
-                      // big lines; the note's own block (below) is for a window taller than wide.
+                      // The heading and the paragraph of a note are under the big lines, in one
+                      // block with them; the note's own block (below) is hidden (globals.css).
                       <div className="stop-text-note-inline">
                         <h3 className="stop-text-heading">{text.heading}</h3>
                         <p className="stop-text-body">{text.body}</p>

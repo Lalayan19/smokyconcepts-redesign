@@ -3201,6 +3201,12 @@ html[lang] .popular-sizes-section > p {
     position: relative;
     top: -6px;
   }
+
+  /* Unlock, phone: the button is drawn 8px lower (the layout, and the text, stay where they are). */
+  .hero-banner .hero-banner-button {
+    position: relative;
+    top: 8px;
+  }
 }
 
 /* Personalization, phone: the "Back to shop" link at the bottom of the contact sheet is 50px

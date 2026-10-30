@@ -3201,46 +3201,6 @@ html[lang] .popular-sizes-section > p {
     position: relative;
     top: -6px;
   }
-
-  /* Unlock, phone: the text under "Smoky Covers" is only as wide as the room left of the button
-     (about three rows), and the button is at its right, in the middle of the height of the
-     heading and the text (it was under the text, pulled up over it). Both are drawn 6px higher,
-     together. */
-  html .hero-banner .hero-banner-bottom {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  html .hero-banner .hero-banner-copy {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  html .hero-banner .hero-banner-button {
-    margin-top: 0;
-    align-self: center;
-    position: relative;
-    /* 6px, like the text, and 8px more: a little above the middle of it. */
-    top: -14px;
-  }
-}
-
-/* A phone under 341px wide has too little room beside the button: the button is under the text
-   as it was (and the text is as wide as the screen allows). */
-@media (max-width: 340px) {
-  html .hero-banner .hero-banner-bottom {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  html .hero-banner .hero-banner-copy {
-    flex: none;
-  }
-
-  html .hero-banner .hero-banner-button {
-    align-self: flex-end;
-    top: 0;
-  }
 }
 
 /* Personalization, phone: the "Back to shop" link at the bottom of the contact sheet is 50px
